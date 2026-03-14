@@ -46,8 +46,8 @@ function updateProgressUI() {
     if(countEl) countEl.textContent = learnedWords.length;
     if(wrongCountEl) wrongCountEl.textContent = wrongWords.length;
     
-    // Disable Review button if no wrong words saved
-    if(reviewBtn) {
+    // Disable Review button if no wrong words saved, otherwise wait for vocabulary load
+    if(reviewBtn && vocabulary.length > 0) {
         if(wrongWords.length === 0) {
             reviewBtn.disabled = true;
             reviewBtn.textContent = '✅ Chưa có từ sai';
@@ -137,24 +137,38 @@ function parseCSV(csvText) {
         }
     }
     
+    // Update the UI since we just populated vocabulary
+    updateProgressUI();
+    
     if (vocabulary.length < 4) {
         alert("Danh sách từ vựng quá ngắn (cần ít nhất 4 từ có đủ Hán Tự và Nghĩa để tạo 4 đáp án).");
         showScreen('start');
+    } else {
+        // Enable buttons
+        const modeButtons = document.getElementById('main-mode-buttons');
+        if(modeButtons) {
+            const btns = modeButtons.querySelectorAll('button');
+            btns[0].disabled = false;
+            btns[0].innerHTML = '<span class="btn-icon">🇨🇳</span> Luyện Mới (Hán Tự ➡️ Tiếng Việt)';
+            
+            btns[1].disabled = false;
+            btns[1].innerHTML = '<span class="btn-icon">🇻🇳</span> Luyện Mới (Tiếng Việt ➡️ Hán Tự)';
+        }
     }
 }
 
 async function startGame(mode) {
     gameMode = mode;
-    showScreen('loading');
-    
-    if (vocabulary.length === 0) {
-        await fetchVocabulary();
-    }
     
     if (vocabulary.length >= 4) {
         setupQuiz();
+    } else {
+        alert("Danh sách từ vựng chưa tải xong hoặc quá ngắn!");
     }
 }
+
+// Fetch data as soon as the script loads
+window.addEventListener('DOMContentLoaded', fetchVocabulary);
 
 function setupQuiz() {
     score = 0;

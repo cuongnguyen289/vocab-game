@@ -31,15 +31,15 @@
                 Đã sai (cần ôn): <span id="wrong-count" style="font-weight: bold;">0</span> từ
             </p>
             
-            <div class="mode-buttons">
-                <button class="btn primary-btn" onclick="startGame('han-viet')">
-                    <span class="btn-icon">🇨🇳</span> Luyện Mới (Hán Tự ➡️ Tiếng Việt)
+            <div class="mode-buttons" id="main-mode-buttons">
+                <button class="btn primary-btn" onclick="startGame('han-viet')" disabled>
+                    <span class="btn-icon">⏳</span> Đang tải dữ liệu...
                 </button>
-                <button class="btn secondary-btn" onclick="startGame('viet-han')">
-                    <span class="btn-icon">🇻🇳</span> Luyện Mới (Tiếng Việt ➡️ Hán Tự)
+                <button class="btn secondary-btn" onclick="startGame('viet-han')" disabled>
+                    <span class="btn-icon">⏳</span> Đang tải dữ liệu...
                 </button>
-                <button id="review-btn" class="btn warning-btn" onclick="startGame('review')">
-                    <span class="btn-icon">📝</span> Ôn tập (Các từ đã sai)
+                <button id="review-btn" class="btn warning-btn" onclick="startGame('review')" disabled>
+                    <span class="btn-icon">⏳</span> Đang tải dữ liệu...
                 </button>
             </div>
         </div>
