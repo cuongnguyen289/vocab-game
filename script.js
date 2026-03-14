@@ -37,10 +37,12 @@ const counterEl = document.getElementById('question-counter');
 const nextBtn = document.getElementById('next-btn');
 
 function updateProgressUI() {
+    const totalCountEl = document.getElementById('total-count');
     const countEl = document.getElementById('learned-count');
     const wrongCountEl = document.getElementById('wrong-count');
     const reviewBtn = document.getElementById('review-btn');
     
+    if(totalCountEl) totalCountEl.textContent = vocabulary.length;
     if(countEl) countEl.textContent = learnedWords.length;
     if(wrongCountEl) wrongCountEl.textContent = wrongWords.length;
     
@@ -91,6 +93,9 @@ async function fetchVocabulary() {
             console.warn(`Lỗi khi tải từ ${url}:`, error);
         }
     }
+    
+    // Update the UI since we just populated vocabulary
+    updateProgressUI();
     
     if (!success) {
         alert("Lỗi kết nối mạng: Không tải được danh sách từ vựng do bị chặn bởi trình duyệt (CORS) hoặc không có mạng. Mời thử lại!");
