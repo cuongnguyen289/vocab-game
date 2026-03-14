@@ -1,0 +1,403 @@
+:root {
+    --primary-color: #4F46E5;
+    --primary-hover: #4338CA;
+    --secondary-color: #10B981;
+    --secondary-hover: #059669;
+    --error-color: #EF4444;
+    --error-bg: #FEE2E2;
+    --success-bg: #D1FAE5;
+    --bg-gradient: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --text-main: #1F2937;
+    --text-muted: #6B7280;
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --border-radius: 20px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#app {
+    width: 90%;
+    max-width: 450px;
+    min-height: 520px;
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    padding: 2.5rem 2rem;
+    position: relative;
+    backdrop-filter: blur(10px);
+}
+
+.screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 440px;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.screen.active {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.header-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    text-align: center;
+    letter-spacing: -0.5px;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+p {
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.btn {
+    width: 100%;
+    padding: 1.2rem;
+    border: none;
+    border-radius: 14px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn:active {
+    transform: scale(0.96);
+}
+
+.primary-btn {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
+}
+
+.primary-btn:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+.secondary-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.39);
+}
+
+.secondary-btn:hover {
+    background-color: var(--secondary-hover);
+    transform: translateY(-2px);
+}
+
+.warning-btn {
+    background-color: #F59E0B;
+    color: white;
+    box-shadow: 0 4px 14px 0 rgba(245, 158, 11, 0.39);
+}
+
+.warning-btn:hover {
+    background-color: #D97706;
+    transform: translateY(-2px);
+}
+
+.warning-btn:disabled {
+    background-color: #D1D5DB;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.settings-group {
+    width: 100%;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.settings-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+.settings-group input {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 12px;
+    border: 2px solid #E5E7EB;
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+    background: #F9FAFB;
+}
+
+.settings-group input:focus {
+    border-color: var(--primary-color);
+    background: white;
+}
+
+.mode-buttons {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+/* Loading */
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(79, 70, 229, 0.2);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+    margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Quiz Screen */
+.quiz-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 1.05rem;
+}
+
+.score {
+    color: var(--primary-color);
+}
+
+.question-container {
+    background: #F9FAFB;
+    padding: 2.5rem 1.5rem;
+    border-radius: var(--border-radius);
+    width: 100%;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border: 2px solid #F3F4F6;
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.04);
+}
+
+#question-text {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.5rem;
+    word-break: break-word;
+}
+
+.pinyin {
+    font-size: 1.3rem;
+    color: #9CA3AF;
+    min-height: 1.5rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+    width: 100%;
+}
+
+.option-btn {
+    background: white;
+    border: 2px solid #E5E7EB;
+    color: var(--text-main);
+    padding: 1rem;
+    font-weight: 500;
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.option-btn:hover:not(:disabled) {
+    border-color: var(--primary-color);
+    background: #EEF2FF;
+}
+
+.option-btn.correct {
+    background: var(--success-bg);
+    border-color: var(--secondary-color);
+    color: #065F46;
+    animation: correctPulse 0.5s;
+}
+
+.option-btn.wrong {
+    background: var(--error-bg);
+    border-color: var(--error-color);
+    color: #991B1B;
+    animation: shake 0.4s;
+}
+
+@keyframes correctPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); background-color: var(--secondary-color); color: white; }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    75% { transform: translateX(-6px); }
+}
+
+.explanation-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #FFF1F2;
+    border-left: 4px solid var(--error-color);
+    border-radius: 8px;
+    width: 100%;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.explanation-box p {
+    margin-bottom: 0;
+    text-align: left;
+    color: #881337;
+    font-size: 0.95rem;
+}
+
+.example-box {
+    margin-top: 1.5rem;
+    padding: 1.2rem;
+    background: #F0FDF4;
+    border-left: 4px solid var(--secondary-color);
+    border-radius: 8px;
+    width: 100%;
+    animation: fadeIn 0.4s ease-out;
+    text-align: left;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.example-box #example-title {
+    margin-bottom: 0.5rem;
+    color: #065F46;
+    font-size: 1rem;
+}
+
+.ex-sentence {
+    font-size: 1.15rem;
+    color: #1F2937;
+    margin-bottom: 0.2rem !important;
+    letter-spacing: 0.5px;
+}
+
+.ex-pinyin {
+    font-size: 0.9rem;
+    color: #6B7280;
+    margin-bottom: 0.4rem !important;
+}
+
+.ex-meaning {
+    font-size: 0.95rem;
+    color: #374151;
+    font-style: italic;
+    margin-bottom: 0 !important;
+}
+
+.next-btn {
+    margin-top: 1.5rem;
+    background: linear-gradient(to right, #111827, #374151);
+    color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.next-btn:hover {
+    transform: translateY(-2px);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Result Screen */
+.final-score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.5);
+    border: 5px solid #E0E7FF;
+}
+
+#feedback-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+}
+
+.pulse-anim {
+    animation: pulseBtn 2s infinite;
+}
+
+@keyframes pulseBtn {
+    0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.5); }
+    70% { box-shadow: 0 0 0 15px rgba(79, 70, 229, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}

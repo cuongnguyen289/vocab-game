@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Trắc Nghiệm Từ Vựng</title>
+    <!-- Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <div class="header-icon">🎓</div>
+            <h1>Học Từ Vựng</h1>
+            <p>Chọn chế độ chơi để bắt đầu rèn luyện trí nhớ nào!</p>
+            
+            <div class="settings-group">
+                <label for="num-questions">Số lượng câu (mỗi lượt):</label>
+                <input type="number" id="num-questions" value="10" min="1" max="500">
+            </div>
+            
+            <p id="progress-text" style="font-size: 0.95rem; margin-top: -1rem; margin-bottom: 0.5rem;">
+                Đã thuộc: <span id="learned-count">0</span> từ 
+                <a href="#" onclick="resetProgress()" style="color: var(--primary-color); text-decoration: none; font-weight: 600; margin-left: 0.5rem;">[Học lại từ đầu]</a>
+            </p>
+            <p id="wrong-progress-text" style="font-size: 0.95rem; margin-bottom: 1.5rem; color: var(--error-color);">
+                Đã sai (cần ôn): <span id="wrong-count" style="font-weight: bold;">0</span> từ
+            </p>
+            
+            <div class="mode-buttons">
+                <button class="btn primary-btn" onclick="startGame('han-viet')">
+                    <span class="btn-icon">🇨🇳</span> Luyện Mới (Hán Tự ➡️ Tiếng Việt)
+                </button>
+                <button class="btn secondary-btn" onclick="startGame('viet-han')">
+                    <span class="btn-icon">🇻🇳</span> Luyện Mới (Tiếng Việt ➡️ Hán Tự)
+                </button>
+                <button id="review-btn" class="btn warning-btn" onclick="startGame('review')">
+                    <span class="btn-icon">📝</span> Ôn tập (Các từ đã sai)
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen">
+            <div class="spinner"></div>
+            <p>Đang đồng bộ dữ liệu với Google Sheet...</p>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="screen">
+            <div class="quiz-header">
+                <div class="score">🏆 Điểm: <span id="score-display">0</span></div>
+                <div class="progress">📍 Câu: <span id="question-counter">1/10</span></div>
+            </div>
+            
+            <div class="question-container">
+                <h2 id="question-text">Câu hỏi</h2>
+                <div id="pinyin-text" class="pinyin"></div>
+            </div>
+            
+            <div id="options-container" class="options-grid">
+                <!-- Options will be injected here by JS -->
+            </div>
+            
+            <div id="explanation-container" class="explanation-box hidden">
+                <p id="explanation-text"></p>
+            </div>
+            
+            <div id="example-container" class="example-box hidden">
+                <p id="example-title">💡 <strong>Ví dụ:</strong></p>
+                <p id="example-sentence" class="ex-sentence"></p>
+                <p id="example-pinyin" class="ex-pinyin"></p>
+                <p id="example-meaning" class="ex-meaning"></p>
+            </div>
+            
+            <button id="next-btn" class="btn next-btn hidden">Tiếp tục ➡️</button>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="screen">
+            <h2>Kết Quả Của Bạn</h2>
+            <div class="final-score-circle">
+                <span id="final-score-display">0</span>
+            </div>
+            <p id="feedback-text">Bạn hoàn thành rất tốt!</p>
+            <button class="btn primary-btn pulse-anim" onclick="returnToMenu()">🔄 Chơi Lại Từ Đầu</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
