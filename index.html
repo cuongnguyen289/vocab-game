@@ -9,19 +9,41 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app">
-        <!-- Start Screen -->
-        <div id="start-screen" class="screen active">
+    <div class="container">
+        <!-- Đăng nhập -->
+        <div id="login-screen" class="screen active">
+            <div class="header">
+                <span class="emoji-logo">👋</span>
+                <h1>Xin chào!</h1>
+                <p>Nhập tên của bạn để lưu tiến độ học tập riêng biệt nhé.</p>
+            </div>
+            
+            <div class="login-form">
+                <input type="text" id="username-input" class="user-input" placeholder="Nhập tên của bạn (vd: Linh)" onkeypress="handleLoginKeyPress(event)">
+                <button class="btn primary-btn" onclick="loginUser()">Bắt đầu học 🚀</button>
+            </div>
+        </div>
+
+        <!-- Màn hình chào mừng (Start) -->
+        <div id="start-screen" class="screen">
             <div class="header-icon">🎓</div>
             <h1>Học Từ Vựng</h1>
             <p>Chọn chế độ chơi để bắt đầu rèn luyện trí nhớ nào!</p>
             
             <div class="settings-group">
+                <div class="header">
+                <span class="emoji-logo">🐼</span>
+                <h1>Trắc nghiệm Từ vựng</h1>
+                <p>Nâng cao vốn từ vựng mỗi ngày</p>
+                <div class="user-badge" id="current-user-badge">
+                    Chào <b id="display-username">Bạn</b>! <a href="#" onclick="logoutUser()" class="logout-link">(Đổi người)</a>
+                </div>
+            </div>
                 <label for="num-questions">Số lượng câu (mỗi lượt):</label>
                 <input type="number" id="num-questions" value="10" min="1" max="500">
             </div>
             
-            <p id="progress-text" style="font-size: 0.95rem; margin-top: -1rem; margin-bottom: 0.5rem;">
+            <p id="progress-text" style="font-size: 0.95rem; margin-top: -0.5rem; margin-bottom: 0.5rem;">
                 📚 Tổng số từ trong Danh sách: <span id="total-count" style="font-weight: bold; color: var(--primary-color);">0</span> từ
                 <br>
                 Đã thuộc: <span id="learned-count">0</span> từ 

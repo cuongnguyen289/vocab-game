@@ -13,10 +13,14 @@ let currentQuestions = [];
 let currentQuestionIndex = 0;
 let score = 0;
 let gameMode = 'han-viet';
-let learnedWords = JSON.parse(localStorage.getItem('vocab_learned_words')) || [];
-let wrongWords = JSON.parse(localStorage.getItem('vocab_wrong_words')) || [];
+
+// User variables
+let currentUser = null;
+let learnedWords = [];
+let wrongWords = [];
 
 const screens = {
+    login: document.getElementById('login-screen'),
     start: document.getElementById('start-screen'),
     loading: document.getElementById('loading-screen'),
     quiz: document.getElementById('quiz-screen'),
@@ -59,17 +63,60 @@ function updateProgressUI() {
 }
 
 function resetProgress() {
-    if(confirm("Bạn có chắc chắn muốn xóa toàn bộ tiến độ (bao gồm từ Đã Thuộc và Đã Sai) để học lại từ đầu không?")) {
+    if(!currentUser) return;
+    if(confirm(`Bạn có chắc chắn muốn xóa tiến độ của tài khoản [${currentUser}] để học lại từ đầu không?`)) {
         learnedWords = [];
         wrongWords = [];
-        localStorage.removeItem('vocab_learned_words');
-        localStorage.removeItem('vocab_wrong_words');
+        localStorage.removeItem(`${currentUser}_vocab_learned`);
+        localStorage.removeItem(`${currentUser}_vocab_wrong`);
         updateProgressUI();
     }
 }
 
-// Initial UI update
-updateProgressUI();
+// User Authentication
+function handleLoginKeyPress(e) {
+    if(e.key === 'Enter') loginUser();
+}
+
+function loginUser() {
+    const input = document.getElementById('username-input').value.trim();
+    if (input.length < 2) {
+        alert("Vui lòng nhập tên của bạn (ít nhất 2 ký tự)!");
+        return;
+    }
+    
+    // Set user and load their specific progress
+    currentUser = input.toLowerCase();
+    
+    learnedWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_learned`)) || [];
+    wrongWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`)) || [];
+    
+    document.getElementById('display-username').textContent = input;
+    
+    // Keep user logged in across page reloads
+    localStorage.setItem('vocab_last_user', input);
+    
+    showScreen('start');
+}
+
+function logoutUser() {
+    currentUser = null;
+    learnedWords = [];
+    wrongWords = [];
+    localStorage.removeItem('vocab_last_user');
+    document.getElementById('username-input').value = '';
+    showScreen('login');
+}
+
+// Auto-login if previously saved
+window.addEventListener('DOMContentLoaded', () => {
+    fetchVocabulary();
+    const lastUser = localStorage.getItem('vocab_last_user');
+    if(lastUser) {
+        document.getElementById('username-input').value = lastUser;
+        loginUser();
+    }
+});
 
 function showScreen(screenName) {
     if(screenName === 'start') updateProgressUI();
@@ -167,8 +214,7 @@ async function startGame(mode) {
     }
 }
 
-// Fetch data as soon as the script loads
-window.addEventListener('DOMContentLoaded', fetchVocabulary);
+// Setup triggered on page load moved to line 103 (DOMContentLoaded)
 
 function setupQuiz() {
     score = 0;
@@ -292,13 +338,13 @@ function checkAnswer(selected, correct, selectedBtn) {
             const index = wrongWords.indexOf(qData.hanTu);
             if(index > -1) {
                 wrongWords.splice(index, 1);
-                localStorage.setItem('vocab_wrong_words', JSON.stringify(wrongWords));
+                localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
             }
         } else {
             // Save to learnedWords in normal mode
             if (!learnedWords.includes(qData.hanTu)) {
                 learnedWords.push(qData.hanTu);
-                localStorage.setItem('vocab_learned_words', JSON.stringify(learnedWords));
+                localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
             }
         }
         
@@ -320,12 +366,12 @@ function checkAnswer(selected, correct, selectedBtn) {
         // Add to wrongWords if we got it wrong and it's not already tracked there
         if (!wrongWords.includes(qData.hanTu)) {
             wrongWords.push(qData.hanTu);
-            localStorage.setItem('vocab_wrong_words', JSON.stringify(wrongWords));
+            localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
             // Remove from learnedWords just in case they forgot
             const index = learnedWords.indexOf(qData.hanTu);
             if(index > -1) {
                 learnedWords.splice(index, 1);
-                localStorage.setItem('vocab_learned_words', JSON.stringify(learnedWords));
+                localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
             }
         }
 

@@ -82,7 +82,73 @@ h1 {
     letter-spacing: -0.5px;
 }
 
+ph1 {
+    color: var(--primary-color);
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+}
+
 h2 {
+    color: #1F2937;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+p {
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+/* User Login styles */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 300px;
+    margin: 2rem auto;
+}
+
+.user-input {
+    padding: 1rem;
+    font-size: 1.1rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 12px;
+    outline: none;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+}
+
+.user-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+}
+
+.user-badge {
+    display: inline-block;
+    background: #FEE2E2;
+    color: #991B1B;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+.logout-link {
+    color: #4B5563;
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
+
+.logout-link:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.emoji-logo {
     font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 1.5rem;
@@ -102,6 +168,12 @@ p {
     border-radius: 14px;
     font-size: 1.1rem;
     font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
