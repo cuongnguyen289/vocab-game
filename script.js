@@ -88,8 +88,19 @@ function loginUser() {
     // Set user and load their specific progress
     currentUser = input.toLowerCase();
     
-    learnedWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_learned`)) || [];
-    wrongWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`)) || [];
+    try {
+        learnedWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_learned`)) || [];
+    } catch(e) {
+        learnedWords = [];
+        console.warn("Corrupted learnedWords data", e);
+    }
+    
+    try {
+        wrongWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`)) || [];
+    } catch(e) {
+        wrongWords = [];
+        console.warn("Corrupted wrongWords data", e);
+    }
     
     document.getElementById('display-username').textContent = input;
     
