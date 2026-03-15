@@ -57,10 +57,10 @@ function updateProgressUI() {
     if(reviewBtn && vocabulary.length > 0) {
         if(wrongWords.length === 0) {
             reviewBtn.disabled = true;
-            reviewBtn.textContent = '✅ Chưa có từ sai';
+            reviewBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">✅</span><span>Chưa có lỗi</span></div>';
         } else {
             reviewBtn.disabled = false;
-            reviewBtn.innerHTML = '<span class="btn-icon">📝</span> Ôn tập (' + wrongWords.length + ' từ đã sai)';
+            reviewBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">📝</span><span>Ôn Tập (' + wrongWords.length + ')</span></div>';
         }
     }
 
@@ -68,10 +68,10 @@ function updateProgressUI() {
     if(testBtn && vocabulary.length > 0) {
         if(learnedWords.length < 4) {
             testBtn.disabled = true;
-            testBtn.textContent = '🔒 Kiểm tra bài (Cần thuộc ≥ 4 từ)';
+            testBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Kiểm Tra (≥4)</span></div>';
         } else {
             testBtn.disabled = false;
-            testBtn.innerHTML = '<span class="btn-icon">🎯</span> Kiểm tra bài (' + learnedWords.length + ' từ đã thuộc)';
+            testBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🎯</span><span>Kiểm Tra (' + learnedWords.length + ')</span></div>';
         }
     }
 }
@@ -221,10 +221,10 @@ function parseCSV(csvText) {
         if(modeButtons) {
             const btns = modeButtons.querySelectorAll('button');
             btns[0].disabled = false;
-            btns[0].innerHTML = '<span class="btn-icon">🇨🇳</span> Luyện Mới (Hán Tự ➡️ Tiếng Việt)';
+            btns[0].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇨🇳</span><span>Hán ➡️ Việt</span></div>';
             
             btns[1].disabled = false;
-            btns[1].innerHTML = '<span class="btn-icon">🇻🇳</span> Luyện Mới (Tiếng Việt ➡️ Hán Tự)';
+            btns[1].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇻🇳</span><span>Việt ➡️ Hán</span></div>';
         }
     }
 }

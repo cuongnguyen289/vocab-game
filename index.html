@@ -26,45 +26,41 @@
 
         <!-- Màn hình chào mừng (Start) -->
         <div id="start-screen" class="screen">
-            <div class="header-icon">🎓</div>
-            <h1>Học Từ Vựng</h1>
-            <p>Chọn chế độ chơi để bắt đầu rèn luyện trí nhớ nào!</p>
-            
-            <div class="settings-group">
-                <div class="header">
-                <span class="emoji-logo">🐼</span>
-                <h1>Trắc nghiệm Từ vựng</h1>
-                <p>Nâng cao vốn từ vựng mỗi ngày</p>
-                <div class="user-badge" id="current-user-badge">
+            <div class="header" style="text-align: center; width: 100%;">
+                <div class="header-icon" style="margin-bottom: 0.2rem;">🐼</div>
+                <h1 style="font-size: 1.8rem; margin-bottom: 0.2rem;">Học Từ Vựng</h1>
+                <p style="margin-bottom: 0.5rem; font-size: 0.95rem;">Nâng cao vốn từ vựng mỗi ngày!</p>
+                <div class="user-badge" id="current-user-badge" style="margin-top: 0; margin-bottom: 1rem;">
                     Chào <b id="display-username">Bạn</b>! <a href="#" onclick="logoutUser()" class="logout-link">(Đổi người)</a>
                 </div>
             </div>
-                <label for="num-questions">Số lượng câu (mỗi lượt):</label>
-                <input type="number" id="num-questions" value="10" min="1" max="500">
+            
+            <div class="settings-group" style="margin-bottom: 1rem; text-align: center;">
+                <label for="num-questions" style="display: inline-block; margin-right: 0.5rem; margin-bottom: 0;">Số lượng câu / lượt:</label>
+                <input type="number" id="num-questions" value="10" min="1" max="500" style="width: 80px; display: inline-block; padding: 0.4rem;">
             </div>
             
-            <p id="progress-text" style="font-size: 0.95rem; margin-top: -0.5rem; margin-bottom: 0.5rem;">
-                📚 Tổng số từ trong Danh sách: <span id="total-count" style="font-weight: bold; color: var(--primary-color);">0</span> từ
-                <br>
-                Đã thuộc: <span id="learned-count">0</span> từ 
-                <a href="#" onclick="resetProgress()" style="color: var(--primary-color); text-decoration: none; font-weight: 600; margin-left: 0.5rem;">[Học lại từ đầu]</a>
-            </p>
-            <p id="wrong-progress-text" style="font-size: 0.95rem; margin-bottom: 1.5rem; color: var(--error-color);">
-                Đã sai (cần ôn): <span id="wrong-count" style="font-weight: bold;">0</span> từ
-            </p>
+            <div class="progress-stats" style="text-align: center; background: #F3F4F6; padding: 0.8rem; border-radius: 12px; margin-bottom: 1.2rem; width: 100%;">
+                <p id="progress-text" style="font-size: 0.9rem; margin-bottom: 0.3rem;">
+                    📚 Tổng: <span id="total-count" style="font-weight: bold; color: var(--primary-color);">0</span> từ
+                    | ✅ Đã thuộc: <span id="learned-count" style="font-weight: bold; color: var(--secondary-color);">0</span>
+                    | ❌ Sai: <span id="wrong-count" style="font-weight: bold; color: var(--error-color);">0</span>
+                </p>
+                <a href="#" onclick="resetProgress()" style="color: var(--primary-color); text-decoration: none; font-weight: 600; font-size: 0.85rem;">[🔄 Học lại từ đầu]</a>
+            </div>
             
             <div class="mode-buttons" id="main-mode-buttons">
                 <button class="btn primary-btn" onclick="startGame('han-viet')" disabled>
-                    <span class="btn-icon">⏳</span> Đang tải dữ liệu...
+                    <span class="btn-icon">⏳</span> Đang tải...
                 </button>
                 <button class="btn secondary-btn" onclick="startGame('viet-han')" disabled>
-                    <span class="btn-icon">⏳</span> Đang tải dữ liệu...
+                    <span class="btn-icon">⏳</span> Đang tải...
                 </button>
                 <button id="review-btn" class="btn warning-btn" onclick="startGame('review')" disabled>
-                    <span class="btn-icon">⏳</span> Đang tải dữ liệu...
+                    <span class="btn-icon">⏳</span> Đang tải...
                 </button>
                 <button id="test-btn" class="btn test-btn" onclick="startGame('test')" disabled>
-                    <span class="btn-icon">⏳</span> Đang tải dữ liệu...
+                    <span class="btn-icon">⏳</span> Đang tải...
                 </button>
             </div>
         </div>

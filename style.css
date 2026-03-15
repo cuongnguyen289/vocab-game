@@ -163,22 +163,17 @@ p {
 
 .btn {
     width: 100%;
-    padding: 1.2rem;
+    padding: 0.8rem;
     border: none;
     border-radius: 14px;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    text-align: center;
     gap: 0.5rem;
 }
 
@@ -244,6 +239,14 @@ p {
     transform: none;
 }
 
+.primary-btn:disabled, .secondary-btn:disabled {
+    background-color: #D1D5DB;
+    color: #6B7280;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .settings-group {
     width: 100%;
     margin-bottom: 1.5rem;
@@ -277,9 +280,9 @@ p {
 
 .mode-buttons {
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
 }
 
 /* Loading */
