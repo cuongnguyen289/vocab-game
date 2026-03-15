@@ -313,12 +313,12 @@ function loadQuestion() {
         questionTextMain = qData.hanTu;
         questionTextSub = qData.pinyin;
         correctAnswerText = qData.tiengViet;
-        questionEl.style.fontSize = '4rem'; 
+        questionEl.style.fontSize = '3.2rem'; 
     } else {
         questionTextMain = qData.tiengViet;
         questionTextSub = ""; 
         correctAnswerText = `${qData.hanTu} (${qData.pinyin})`;
-        questionEl.style.fontSize = '2rem'; 
+        questionEl.style.fontSize = '1.8rem'; 
     }
     
     questionEl.textContent = questionTextMain;
@@ -328,7 +328,7 @@ function loadQuestion() {
         questionEl.style.marginBottom = '0';
     } else {
         pinyinEl.style.display = 'block';
-        questionEl.style.marginBottom = '0.5rem';
+        questionEl.style.marginBottom = '0.2rem';
     }
     
     // Tao ds Options (1 dúng, 3 sai)
