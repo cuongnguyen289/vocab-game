@@ -1,6 +1,16 @@
 const SHEET_ID = "13JmgXrxeuBzmBWadW9qAjtTzxObl1c5x6dk3pNr9f7w";
 const TARGET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
 
+// Mở khóa định dạng Web Speech API và Audio trên Mobile (iOS/Android) ngay ở lần chạm màn hình đầu tiên
+document.addEventListener('click', function unlockAudio() {
+    if ('speechSynthesis' in window) {
+        const u = new SpeechSynthesisUtterance('');
+        u.volume = 0;
+        window.speechSynthesis.speak(u);
+    }
+    document.removeEventListener('click', unlockAudio);
+}, { once: true });
+
 const FETCH_URLS = [
     TARGET_URL, 
     `https://api.allorigins.win/raw?url=${encodeURIComponent(TARGET_URL)}`,
@@ -54,13 +64,20 @@ window.playAudio = function(text, lang) {
         window.speechSynthesis.getVoices();
     }
 
-    // Sử dụng client=dict-chrome-ex thường không bị lỗi ORB
-    const url = `https://translate.googleapis.com/translate_tts?client=dict-chrome-ex&ie=UTF-8&tl=${lang}&q=${encodeURIComponent(text)}`;
+    // Tiếng Trung: Ưu tiên API của từ điển Youdao cực kỳ nhanh và không bị CORS block trên điện thoại
+    // Tiếng Việt: Giữ nguyên truy xuất qua Google Translate
+    let url = "";
+    if (lang === 'zh-CN') {
+        url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=zh`;
+    } else {
+        url = `https://translate.googleapis.com/translate_tts?client=dict-chrome-ex&ie=UTF-8&tl=vi&q=${encodeURIComponent(text)}`;
+    }
+    
     const audio = new Audio(url);
     
-    // Thử phát qua Google Translate, nếu lỗi mạng/CORS/ORB thì tự động dùng giọng của trình duyệt
+    // Thử phát qua URL, nếu lỗi mạng/CORS/Block thì tự động dùng giọng của trình duyệt
     audio.play().catch(e => {
-        console.warn("Lỗi phát âm Google TTS, đổi sang giọng mặc định của máy:", e);
+        console.warn("Lỗi tải Audio, tự động chuyển sang giọng mặc định của máy:", e);
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel(); // Hủy các âm trước đó chưa đọc xong
             const utterance = new SpeechSynthesisUtterance(text);
