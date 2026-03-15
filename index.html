@@ -146,8 +146,11 @@
             </div>
             
             <div class="question-container">
-                <h2 id="question-text">Câu hỏi</h2>
-                <div id="pinyin-text" class="pinyin"></div>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                    <h2 id="question-text" style="margin-bottom: 0;">Câu hỏi</h2>
+                    <button id="play-audio-btn" class="audio-btn hidden" title="Nghe phát âm">🔊</button>
+                </div>
+                <div id="pinyin-text" class="pinyin" style="margin-top: 5px;"></div>
             </div>
             
             <div id="options-container" class="options-grid">
@@ -159,7 +162,10 @@
             </div>
             
             <div id="example-container" class="example-box hidden">
-                <p id="example-title">💡 <strong>Ví dụ:</strong></p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                    <p id="example-title" style="margin-bottom: 0;">💡 <strong>Ví dụ:</strong></p>
+                    <button id="play-ex-audio-btn" class="audio-btn hidden" title="Nghe câu này" style="font-size: 1.2rem; margin-top: 0;">🔊</button>
+                </div>
                 <p id="example-sentence" class="ex-sentence"></p>
                 <p id="example-pinyin" class="ex-pinyin"></p>
                 <p id="example-meaning" class="ex-meaning"></p>

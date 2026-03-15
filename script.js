@@ -42,6 +42,16 @@ const exampleSentence = document.getElementById('example-sentence');
 const examplePinyin = document.getElementById('example-pinyin');
 const exampleMeaning = document.getElementById('example-meaning');
 const scoreEl = document.getElementById('score-display');
+const playAudioBtn = document.getElementById('play-audio-btn');
+const playExAudioBtn = document.getElementById('play-ex-audio-btn');
+
+// Nguồn âm thanh Google Dịch
+window.playAudio = function(text, lang) {
+    if (!text) return;
+    const url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${lang}&q=${encodeURIComponent(text)}`;
+    const audio = new Audio(url);
+    audio.play().catch(e => console.error("Audio play error:", e));
+};
 const counterEl = document.getElementById('question-counter');
 const nextBtn = document.getElementById('next-btn');
 
@@ -397,6 +407,18 @@ function loadQuestion() {
         questionEl.style.marginBottom = '0.2rem';
     }
     
+    // Cập nhật nút loa cho câu hỏi
+    if (questionTextMain) {
+        playAudioBtn.classList.remove('hidden');
+        let langCode = 'zh-CN';
+        if (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-viet-trung') {
+            langCode = 'vi';
+        }
+        playAudioBtn.onclick = () => playAudio(questionTextMain, langCode);
+    } else {
+        playAudioBtn.classList.add('hidden');
+    }
+    
     // Tao ds Options (1 dúng, 3 sai)
     let options = [correctAnswerText];
     let pool = [];
@@ -557,6 +579,11 @@ function checkAnswer(selected, correct, selectedBtn) {
             
             examplePinyin.style.display = (qData.cauPinyin && qData.cauPinyin !== '-') ? 'block' : 'none';
             exampleMeaning.style.display = (qData.cauNghia && qData.cauNghia !== '-') ? 'block' : 'none';
+            
+            if (playExAudioBtn) {
+                playExAudioBtn.onclick = () => playAudio(qData.cau, 'zh-CN');
+                playExAudioBtn.classList.remove('hidden');
+            }
             
             exampleContainer.classList.remove('hidden');
         }
