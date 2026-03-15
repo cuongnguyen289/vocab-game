@@ -24,7 +24,9 @@ let wrongWords = [];
 
 const screens = {
     login: document.getElementById('login-screen'),
-    start: document.getElementById('start-screen'),
+    mainMenu: document.getElementById('main-menu-screen'),
+    vocabStart: document.getElementById('vocab-start-screen'),
+    sentenceStart: document.getElementById('sentence-start-screen'),
     loading: document.getElementById('loading-screen'),
     quiz: document.getElementById('quiz-screen'),
     result: document.getElementById('result-screen')
@@ -74,6 +76,13 @@ function updateProgressUI() {
             testBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🎯</span><span>Kiểm Tra (' + learnedWords.length + ')</span></div>';
         }
     }
+
+    // Update Sentence Stats
+    const sentenceTotalEl = document.getElementById('sentence-total-count');
+    if (sentenceTotalEl) {
+        const sentencesWithData = vocabulary.filter(v => v.cau && v.cauNghia);
+        sentenceTotalEl.textContent = sentencesWithData.length;
+    }
 }
 
 function resetProgress() {
@@ -116,12 +125,13 @@ function loginUser() {
         console.warn("Corrupted wrongWords data", e);
     }
     
-    document.getElementById('display-username').textContent = input;
+    const mainDisplay = document.getElementById('main-display-username');
+    if(mainDisplay) mainDisplay.textContent = input;
     
     // Keep user logged in across page reloads
     localStorage.setItem('vocab_last_user', input);
     
-    showScreen('start');
+    showScreen('main-menu');
 }
 
 function logoutUser() {
@@ -144,9 +154,26 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function showScreen(screenName) {
-    if(screenName === 'start') updateProgressUI();
-    Object.values(screens).forEach(s => s.classList.remove('active'));
-    screens[screenName].classList.add('active');
+    if(screenName === 'vocabStart' || screenName === 'sentenceStart' || screenName === 'main-menu') {
+        updateProgressUI();
+    }
+    Object.values(screens).forEach(s => {
+        if(s) s.classList.remove('active');
+    });
+    
+    // Handle specific screen logic mapping to IDs
+    if(screenName === 'main-menu') screens.mainMenu.classList.add('active');
+    else if(screenName === 'vocab') screens.vocabStart.classList.add('active');
+    else if(screenName === 'sentence') screens.sentenceStart.classList.add('active');
+    else if(screens[screenName]) screens[screenName].classList.add('active');
+}
+
+function goToStartScreen(mode) {
+    if(mode === 'vocab') {
+        showScreen('vocab');
+    } else if (mode === 'sentence') {
+        showScreen('sentence');
+    }
 }
 
 async function fetchVocabulary() {
@@ -171,7 +198,11 @@ async function fetchVocabulary() {
     
     if (!success) {
         alert("Lỗi kết nối mạng: Không tải được danh sách từ vựng do bị chặn bởi trình duyệt (CORS) hoặc không có mạng. Mời thử lại!");
-        showScreen('start');
+        if (currentUser) {
+            showScreen('main-menu');
+        } else {
+            showScreen('login');
+        }
     }
 }
 
@@ -214,7 +245,7 @@ function parseCSV(csvText) {
     
     if (vocabulary.length < 4) {
         alert("Danh sách từ vựng quá ngắn (cần ít nhất 4 từ có đủ Hán Tự và Nghĩa để tạo 4 đáp án).");
-        showScreen('start');
+        if(currentUser) showScreen('main-menu');
     } else {
         // Enable buttons
         const modeButtons = document.getElementById('main-mode-buttons');
@@ -225,6 +256,22 @@ function parseCSV(csvText) {
             
             btns[1].disabled = false;
             btns[1].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇻🇳</span><span>Việt ➡️ Hán</span></div>';
+        }
+
+        const sentenceButtons = document.getElementById('sentence-mode-buttons');
+        if(sentenceButtons) {
+            const btns = sentenceButtons.querySelectorAll('button');
+            const hasSentences = vocabulary.some(v => v.cau && v.cauNghia);
+            if(hasSentences) {
+                btns[0].disabled = false;
+                btns[0].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇨🇳</span><span>Trung ➡️ Việt</span></div>';
+                
+                btns[1].disabled = false;
+                btns[1].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇻🇳</span><span>Việt ➡️ Trung</span></div>';
+            } else {
+                btns[0].innerHTML = '<span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">❌</span><span>Không có DL</span>';
+                btns[1].innerHTML = '<span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">❌</span><span>Không có DL</span>';
+            }
         }
     }
 }
@@ -253,7 +300,7 @@ function setupQuiz() {
         
         if (availableWords.length === 0) {
             alert("Tuyệt vời! Bạn không có từ vựng nào sai để ôn tập. Quay lại học bài mới nhé!");
-            showScreen('start');
+            showScreen('vocab');
             return;
         }
     } else if (gameMode === 'test') {
@@ -262,8 +309,17 @@ function setupQuiz() {
         
         if (availableWords.length < 4) {
             alert("Bạn cần thuộc ít nhất 4 từ để có thể chơi chế độ kiểm tra!");
-            showScreen('start');
+            showScreen('vocab');
             return;
+        }
+    } else if (gameMode === 'sentence-trung-viet' || gameMode === 'sentence-viet-trung') {
+        // Lọc ra các dòng có chứa thông tin câu
+        availableWords = vocabulary.filter(v => v.cau && v.cauNghia);
+        
+        if (availableWords.length < 4) {
+             alert("Danh sách của bạn cần ít nhất 4 câu ví dụ để chơi chế độ này!");
+             showScreen('sentence');
+             return;
         }
     } else {
         // Lọc ra những từ chưa thuộc cho các chế độ luyện Mới
@@ -271,7 +327,7 @@ function setupQuiz() {
         
         if (availableWords.length === 0) {
             alert("Tuyệt vời! Bạn đã thuộc hết tất cả từ vựng trong danh sách hiện tại. Hãy thêm từ mới hoặc nhấn [Học lại từ đầu] nhé!");
-            showScreen('start');
+            showScreen('vocab');
             return;
         }
     }
@@ -279,7 +335,7 @@ function setupQuiz() {
     // Trộn từ
     let shuffled = [...availableWords].sort(() => 0.5 - Math.random());
     
-    const inputQ = document.getElementById('num-questions');
+    const inputQ = document.getElementById(gameMode.includes('sentence') ? 'sentence-num-questions' : 'num-questions');
     let desiredCount = inputQ ? parseInt(inputQ.value) : 10;
     if (isNaN(desiredCount) || desiredCount < 1) desiredCount = 10;
     
@@ -314,11 +370,21 @@ function loadQuestion() {
         questionTextSub = qData.pinyin;
         correctAnswerText = qData.tiengViet;
         questionEl.style.fontSize = '3.2rem'; 
-    } else {
+    } else if (currentQuestionMode === 'viet-han') {
         questionTextMain = qData.tiengViet;
         questionTextSub = ""; 
         correctAnswerText = `${qData.hanTu} (${qData.pinyin})`;
         questionEl.style.fontSize = '1.8rem'; 
+    } else if (currentQuestionMode === 'sentence-trung-viet') {
+        questionTextMain = qData.cau;
+        questionTextSub = qData.cauPinyin;
+        correctAnswerText = qData.cauNghia;
+        questionEl.style.fontSize = '2rem'; 
+    } else if (currentQuestionMode === 'sentence-viet-trung') {
+        questionTextMain = qData.cauNghia;
+        questionTextSub = "";
+        correctAnswerText = `${qData.cau} (${qData.cauPinyin})`;
+        questionEl.style.fontSize = '1.5rem'; 
     }
     
     questionEl.textContent = questionTextMain;
@@ -333,14 +399,25 @@ function loadQuestion() {
     
     // Tao ds Options (1 dúng, 3 sai)
     let options = [correctAnswerText];
-    let pool = vocabulary.filter(v => v.hanTu !== qData.hanTu);
+    let pool = [];
+    
+    if (gameMode.includes('sentence')) {
+        pool = vocabulary.filter(v => v.cau && v.cau !== qData.cau);
+    } else {
+        pool = vocabulary.filter(v => v.hanTu !== qData.hanTu);
+    }
+    
     pool = pool.sort(() => 0.5 - Math.random());
     
     for (let i = 0; i < 3 && i < pool.length; i++) {
         if (currentQuestionMode === 'han-viet') {
             options.push(pool[i].tiengViet);
-        } else {
+        } else if (currentQuestionMode === 'viet-han') {
             options.push(`${pool[i].hanTu} (${pool[i].pinyin})`);
+        } else if (currentQuestionMode === 'sentence-trung-viet') {
+            options.push(pool[i].cauNghia);
+        } else if (currentQuestionMode === 'sentence-viet-trung') {
+            options.push(`${pool[i].cau} (${pool[i].cauPinyin})`);
         }
     }
     
@@ -405,18 +482,26 @@ function handleTimeOut() {
     let correctAnswerText;
     if (currentQuestionMode === 'han-viet') {
         correctAnswerText = qData.tiengViet;
-    } else {
+    } else if (currentQuestionMode === 'viet-han') {
         correctAnswerText = `${qData.hanTu} (${qData.pinyin})`;
+    } else if (currentQuestionMode === 'sentence-trung-viet') {
+        correctAnswerText = qData.cauNghia;
+    } else if (currentQuestionMode === 'sentence-viet-trung') {
+        correctAnswerText = `${qData.cau} (${qData.cauPinyin})`;
     }
     
     const buttons = optionsContainer.querySelectorAll('.option-btn');
     
-    explanationText.innerHTML = `⏳ <b>Hết giờ!</b><br>Từ <b>${qData.hanTu}</b> (${qData.pinyin}) có nghĩa là: <br> "<b>${qData.tiengViet}</b>"`;
+    if (gameMode.includes('sentence')) {
+        explanationText.innerHTML = `⏳ <b>Hết giờ!</b><br>Câu <b>${qData.cau}</b> (${qData.cauPinyin}) có nghĩa là: <br> "<b>${qData.cauNghia}</b>"`;
+    } else {
+        explanationText.innerHTML = `⏳ <b>Hết giờ!</b><br>Từ <b>${qData.hanTu}</b> (${qData.pinyin}) có nghĩa là: <br> "<b>${qData.tiengViet}</b>"`;
+    }
     explanationContainer.classList.remove('hidden');
     
     buttons.forEach(btn => btn.disabled = true);
     
-    if (!wrongWords.includes(qData.hanTu)) {
+    if (!gameMode.includes('sentence') && !wrongWords.includes(qData.hanTu)) {
         wrongWords.push(qData.hanTu);
         localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
         const index = learnedWords.indexOf(qData.hanTu);
@@ -454,8 +539,8 @@ function checkAnswer(selected, correct, selectedBtn) {
                 wrongWords.splice(index, 1);
                 localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
             }
-        } else if (gameMode === 'test') {
-            // Test mode: correct answer doesn't need to be pushed since it's already in learnedWords
+        } else if (gameMode === 'test' || gameMode.includes('sentence')) {
+            // Test mode or sentence mode: correct answer doesn't need to be pushed since it's already in learnedWords / not tracked yet
         } else {
             // Save to learnedWords in normal mode
             if (!learnedWords.includes(qData.hanTu)) {
@@ -464,8 +549,8 @@ function checkAnswer(selected, correct, selectedBtn) {
             }
         }
         
-        // Show Example if available
-        if(qData.cau) {
+        // Show Example if available (only in non-sentence mode)
+        if(qData.cau && !gameMode.includes('sentence')) {
             exampleSentence.textContent = qData.cau;
             examplePinyin.textContent = qData.cauPinyin || "";
             exampleMeaning.textContent = qData.cauNghia || "";
@@ -480,7 +565,7 @@ function checkAnswer(selected, correct, selectedBtn) {
         selectedBtn.classList.add('wrong');
         
         // Add to wrongWords if we got it wrong and it's not already tracked there
-        if (!wrongWords.includes(qData.hanTu)) {
+        if (!gameMode.includes('sentence') && !wrongWords.includes(qData.hanTu)) {
             wrongWords.push(qData.hanTu);
             localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
             // Remove from learnedWords just in case they forgot
@@ -495,24 +580,41 @@ function checkAnswer(selected, correct, selectedBtn) {
         let wrongItemText = selected;
         let explanation = "";
         
-        // Cần kiểm tra theo current mode của câu hỏi hiện tại, vì Review mode mix cả 2
-        let answeredVietnamese = true; // flag to determine structure
-        // If the selected answer doesn't contain a parenthesis, they probably chose Vietnamese
-        if (selected.includes('(')) answeredVietnamese = false; 
-
-        if (answeredVietnamese) {
-            // They chose a wrong Vietnamese meaning. Let's find what Han Tu it belongs to.
-            const vocabFound = vocabulary.find(v => v.tiengViet === selected);
-            if(vocabFound) {
-                explanation = `Sai rồi. "<b>${selected}</b>" là nghĩa của từ: <br> <b>${vocabFound.hanTu}</b> (${vocabFound.pinyin})`;
+        if (gameMode.includes('sentence')) {
+            if (currentQuestionMode === 'sentence-trung-viet') {
+                // They chose wrong Vietnamse meaning for sentence
+                const vocabFound = vocabulary.find(v => v.cauNghia === selected);
+                if(vocabFound) {
+                    explanation = `Sai rồi. "<b>${selected}</b>" là nghĩa của câu: <br> <b>${vocabFound.cau}</b> (${vocabFound.cauPinyin})`;
+                }
+            } else {
+                // selected string format is "Câu (pinyin)"
+                const cauOnly = selected.split('(')[0].trim();
+                const vocabFound = vocabulary.find(v => v.cau === cauOnly);
+                if(vocabFound) {
+                    explanation = `Sai rồi. Câu <b>${vocabFound.cau}</b> (${vocabFound.cauPinyin}) có nghĩa là: <br> "<b>${vocabFound.cauNghia}</b>"`;
+                }
             }
         } else {
-            // They chose a wrong Han Tu. Let's find its meaning.
-            // selected string format is "Hán Tự (pinyin)"
-            const hantuOnly = selected.split('(')[0].trim();
-            const vocabFound = vocabulary.find(v => v.hanTu === hantuOnly);
-            if(vocabFound) {
-                explanation = `Sai rồi. Từ <b>${vocabFound.hanTu}</b> (${vocabFound.pinyin}) có nghĩa là: <br> "<b>${vocabFound.tiengViet}</b>"`;
+            // Từ vựng logic
+            let answeredVietnamese = true; // flag to determine structure
+            // If the selected answer doesn't contain a parenthesis, they probably chose Vietnamese
+            if (selected.includes('(')) answeredVietnamese = false; 
+
+            if (answeredVietnamese) {
+                // They chose a wrong Vietnamese meaning. Let's find what Han Tu it belongs to.
+                const vocabFound = vocabulary.find(v => v.tiengViet === selected);
+                if(vocabFound) {
+                    explanation = `Sai rồi. "<b>${selected}</b>" là nghĩa của từ: <br> <b>${vocabFound.hanTu}</b> (${vocabFound.pinyin})`;
+                }
+            } else {
+                // They chose a wrong Han Tu. Let's find its meaning.
+                // selected string format is "Hán Tự (pinyin)"
+                const hantuOnly = selected.split('(')[0].trim();
+                const vocabFound = vocabulary.find(v => v.hanTu === hantuOnly);
+                if(vocabFound) {
+                    explanation = `Sai rồi. Từ <b>${vocabFound.hanTu}</b> (${vocabFound.pinyin}) có nghĩa là: <br> "<b>${vocabFound.tiengViet}</b>"`;
+                }
             }
         }
         
@@ -565,5 +667,5 @@ function endGame() {
 
 function returnToMenu() {
     stopTimer();
-    showScreen('start');
+    showScreen('main-menu');
 }
