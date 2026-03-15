@@ -37,6 +37,7 @@ const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
     vocabStart: document.getElementById('vocab-start-screen'),
     sentenceStart: document.getElementById('sentence-start-screen'),
+    builderStart: document.getElementById('builder-start-screen'),
     loading: document.getElementById('loading-screen'),
     quiz: document.getElementById('quiz-screen'),
     result: document.getElementById('result-screen')
@@ -134,10 +135,16 @@ function updateProgressUI() {
     }
 
     // Update Sentence Stats
-    const sentenceTotalEl = document.getElementById('sentence-total-count');
     if (sentenceTotalEl) {
         const sentencesWithData = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
         sentenceTotalEl.textContent = sentencesWithData.length;
+    }
+    
+    // Update Builder Stats
+    const builderTotalEl = document.getElementById('builder-total-count');
+    if (builderTotalEl) {
+        const sentencesWithData = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
+        builderTotalEl.textContent = sentencesWithData.length;
     }
 }
 
@@ -221,6 +228,7 @@ function showScreen(screenName) {
     if(screenName === 'main-menu') screens.mainMenu.classList.add('active');
     else if(screenName === 'vocab') screens.vocabStart.classList.add('active');
     else if(screenName === 'sentence') screens.sentenceStart.classList.add('active');
+    else if(screenName === 'builder') screens.builderStart.classList.add('active');
     else if(screens[screenName]) screens[screenName].classList.add('active');
 }
 
@@ -229,6 +237,8 @@ function goToStartScreen(mode) {
         showScreen('vocab');
     } else if (mode === 'sentence') {
         showScreen('sentence');
+    } else if (mode === 'builder') {
+        showScreen('builder');
     }
 }
 
@@ -337,6 +347,22 @@ function parseCSV(csvText) {
                 if (buildBtn) buildBtn.innerHTML = '<span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">❌</span><span>Không có DL</span>';
             }
         }
+        
+        const builderButtons = document.getElementById('builder-mode-buttons');
+        if(builderButtons) {
+            const btns = builderButtons.querySelectorAll('button');
+            const hasSentences = vocabulary.some(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
+            if(hasSentences) {
+                btns[0].disabled = false;
+                btns[0].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇻🇳</span><span>Việt ➡️ Trung</span></div>';
+                
+                btns[1].disabled = false;
+                btns[1].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇨🇳</span><span>Trung ➡️ Việt</span></div>';
+            } else {
+                btns[0].innerHTML = '<span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">❌</span><span>Không có DL</span>';
+                btns[1].innerHTML = '<span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">❌</span><span>Không có DL</span>';
+            }
+        }
     }
 }
 
@@ -376,13 +402,14 @@ function setupQuiz() {
              showScreen('vocab');
              return;
         }
-    } else if (gameMode === 'sentence-trung-viet' || gameMode === 'sentence-viet-trung' || gameMode === 'sentence-builder') {
+    } else if (gameMode === 'sentence-trung-viet' || gameMode === 'sentence-viet-trung' || gameMode === 'builder-viet-trung' || gameMode === 'builder-trung-viet') {
         // Lọc ra các dòng có chứa thông tin câu (bỏ qua khoảng trống và dấu gạch ngang)
         availableWords = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
         
         if (availableWords.length < 4) {
              alert("Danh sách của bạn cần ít nhất 4 câu ví dụ để chơi chế độ này!");
-             showScreen('sentence');
+             if (gameMode.includes('builder')) showScreen('builder');
+             else showScreen('sentence');
              return;
         }
     } else {
@@ -485,25 +512,86 @@ function loadQuestion() {
     const builderSource = document.getElementById('builder-source');
     const checkBuilderBtn = document.getElementById('check-builder-btn');
     
-    if (gameMode === 'sentence-builder') {
-        // Builder logic
+    if (gameMode === 'builder-viet-trung' || gameMode === 'builder-trung-viet') {
+        // --- Builder Logic ---
         optionsContainer.classList.add('hidden');
         builderContainer.classList.remove('hidden');
         builderTarget.innerHTML = '';
         builderSource.innerHTML = '';
         checkBuilderBtn.disabled = false;
         
-        // Use Javascript String iterator to safely split properly handling surrogate pairs
-        const charArray = Array.from(qData.cau);
+        // Disable regular Pinyin text in builder mode (it's inside the blocks now, or hidden depending on direction)
+        pinyinEl.style.display = 'none';
         
-        // Shuffle the characters
-        const scrambledChars = [...charArray].sort(() => 0.5 - Math.random());
+        let targetBlocks = [];
         
-        scrambledChars.forEach((char, idx) => {
+        if (gameMode === 'builder-viet-trung') {
+            // Việt -> Trung: Người dùng nhìn tiếng Việt, xếp tiếng Trung
+            // Phân tích câu tiếng Trung để cắt thành khối (có pinyin)
+            questionEl.textContent = qData.cauNghia;
+            playAudioBtn.classList.remove('hidden');
+            const triggerAudio = () => playAudio(qData.cauNghia, 'vi');
+            playAudioBtn.onclick = triggerAudio;
+            setTimeout(triggerAudio, 300);
+            
+            // Tìm các cụm từ trong từ điển theo thứ tự dài nhất đến ngắn nhất để cắt câu thông minh
+            let remainingText = qData.cau;
+            let vocabList = [...vocabulary].sort((a,b) => b.hanTu.length - a.hanTu.length);
+            let chunksHtml = [];
+            
+            // Một thuật toán tìm kiếm đơn giản: Cắt câu theo cụm từ. 
+            // Do cần giữ thứ tự nên cách đơn giản nhất là duyệt từng ký tự
+            let i = 0;
+            while(i < remainingText.length) {
+                let matchFound = false;
+                for(let v of vocabList) {
+                    if (remainingText.substring(i).startsWith(v.hanTu)) {
+                        chunksHtml.push({ hanTu: v.hanTu, pinyin: v.pinyin });
+                        i += v.hanTu.length;
+                        matchFound = true;
+                        break;
+                    }
+                }
+                if(!matchFound) {
+                    // Ký tự lẻ (không có trong từ điển vd: chấm, phẩy, de...)
+                    chunksHtml.push({ hanTu: remainingText[i], pinyin: "" });
+                    i++;
+                }
+            }
+            
+            targetBlocks = chunksHtml;
+            
+        } else if (gameMode === 'builder-trung-viet') {
+            // Trung -> Việt: Người dùng nhìn tiếng Trung, xếp tiếng Việt (xếp theo từ)
+            questionEl.textContent = qData.cau;
+            playAudioBtn.classList.remove('hidden');
+            const triggerAudio = () => playAudio(qData.cau, 'zh-CN');
+            playAudioBtn.onclick = triggerAudio;
+            setTimeout(triggerAudio, 300);
+            pinyinEl.textContent = qData.cauPinyin;
+            pinyinEl.style.display = 'block';
+            
+            // Tiếng việt thì tách bằng khoảng trắng
+            let words = qData.cauNghia.split(' ').filter(w => w.trim() !== '');
+            targetBlocks = words.map(w => ({ hanTu: w, pinyin: "" }));
+        }
+        
+        // Shuffle the identified blocks
+        const scrambledBlocks = [...targetBlocks].sort(() => 0.5 - Math.random());
+        
+        scrambledBlocks.forEach((chunk, idx) => {
             const block = document.createElement('div');
             block.className = 'word-block';
-            block.textContent = char;
             block.dataset.id = `wb-${idx}`;
+            
+            if (chunk.pinyin && chunk.pinyin.trim() !== "") {
+                block.innerHTML = `<span class="block-top">${chunk.hanTu}</span><span class="block-bot">${chunk.pinyin}</span>`;
+            } else {
+                block.textContent = chunk.hanTu;
+            }
+            
+            // Xóa dấu / ký tự trắng thừa nếu nối chuỗi
+            block.dataset.raw = chunk.hanTu;
             
             block.onclick = () => {
                 if (block.parentElement === builderSource) {
@@ -515,7 +603,7 @@ function loadQuestion() {
             builderSource.appendChild(block);
         });
     } else {
-        // Multiple choice logic
+        // --- Multiple choice logic ---
         builderContainer.classList.add('hidden');
         optionsContainer.classList.remove('hidden');
         
@@ -794,8 +882,24 @@ function checkBuilderAnswer() {
     });
     
     const qData = currentQuestions[currentQuestionIndex];
-    const userSentence = Array.from(builderTarget.children).map(b => b.textContent).join('');
-    const correctSentence = qData.cau;
+    
+    // Nối các khối người dùng đã chọn (lấy theo thuộc tính data-raw để tránh Pinyin lẫn vào)
+    let userSentence = "";
+    if (gameMode === 'builder-trung-viet') {
+        // Xếp tiếng Việt thì ghép lại bằng dấu cách
+        userSentence = Array.from(builderTarget.children).map(b => b.dataset.raw).join(' ');
+    } else {
+        // Xếp tiếng Trung thì ghép nối liền
+        userSentence = Array.from(builderTarget.children).map(b => b.dataset.raw).join('');
+    }
+    
+    let correctSentence = (gameMode === 'builder-viet-trung') ? qData.cau : qData.cauNghia;
+    
+    // Nếu xếp tiếng Việt, ta cũng chuẩn hóa chuỗi người dùng và chuỗi đúng để tránh lỗi dấu cách thừa
+    if (gameMode === 'builder-trung-viet') {
+        userSentence = userSentence.replace(/\s+/g, ' ').trim();
+        correctSentence = correctSentence.replace(/\s+/g, ' ').trim();
+    }
     
     if (userSentence === correctSentence) {
         // Correct
@@ -804,15 +908,20 @@ function checkBuilderAnswer() {
         scoreEl.textContent = score;
         
         // Show audio for the whole sentence if they want
-        playAudio(correctSentence, 'zh-CN');
+        playAudio(qData.cau, 'zh-CN');
     } else {
         // Wrong
         Array.from(builderTarget.children).forEach(b => b.classList.add('wrong'));
         
-        explanationText.innerHTML = `Sai rồi. Câu đúng phải là: <br> <b>${qData.cau}</b> (${qData.cauPinyin})`;
-        explanationContainer.classList.remove('hidden');
+        if (gameMode === 'builder-viet-trung') {
+            explanationText.innerHTML = `Sai rồi. Câu tiếng Trung đúng phải là: <br> <b>${qData.cau}</b> (${qData.cauPinyin})`;
+            playAudio(qData.cau, 'zh-CN');
+        } else {
+            explanationText.innerHTML = `Sai rồi. Câu tiếng Việt đúng phải là: <br> <b>${qData.cauNghia}</b>`;
+            playAudio(qData.cauNghia, 'vi');
+        }
         
-        playAudio(correctSentence, 'zh-CN');
+        explanationContainer.classList.remove('hidden');
     }
     
     nextBtn.classList.remove('hidden');

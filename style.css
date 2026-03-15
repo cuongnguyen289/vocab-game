@@ -604,12 +604,23 @@ p {
     border: 2px solid #E5E7EB;
     color: var(--text-main);
     padding: 0.5rem 0.8rem;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     border-radius: 8px;
     cursor: pointer;
     user-select: none;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.2;
+}
+
+.block-bot {
+    font-size: 0.8rem;
+    color: #6B7280;
+    margin-top: 2px;
+    font-weight: 400;
 }
 
 .word-block:hover {

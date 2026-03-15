@@ -47,7 +47,14 @@
                     <span class="btn-icon" style="font-size: 2rem; margin-right: 1rem; margin-bottom: 0;">💬</span>
                     <div style="display: flex; flex-direction: column;">
                         <span style="font-weight: 700;">Luyện Câu</span>
-                        <span style="font-size: 0.85rem; font-weight: 400; opacity: 0.9;">Gép câu, luyện ngữ cảnh thực tế</span>
+                        <span style="font-size: 0.85rem; font-weight: 400; opacity: 0.9;">Luyện phản xạ dịch Trắc nghiệm</span>
+                    </div>
+                </button>
+                <button class="btn warning-btn" onclick="goToStartScreen('builder')" style="padding: 1.5rem; justify-content: flex-start; text-align: left; font-size: 1.1rem;">
+                    <span class="btn-icon" style="font-size: 2rem; margin-right: 1rem; margin-bottom: 0;">🧩</span>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: 700;">Ghép Câu</span>
+                        <span style="font-size: 0.85rem; font-weight: 400; opacity: 0.9;">Sắp xếp từ tạo thành câu hoàn chỉnh</span>
                     </div>
                 </button>
             </div>
@@ -123,10 +130,39 @@
                 <button class="btn primary-btn" onclick="startGame('sentence-trung-viet')" disabled>
                     <span class="btn-icon">⏳</span> Đang tải...
                 </button>
-                <button class="btn secondary-btn" onclick="startGame('sentence-viet-trung')" disabled>
+            </div>
+        </div>
+
+        <!-- Màn hình chờ Ghép Câu -->
+        <div id="builder-start-screen" class="screen">
+            <div class="header" style="text-align: center; width: 100%; position: relative;">
+                <button onclick="showScreen('main-menu')" class="back-btn" title="Quay lại">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                </button>
+                <div class="header-icon" style="margin-bottom: 0.2rem;">🧩</div>
+                <h1 style="font-size: 1.8rem; margin-bottom: 0.2rem;">Ghép Câu</h1>
+                <p style="margin-bottom: 0.5rem; font-size: 0.95rem;">Luyện ngữ pháp và cấu trúc câu!</p>
+            </div>
+            
+            <div class="settings-group" style="margin-bottom: 1rem; text-align: center;">
+                <label for="builder-num-questions" style="display: inline-block; margin-right: 0.5rem; margin-bottom: 0;">Số lượng câu / lượt:</label>
+                <input type="number" id="builder-num-questions" value="10" min="1" max="500" style="width: 80px; display: inline-block; padding: 0.4rem;">
+            </div>
+            
+            <div class="progress-stats" style="text-align: center; background: #F3F4F6; padding: 0.8rem; border-radius: 12px; margin-bottom: 1.2rem; width: 100%;">
+                <p style="font-size: 0.9rem; margin-bottom: 0.3rem;">
+                    📝 Tổng số câu hỏi: <span id="builder-total-count" style="font-weight: bold; color: var(--primary-color);">0</span> câu
+                </p>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0;">
+                    <i>Tiến độ các câu đã học được liên kết với phòng Luyện Câu.</i>
+                </p>
+            </div>
+            
+            <div class="mode-buttons" id="builder-mode-buttons">
+                <button class="btn primary-btn" onclick="startGame('builder-viet-trung')" disabled>
                     <span class="btn-icon">⏳</span> Đang tải...
                 </button>
-                <button class="btn warning-btn" id="sentence-builder-btn" onclick="startGame('sentence-builder')" disabled style="grid-column: span 2;">
+                <button class="btn secondary-btn" onclick="startGame('builder-trung-viet')" disabled>
                     <span class="btn-icon">⏳</span> Đang tải...
                 </button>
             </div>
