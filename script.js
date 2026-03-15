@@ -45,19 +45,40 @@ const scoreEl = document.getElementById('score-display');
 const playAudioBtn = document.getElementById('play-audio-btn');
 const playExAudioBtn = document.getElementById('play-ex-audio-btn');
 
-// Nguồn âm thanh Google Dịch
+// Nguồn âm thanh Google Dịch và Dự phòng bằng trình duyệt
 window.playAudio = function(text, lang) {
     if (!text) return;
-    // Sử dụng client=tw-ob để ổn định hơn thay vì gtx, hoặc dùng API thay thế
-    const url = `https://translate.googleapis.com/translate_tts?client=tw-ob&ie=UTF-8&tl=${lang}&q=${encodeURIComponent(text)}`;
+
+    // Kích hoạt load giọng đọc trước (đối với một số trình duyệt)
+    if ('speechSynthesis' in window && window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.getVoices();
+    }
+
+    // Sử dụng client=dict-chrome-ex thường không bị lỗi ORB
+    const url = `https://translate.googleapis.com/translate_tts?client=dict-chrome-ex&ie=UTF-8&tl=${lang}&q=${encodeURIComponent(text)}`;
     const audio = new Audio(url);
     
-    // Thử phát qua Google Translate, nếu lỗi mạng/CORS thì tự động dùng giọng của trình duyệt
+    // Thử phát qua Google Translate, nếu lỗi mạng/CORS/ORB thì tự động dùng giọng của trình duyệt
     audio.play().catch(e => {
-        console.warn("Lỗi phát âm Google TTS, tự động dùng giọng trình duyệt:", e);
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang;
-        window.speechSynthesis.speak(utterance);
+        console.warn("Lỗi phát âm Google TTS, đổi sang giọng mặc định của máy:", e);
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // Hủy các âm trước đó chưa đọc xong
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            utterance.rate = 0.9;
+            
+            // Tìm giọng đọc sát nhất với ngôn ngữ
+            const voices = window.speechSynthesis.getVoices();
+            let targetVoice = voices.find(v => v.lang === lang || v.lang.replace('_', '-') === lang);
+            if (!targetVoice && lang === 'zh-CN') {
+                targetVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
+            } else if (!targetVoice && lang === 'vi') {
+                targetVoice = voices.find(v => v.lang.toLowerCase().includes('vi'));
+            }
+            if (targetVoice) utterance.voice = targetVoice;
+            
+            window.speechSynthesis.speak(utterance);
+        }
     });
 };
 const counterEl = document.getElementById('question-counter');
