@@ -226,6 +226,24 @@ p {
     transform: none;
 }
 
+.test-btn {
+    background-color: #8B5CF6;
+    color: white;
+    box-shadow: 0 4px 14px 0 rgba(139, 92, 246, 0.39);
+}
+
+.test-btn:hover {
+    background-color: #7C3AED;
+    transform: translateY(-2px);
+}
+
+.test-btn:disabled {
+    background-color: #D1D5DB;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .settings-group {
     width: 100%;
     margin-bottom: 1.5rem;
@@ -280,6 +298,22 @@ p {
 }
 
 /* Quiz Screen */
+#timer-bar-container {
+    width: 100%;
+    height: 8px;
+    background-color: #E5E7EB;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+#timer-bar {
+    height: 100%;
+    width: 100%;
+    background-color: var(--secondary-color);
+    transition: width 0.1s linear, background-color 0.3s ease;
+}
+
 .quiz-header {
     width: 100%;
     display: flex;

@@ -13,6 +13,9 @@ let currentQuestions = [];
 let currentQuestionIndex = 0;
 let score = 0;
 let gameMode = 'han-viet';
+let currentQuestionMode = 'han-viet';
+let timerInterval;
+let timeRemaining = 10;
 
 // User variables
 let currentUser = null;
@@ -58,6 +61,17 @@ function updateProgressUI() {
         } else {
             reviewBtn.disabled = false;
             reviewBtn.innerHTML = '<span class="btn-icon">📝</span> Ôn tập (' + wrongWords.length + ' từ đã sai)';
+        }
+    }
+
+    const testBtn = document.getElementById('test-btn');
+    if(testBtn && vocabulary.length > 0) {
+        if(learnedWords.length < 4) {
+            testBtn.disabled = true;
+            testBtn.textContent = '🔒 Kiểm tra bài (Cần thuộc ≥ 4 từ)';
+        } else {
+            testBtn.disabled = false;
+            testBtn.innerHTML = '<span class="btn-icon">🎯</span> Kiểm tra bài (' + learnedWords.length + ' từ đã thuộc)';
         }
     }
 }
@@ -242,6 +256,15 @@ function setupQuiz() {
             showScreen('start');
             return;
         }
+    } else if (gameMode === 'test') {
+        // Trong chế độ Test, lấy danh sách từ trong learnedWords
+        availableWords = vocabulary.filter(v => learnedWords.includes(v.hanTu));
+        
+        if (availableWords.length < 4) {
+            alert("Bạn cần thuộc ít nhất 4 từ để có thể chơi chế độ kiểm tra!");
+            showScreen('start');
+            return;
+        }
     } else {
         // Lọc ra những từ chưa thuộc cho các chế độ luyện Mới
         availableWords = vocabulary.filter(v => !learnedWords.includes(v.hanTu));
@@ -280,13 +303,13 @@ function loadQuestion() {
     
     let correctAnswerText, questionTextMain, questionTextSub;
 
-    // Trong Review mode, random giua han-viet và viet-han để kiểm tra mọi mặt
-    let currentQMode = gameMode;
-    if (gameMode === 'review') {
-        currentQMode = Math.random() > 0.5 ? 'han-viet' : 'viet-han';
+    // Trong Review mode hoặc Test mode, random giua han-viet và viet-han để kiểm tra mọi mặt
+    currentQuestionMode = gameMode;
+    if (gameMode === 'review' || gameMode === 'test') {
+        currentQuestionMode = Math.random() > 0.5 ? 'han-viet' : 'viet-han';
     }
 
-    if (currentQMode === 'han-viet') {
+    if (currentQuestionMode === 'han-viet') {
         questionTextMain = qData.hanTu;
         questionTextSub = qData.pinyin;
         correctAnswerText = qData.tiengViet;
@@ -314,7 +337,7 @@ function loadQuestion() {
     pool = pool.sort(() => 0.5 - Math.random());
     
     for (let i = 0; i < 3 && i < pool.length; i++) {
-        if (currentQMode === 'han-viet') {
+        if (currentQuestionMode === 'han-viet') {
             options.push(pool[i].tiengViet);
         } else {
             options.push(`${pool[i].hanTu} (${pool[i].pinyin})`);
@@ -331,9 +354,89 @@ function loadQuestion() {
         btn.onclick = () => checkAnswer(opt, correctAnswerText, btn);
         optionsContainer.appendChild(btn);
     });
+
+    startTimer();
+}
+
+function startTimer() {
+    const timerContainer = document.getElementById('timer-bar-container');
+    const timerBar = document.getElementById('timer-bar');
+    
+    if (gameMode !== 'test') {
+        timerContainer.classList.add('hidden');
+        return;
+    }
+    
+    timerContainer.classList.remove('hidden');
+    timeRemaining = 10;
+    timerBar.style.width = '100%';
+    timerBar.style.backgroundColor = 'var(--secondary-color)';
+    
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        timeRemaining -= 0.1;
+        const percentage = (timeRemaining / 10) * 100;
+        timerBar.style.width = `${percentage}%`;
+        
+        if (timeRemaining <= 3) {
+            timerBar.style.backgroundColor = 'var(--error-color)';
+        } else if (timeRemaining <= 6) {
+            timerBar.style.backgroundColor = '#F59E0B';
+        }
+        
+        if (timeRemaining <= 0) {
+            handleTimeOut();
+        }
+    }, 100);
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+}
+
+function handleTimeOut() {
+    stopTimer();
+    const timerBar = document.getElementById('timer-bar');
+    timerBar.style.width = '0%';
+    
+    const h = currentQuestionIndex;
+    const qData = currentQuestions[h];
+    
+    let correctAnswerText;
+    if (currentQuestionMode === 'han-viet') {
+        correctAnswerText = qData.tiengViet;
+    } else {
+        correctAnswerText = `${qData.hanTu} (${qData.pinyin})`;
+    }
+    
+    const buttons = optionsContainer.querySelectorAll('.option-btn');
+    
+    explanationText.innerHTML = `⏳ <b>Hết giờ!</b><br>Từ <b>${qData.hanTu}</b> (${qData.pinyin}) có nghĩa là: <br> "<b>${qData.tiengViet}</b>"`;
+    explanationContainer.classList.remove('hidden');
+    
+    buttons.forEach(btn => btn.disabled = true);
+    
+    if (!wrongWords.includes(qData.hanTu)) {
+        wrongWords.push(qData.hanTu);
+        localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
+        const index = learnedWords.indexOf(qData.hanTu);
+        if(index > -1) {
+            learnedWords.splice(index, 1);
+            localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
+        }
+    }
+    
+    buttons.forEach(btn => {
+        if (btn.textContent === correctAnswerText) {
+            btn.classList.add('correct');
+        }
+    });
+    
+    nextBtn.classList.remove('hidden');
 }
 
 function checkAnswer(selected, correct, selectedBtn) {
+    stopTimer();
     const buttons = optionsContainer.querySelectorAll('.option-btn');
     buttons.forEach(btn => btn.disabled = true); // Disable click on others
     
@@ -351,6 +454,8 @@ function checkAnswer(selected, correct, selectedBtn) {
                 wrongWords.splice(index, 1);
                 localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
             }
+        } else if (gameMode === 'test') {
+            // Test mode: correct answer doesn't need to be pushed since it's already in learnedWords
         } else {
             // Save to learnedWords in normal mode
             if (!learnedWords.includes(qData.hanTu)) {
@@ -437,6 +542,7 @@ nextBtn.onclick = () => {
 };
 
 function endGame() {
+    stopTimer();
     showScreen('result');
     const finalScoreEl = document.getElementById('final-score-display');
     const feedbackEl = document.getElementById('feedback-text');
@@ -458,5 +564,6 @@ function endGame() {
 }
 
 function returnToMenu() {
+    stopTimer();
     showScreen('start');
 }

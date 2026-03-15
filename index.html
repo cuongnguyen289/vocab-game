@@ -63,6 +63,9 @@
                 <button id="review-btn" class="btn warning-btn" onclick="startGame('review')" disabled>
                     <span class="btn-icon">⏳</span> Đang tải dữ liệu...
                 </button>
+                <button id="test-btn" class="btn test-btn" onclick="startGame('test')" disabled>
+                    <span class="btn-icon">⏳</span> Đang tải dữ liệu...
+                </button>
             </div>
         </div>
 
@@ -74,6 +77,9 @@
 
         <!-- Quiz Screen -->
         <div id="quiz-screen" class="screen">
+            <div id="timer-bar-container" class="hidden">
+                <div id="timer-bar"></div>
+            </div>
             <div class="quiz-header">
                 <div class="score">🏆 Điểm: <span id="score-display">0</span></div>
                 <div class="progress">📍 Câu: <span id="question-counter">1/10</span></div>
