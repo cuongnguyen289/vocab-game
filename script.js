@@ -278,9 +278,17 @@ function parseCSV(csvText) {
                 
                 btns[1].disabled = false;
                 btns[1].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇻🇳</span><span>Việt ➡️ Trung</span></div>';
+                
+                const buildBtn = document.getElementById('sentence-builder-btn');
+                if (buildBtn) {
+                    buildBtn.disabled = false;
+                    buildBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🧩</span><span>Ghép Câu</span></div>';
+                }
             } else {
                 btns[0].innerHTML = '<span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">❌</span><span>Không có DL</span>';
                 btns[1].innerHTML = '<span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">❌</span><span>Không có DL</span>';
+                const buildBtn = document.getElementById('sentence-builder-btn');
+                if (buildBtn) buildBtn.innerHTML = '<span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">❌</span><span>Không có DL</span>';
             }
         }
     }
@@ -318,11 +326,11 @@ function setupQuiz() {
         availableWords = vocabulary.filter(v => learnedWords.includes(v.hanTu));
         
         if (availableWords.length < 4) {
-            alert("Bạn cần thuộc ít nhất 4 từ để có thể chơi chế độ kiểm tra!");
-            showScreen('vocab');
-            return;
+             alert("Danh sách của bạn cần ít nhất 4 từ để chơi chế độ kiểm tra!");
+             showScreen('vocab');
+             return;
         }
-    } else if (gameMode === 'sentence-trung-viet' || gameMode === 'sentence-viet-trung') {
+    } else if (gameMode === 'sentence-trung-viet' || gameMode === 'sentence-viet-trung' || gameMode === 'sentence-builder') {
         // Lọc ra các dòng có chứa thông tin câu (bỏ qua khoảng trống và dấu gạch ngang)
         availableWords = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
         
@@ -411,48 +419,88 @@ function loadQuestion() {
     if (questionTextMain) {
         playAudioBtn.classList.remove('hidden');
         let langCode = 'zh-CN';
-        if (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-viet-trung') {
+        if (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-viet-trung' || currentQuestionMode === 'sentence-builder') {
             langCode = 'vi';
         }
         playAudioBtn.onclick = () => playAudio(questionTextMain, langCode);
     } else {
         playAudioBtn.classList.add('hidden');
     }
+
+    const builderContainer = document.getElementById('builder-container');
+    const builderTarget = document.getElementById('builder-target');
+    const builderSource = document.getElementById('builder-source');
+    const checkBuilderBtn = document.getElementById('check-builder-btn');
     
-    // Tao ds Options (1 dúng, 3 sai)
-    let options = [correctAnswerText];
-    let pool = [];
-    
-    if (gameMode.includes('sentence')) {
-        pool = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cau !== qData.cau && v.cauNghia && v.cauNghia !== '-');
+    if (gameMode === 'sentence-builder') {
+        // Builder logic
+        optionsContainer.classList.add('hidden');
+        builderContainer.classList.remove('hidden');
+        builderTarget.innerHTML = '';
+        builderSource.innerHTML = '';
+        checkBuilderBtn.disabled = false;
+        
+        // Use Javascript String iterator to safely split properly handling surrogate pairs
+        const charArray = Array.from(qData.cau);
+        
+        // Shuffle the characters
+        const scrambledChars = [...charArray].sort(() => 0.5 - Math.random());
+        
+        scrambledChars.forEach((char, idx) => {
+            const block = document.createElement('div');
+            block.className = 'word-block';
+            block.textContent = char;
+            block.dataset.id = `wb-${idx}`;
+            
+            block.onclick = () => {
+                if (block.parentElement === builderSource) {
+                    builderTarget.appendChild(block);
+                } else if (block.parentElement === builderTarget) {
+                    builderSource.appendChild(block);
+                }
+            };
+            builderSource.appendChild(block);
+        });
     } else {
-        pool = vocabulary.filter(v => v.hanTu !== qData.hanTu);
-    }
-    
-    pool = pool.sort(() => 0.5 - Math.random());
-    
-    for (let i = 0; i < 3 && i < pool.length; i++) {
-        if (currentQuestionMode === 'han-viet') {
-            options.push(pool[i].tiengViet);
-        } else if (currentQuestionMode === 'viet-han') {
-            options.push(`${pool[i].hanTu} (${pool[i].pinyin})`);
-        } else if (currentQuestionMode === 'sentence-trung-viet') {
-            options.push(pool[i].cauNghia);
-        } else if (currentQuestionMode === 'sentence-viet-trung') {
-            options.push(`${pool[i].cau} (${pool[i].cauPinyin})`);
+        // Multiple choice logic
+        builderContainer.classList.add('hidden');
+        optionsContainer.classList.remove('hidden');
+        
+        // Tao ds Options (1 dúng, 3 sai)
+        let options = [correctAnswerText];
+        let pool = [];
+        
+        if (gameMode.includes('sentence')) {
+            pool = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cau !== qData.cau && v.cauNghia && v.cauNghia !== '-');
+        } else {
+            pool = vocabulary.filter(v => v.hanTu !== qData.hanTu);
         }
+        
+        pool = pool.sort(() => 0.5 - Math.random());
+        
+        for (let i = 0; i < 3 && i < pool.length; i++) {
+            if (currentQuestionMode === 'han-viet') {
+                options.push(pool[i].tiengViet);
+            } else if (currentQuestionMode === 'viet-han') {
+                options.push(`${pool[i].hanTu} (${pool[i].pinyin})`);
+            } else if (currentQuestionMode === 'sentence-trung-viet') {
+                options.push(pool[i].cauNghia);
+            } else if (currentQuestionMode === 'sentence-viet-trung') {
+                options.push(`${pool[i].cau} (${pool[i].cauPinyin})`);
+            }
+        }
+        
+        // Shuffle options array
+        options = options.sort(() => 0.5 - Math.random());
+        
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn option-btn';
+            btn.textContent = opt;
+            btn.onclick = () => checkAnswer(opt, correctAnswerText, btn);
+            optionsContainer.appendChild(btn);
+        });
     }
-    
-    // Shuffle options array
-    options = options.sort(() => 0.5 - Math.random());
-    
-    options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = 'btn option-btn';
-        btn.textContent = opt;
-        btn.onclick = () => checkAnswer(opt, correctAnswerText, btn);
-        optionsContainer.appendChild(btn);
-    });
 
     startTimer();
 }
@@ -656,6 +704,62 @@ function checkAnswer(selected, correct, selectedBtn) {
                 btn.classList.add('correct');
             }
         });
+    }
+    
+    nextBtn.classList.remove('hidden');
+}
+
+function resetBuilder() {
+    const builderTarget = document.getElementById('builder-target');
+    const builderSource = document.getElementById('builder-source');
+    
+    // Move all blocks back to source
+    const blocks = Array.from(builderTarget.children);
+    blocks.forEach(block => {
+        builderSource.appendChild(block);
+    });
+}
+
+function checkBuilderAnswer() {
+    stopTimer();
+    const builderTarget = document.getElementById('builder-target');
+    const builderSource = document.getElementById('builder-source');
+    const checkBuilderBtn = document.getElementById('check-builder-btn');
+    
+    if (builderSource.children.length > 0) {
+        alert("Bạn phải xếp đầy đủ tất cả các chữ!");
+        return;
+    }
+    
+    checkBuilderBtn.disabled = true;
+    
+    // Disable clicking on blocks
+    const allBlocks = document.querySelectorAll('.word-block');
+    allBlocks.forEach(b => {
+        b.onclick = null; // Remove standard onclick
+        b.style.cursor = 'default';
+    });
+    
+    const qData = currentQuestions[currentQuestionIndex];
+    const userSentence = Array.from(builderTarget.children).map(b => b.textContent).join('');
+    const correctSentence = qData.cau;
+    
+    if (userSentence === correctSentence) {
+        // Correct
+        Array.from(builderTarget.children).forEach(b => b.classList.add('correct'));
+        score += 10;
+        scoreEl.textContent = score;
+        
+        // Show audio for the whole sentence if they want
+        playAudio(correctSentence, 'zh-CN');
+    } else {
+        // Wrong
+        Array.from(builderTarget.children).forEach(b => b.classList.add('wrong'));
+        
+        explanationText.innerHTML = `Sai rồi. Câu đúng phải là: <br> <b>${qData.cau}</b> (${qData.cauPinyin})`;
+        explanationContainer.classList.remove('hidden');
+        
+        playAudio(correctSentence, 'zh-CN');
     }
     
     nextBtn.classList.remove('hidden');

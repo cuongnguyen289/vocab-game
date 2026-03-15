@@ -119,11 +119,14 @@
                 </p>
             </div>
             
-            <div class="mode-buttons" id="sentence-mode-buttons">
+            <div class="mode-buttons" id="sentence-mode-buttons" style="grid-template-columns: 1fr 1fr; gap: 0.8rem;">
                 <button class="btn primary-btn" onclick="startGame('sentence-trung-viet')" disabled>
                     <span class="btn-icon">⏳</span> Đang tải...
                 </button>
                 <button class="btn secondary-btn" onclick="startGame('sentence-viet-trung')" disabled>
+                    <span class="btn-icon">⏳</span> Đang tải...
+                </button>
+                <button class="btn warning-btn" id="sentence-builder-btn" onclick="startGame('sentence-builder')" disabled style="grid-column: span 2;">
                     <span class="btn-icon">⏳</span> Đang tải...
                 </button>
             </div>
@@ -155,6 +158,19 @@
             
             <div id="options-container" class="options-grid">
                 <!-- Options will be injected here by JS -->
+            </div>
+            
+            <div id="builder-container" class="builder-container hidden">
+                <div id="builder-target" class="builder-area target-area">
+                    <!-- Selected words will go here -->
+                </div>
+                <div class="builder-controls">
+                    <button id="check-builder-btn" class="btn primary-btn" onclick="checkBuilderAnswer()">Kiểm Tra</button>
+                    <button id="reset-builder-btn" class="btn secondary-btn" onclick="resetBuilder()" style="margin-left: 0.5rem;">Làm Lại</button>
+                </div>
+                <div id="builder-source" class="builder-area source-area">
+                    <!-- Scrambled words will go here -->
+                </div>
             </div>
             
             <div id="explanation-container" class="explanation-box hidden">
