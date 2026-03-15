@@ -80,7 +80,7 @@ function updateProgressUI() {
     // Update Sentence Stats
     const sentenceTotalEl = document.getElementById('sentence-total-count');
     if (sentenceTotalEl) {
-        const sentencesWithData = vocabulary.filter(v => v.cau && v.cauNghia);
+        const sentencesWithData = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
         sentenceTotalEl.textContent = sentencesWithData.length;
     }
 }
@@ -261,7 +261,7 @@ function parseCSV(csvText) {
         const sentenceButtons = document.getElementById('sentence-mode-buttons');
         if(sentenceButtons) {
             const btns = sentenceButtons.querySelectorAll('button');
-            const hasSentences = vocabulary.some(v => v.cau && v.cauNghia);
+            const hasSentences = vocabulary.some(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
             if(hasSentences) {
                 btns[0].disabled = false;
                 btns[0].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇨🇳</span><span>Trung ➡️ Việt</span></div>';
@@ -313,8 +313,8 @@ function setupQuiz() {
             return;
         }
     } else if (gameMode === 'sentence-trung-viet' || gameMode === 'sentence-viet-trung') {
-        // Lọc ra các dòng có chứa thông tin câu
-        availableWords = vocabulary.filter(v => v.cau && v.cauNghia);
+        // Lọc ra các dòng có chứa thông tin câu (bỏ qua khoảng trống và dấu gạch ngang)
+        availableWords = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
         
         if (availableWords.length < 4) {
              alert("Danh sách của bạn cần ít nhất 4 câu ví dụ để chơi chế độ này!");
@@ -402,7 +402,7 @@ function loadQuestion() {
     let pool = [];
     
     if (gameMode.includes('sentence')) {
-        pool = vocabulary.filter(v => v.cau && v.cau !== qData.cau);
+        pool = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cau !== qData.cau && v.cauNghia && v.cauNghia !== '-');
     } else {
         pool = vocabulary.filter(v => v.hanTu !== qData.hanTu);
     }
@@ -549,14 +549,14 @@ function checkAnswer(selected, correct, selectedBtn) {
             }
         }
         
-        // Show Example if available (only in non-sentence mode)
-        if(qData.cau && !gameMode.includes('sentence')) {
+        // Show Example if available (only in non-sentence mode and if it's not a dash)
+        if(qData.cau && qData.cau !== '-' && !gameMode.includes('sentence')) {
             exampleSentence.textContent = qData.cau;
-            examplePinyin.textContent = qData.cauPinyin || "";
-            exampleMeaning.textContent = qData.cauNghia || "";
+            examplePinyin.textContent = qData.cauPinyin && qData.cauPinyin !== '-' ? qData.cauPinyin : "";
+            exampleMeaning.textContent = qData.cauNghia && qData.cauNghia !== '-' ? qData.cauNghia : "";
             
-            examplePinyin.style.display = qData.cauPinyin ? 'block' : 'none';
-            exampleMeaning.style.display = qData.cauNghia ? 'block' : 'none';
+            examplePinyin.style.display = (qData.cauPinyin && qData.cauPinyin !== '-') ? 'block' : 'none';
+            exampleMeaning.style.display = (qData.cauNghia && qData.cauNghia !== '-') ? 'block' : 'none';
             
             exampleContainer.classList.remove('hidden');
         }
