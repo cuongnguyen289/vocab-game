@@ -48,9 +48,17 @@ const playExAudioBtn = document.getElementById('play-ex-audio-btn');
 // Nguồn âm thanh Google Dịch
 window.playAudio = function(text, lang) {
     if (!text) return;
-    const url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${lang}&q=${encodeURIComponent(text)}`;
+    // Sử dụng client=tw-ob để ổn định hơn thay vì gtx, hoặc dùng API thay thế
+    const url = `https://translate.googleapis.com/translate_tts?client=tw-ob&ie=UTF-8&tl=${lang}&q=${encodeURIComponent(text)}`;
     const audio = new Audio(url);
-    audio.play().catch(e => console.error("Audio play error:", e));
+    
+    // Thử phát qua Google Translate, nếu lỗi mạng/CORS thì tự động dùng giọng của trình duyệt
+    audio.play().catch(e => {
+        console.warn("Lỗi phát âm Google TTS, tự động dùng giọng trình duyệt:", e);
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        window.speechSynthesis.speak(utterance);
+    });
 };
 const counterEl = document.getElementById('question-counter');
 const nextBtn = document.getElementById('next-btn');
