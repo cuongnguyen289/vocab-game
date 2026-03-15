@@ -135,6 +135,7 @@ function updateProgressUI() {
     }
 
     // Update Sentence Stats
+    const sentenceTotalEl = document.getElementById('sentence-total-count');
     if (sentenceTotalEl) {
         const sentencesWithData = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
         sentenceTotalEl.textContent = sentencesWithData.length;
