@@ -468,7 +468,14 @@ function loadQuestion() {
         if (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-viet-trung' || currentQuestionMode === 'sentence-builder') {
             langCode = 'vi';
         }
-        playAudioBtn.onclick = () => playAudio(questionTextMain, langCode);
+        
+        const triggerAudio = () => playAudio(questionTextMain, langCode);
+        playAudioBtn.onclick = triggerAudio;
+        
+        // Tự động phát âm thanh ở lần chuyển từ mới
+        // Delay 300ms để hoạt cảnh/giao diện render xong
+        setTimeout(triggerAudio, 300);
+        
     } else {
         playAudioBtn.classList.add('hidden');
     }
