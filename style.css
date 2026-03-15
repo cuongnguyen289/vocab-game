@@ -161,6 +161,33 @@ p {
     line-height: 1.5;
 }
 
+.back-btn {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 38px;
+    height: 38px;
+    background-color: #0077D4; /* Blue color from image */
+    border: 3px solid #000;
+    border-radius: 4px;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.back-btn:hover {
+    background-color: #005FAD;
+    transform: scale(1.05);
+}
+
+.back-btn:active {
+    transform: scale(0.95);
+}
+
 .btn {
     width: 100%;
     padding: 0.8rem;
