@@ -130,6 +130,9 @@
                 <button class="btn primary-btn" onclick="startGame('sentence-trung-viet')" disabled>
                     <span class="btn-icon">⏳</span> Đang tải...
                 </button>
+                <button class="btn secondary-btn" onclick="startGame('sentence-viet-trung')" disabled>
+                    <span class="btn-icon">⏳</span> Đang tải...
+                </button>
             </div>
         </div>
 
@@ -159,11 +162,11 @@
             </div>
             
             <div class="mode-buttons" id="builder-mode-buttons">
-                <button class="btn primary-btn" onclick="startGame('builder-viet-trung')" disabled>
-                    <span class="btn-icon">⏳</span> Đang tải...
+                <button id="sentence-target-btn" class="btn primary-btn" style="background-color: #6366f1;" onclick="startGame('sentence-target')" disabled>
+                    <span class="btn-icon">🧩</span> Ghép câu (➡️ Ngoại ngữ)
                 </button>
-                <button class="btn secondary-btn" onclick="startGame('builder-trung-viet')" disabled>
-                    <span class="btn-icon">⏳</span> Đang tải...
+                <button id="sentence-viet-btn" class="btn primary-btn" style="background-color: #8b5cf6;" onclick="startGame('sentence-viet')" disabled>
+                    <span class="btn-icon">🧩</span> Ghép câu (➡️ Tiếng Việt)
                 </button>
             </div>
         </div>
@@ -196,16 +199,16 @@
                 <!-- Options will be injected here by JS -->
             </div>
             
-            <div id="builder-container" class="builder-container hidden">
-                <div id="builder-target" class="builder-area target-area">
-                    <!-- Selected words will go here -->
+            <div id="sentence-builder-container" class="sentence-builder hidden">
+                <div id="sentence-answer-zone" class="sentence-answer-zone">
+                    <!-- Trọng tài kéo thả hay click chọn chữ sẽ vào đây -->
                 </div>
-                <div class="builder-controls">
-                    <button id="check-builder-btn" class="btn primary-btn" onclick="checkBuilderAnswer()">Kiểm Tra</button>
-                    <button id="reset-builder-btn" class="btn secondary-btn" onclick="resetBuilder()" style="margin-left: 0.5rem;">Làm Lại</button>
+                <!-- Controls for checking the sentence -->
+                <div class="sentence-controls">
+                    <button id="check-sentence-btn" class="btn primary-btn" onclick="checkSentenceAnswer()">Kiểm tra đáp án 🔎</button>
                 </div>
-                <div id="builder-source" class="builder-area source-area">
-                    <!-- Scrambled words will go here -->
+                <div id="sentence-word-bank" class="sentence-word-bank">
+                    <!-- Các chữ Hán bị xáo trộn ở đây -->
                 </div>
             </div>
             
