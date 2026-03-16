@@ -562,7 +562,7 @@ function normalizeSentence(text) {
 }
 
 function splitSentence(text) {
-    if (/[a-zA-Zà-ỹÀ-Y]/.test(text)) {
+    if (/[a-zA-Zà-ỹÀ-Ỹ]/.test(text)) {
         return text.trim().split(/\s+/);
     }
     return text.replace(/[，。？！.,?!、\s]/g, '').split('');
