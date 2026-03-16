@@ -28,12 +28,11 @@ let timerInterval;
 let timeRemaining = 10;
 
 // User variables
-let currentUser = null;
+let currentUser = "guest";
 let learnedWords = [];
 let wrongWords = [];
 
 const screens = {
-    login: document.getElementById('login-screen'),
     mainMenu: document.getElementById('main-menu-screen'),
     vocabStart: document.getElementById('vocab-start-screen'),
     sentenceStart: document.getElementById('sentence-start-screen'),
@@ -156,8 +155,7 @@ function updateProgressUI() {
 }
 
 function resetProgress() {
-    if(!currentUser) return;
-    if(confirm(`Bạn có chắc chắn muốn xóa tiến độ của tài khoản [${currentUser}] để học lại từ đầu không?`)) {
+    if(confirm(`Bạn có chắc chắn muốn xóa tiến độ để học lại từ đầu không?`)) {
         learnedWords = [];
         wrongWords = [];
         localStorage.removeItem(`${currentUser}_vocab_learned`);
@@ -166,60 +164,16 @@ function resetProgress() {
     }
 }
 
-// User Authentication
-function handleLoginKeyPress(e) {
-    if(e.key === 'Enter') loginUser();
-}
-
-function loginUser() {
-    const input = document.getElementById('username-input').value.trim();
-    if (input.length < 2) {
-        alert("Vui lòng nhập tên của bạn (ít nhất 2 ký tự)!");
-        return;
-    }
-    
-    // Set user and load their specific progress
-    currentUser = input.toLowerCase();
-    
-    try {
-        learnedWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_learned`)) || [];
-    } catch(e) {
-        learnedWords = [];
-        console.warn("Corrupted learnedWords data", e);
-    }
-    
-    try {
-        wrongWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`)) || [];
-    } catch(e) {
-        wrongWords = [];
-        console.warn("Corrupted wrongWords data", e);
-    }
-    
-    const mainDisplay = document.getElementById('main-display-username');
-    if(mainDisplay) mainDisplay.textContent = input;
-    
-    // Keep user logged in across page reloads
-    localStorage.setItem('vocab_last_user', input);
-    
-    showScreen('main-menu');
-}
-
-function logoutUser() {
-    currentUser = null;
-    learnedWords = [];
-    wrongWords = [];
-    localStorage.removeItem('vocab_last_user');
-    document.getElementById('username-input').value = '';
-    showScreen('login');
-}
-
-// Auto-login if previously saved
+// Initialize
 window.addEventListener('DOMContentLoaded', () => {
     fetchVocabulary();
-    const lastUser = localStorage.getItem('vocab_last_user');
-    if(lastUser) {
-        document.getElementById('username-input').value = lastUser;
-        loginUser();
+    
+    // Load progress
+    try {
+        learnedWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_learned`)) || [];
+        wrongWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`)) || [];
+    } catch(e) {
+        console.warn("Error loading progress", e);
     }
 });
 
@@ -270,12 +224,8 @@ async function fetchVocabulary() {
     updateProgressUI();
     
     if (!success) {
-        alert("Lỗi kết nối mạng: Không tải được danh sách từ vựng do bị chặn bởi trình duyệt (CORS) hoặc không có mạng. Mời thử lại!");
-        if (currentUser) {
-            showScreen('main-menu');
-        } else {
-            showScreen('login');
-        }
+        alert("Lỗi kết nối mạng: Không tải được danh sách từ vựng. Mời thử lại!");
+        showScreen('main-menu');
     }
 }
 
@@ -318,7 +268,7 @@ function parseCSV(csvText) {
     
     if (vocabulary.length < 4) {
         alert("Danh sách từ vựng quá ngắn (cần ít nhất 4 từ có đủ Hán Tự và Nghĩa để tạo 4 đáp án).");
-        if(currentUser) showScreen('main-menu');
+        showScreen('main-menu');
     } else {
         // Enable buttons
         const modeButtons = document.getElementById('main-mode-buttons');
