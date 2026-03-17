@@ -306,9 +306,17 @@ function parseCSV(csvText) {
                 btns[0].innerHTML = '<span class="btn-icon">🧩</span> Ghép câu (➡️ Ngoại ngữ)';
                 btns[1].disabled = false;
                 btns[1].innerHTML = '<span class="btn-icon">🧩</span> Ghép câu (➡️ Tiếng Việt)';
+                
+                const clozeBtn = document.getElementById('cloze-btn');
+                if(clozeBtn) {
+                    clozeBtn.disabled = false;
+                    clozeBtn.innerHTML = '<span class="btn-icon">📝</span> Điền khuyết (Cloze)';
+                }
             } else {
                 btns[0].innerHTML = '<span class="btn-icon">❌</span> Không đủ câu ví dụ';
                 btns[1].innerHTML = '<span class="btn-icon">❌</span> Không đủ câu ví dụ';
+                const clozeBtn = document.getElementById('cloze-btn');
+                if(clozeBtn) clozeBtn.innerHTML = '<span class="btn-icon">❌</span> Không đủ câu ví dụ';
             }
         }
     }
@@ -351,10 +359,10 @@ function setupQuiz() {
              showScreen('sentence');
              return;
         }
-    } else if (gameMode.startsWith('sentence-target') || gameMode.startsWith('sentence-viet')) {
-        availableWords = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
-        if (availableWords.length < 2) {
-             alert("Danh sách của bạn cần ít nhất 2 câu ví dụ để chơi chế độ này!");
+    } else if (gameMode === 'sentence-cloze') {
+        availableWords = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-' && v.cau.includes(v.hanTu));
+        if (availableWords.length < 4) {
+             alert("Danh sách của bạn cần ít nhất 4 từ có câu ví dụ chứa từ đó để chơi chế độ này!");
              showScreen('builder');
              return;
         }
@@ -371,11 +379,11 @@ function setupQuiz() {
     
     let inputId = 'num-questions';
     if (gameMode.includes('sentence-trung') || gameMode.includes('sentence-viet-trung')) inputId = 'sentence-num-questions';
-    else if (gameMode.includes('sentence-target') || gameMode.includes('sentence-viet')) inputId = 'builder-num-questions';
+    else if (gameMode.includes('sentence-target') || gameMode.includes('sentence-viet') || gameMode === 'sentence-cloze') inputId = 'builder-num-questions';
     
     const inputQ = document.getElementById(inputId);
-    let desiredCount = inputQ ? parseInt(inputQ.value) : 10;
-    if (isNaN(desiredCount) || desiredCount < 1) desiredCount = 10;
+    let desiredCount = inputQ ? parseInt(inputQ.value) : 30;
+    if (isNaN(desiredCount) || desiredCount < 1) desiredCount = 30;
     
     const TOTAL_QUESTIONS = Math.min(desiredCount, availableWords.length);
     currentQuestions = shuffled.slice(0, TOTAL_QUESTIONS);
@@ -422,16 +430,43 @@ function loadQuestion() {
         questionTextSub = "";
         correctAnswerText = `${qData.cau} (${qData.cauPinyin})`;
         questionEl.style.fontSize = '1.5rem'; 
+    } else if (currentQuestionMode === 'sentence-cloze') {
+        const blank = "（___）";
+        questionTextMain = qData.cau.replace(qData.hanTu, blank);
+        
+        let pinyinBlanked = qData.cauPinyin || "";
+        if (pinyinBlanked) {
+            // Attempt to replace target pinyin. Simple replace might fail with tone variations/case
+            // but we'll try a basic replace first or just show the whole thing if it's too complex.
+            // For now, let's try to replace it.
+            pinyinBlanked = pinyinBlanked.replace(new RegExp(qData.pinyin, 'gi'), "___");
+        }
+        
+        questionTextSub = `<div class="pinyin-q">${pinyinBlanked}</div><div class="meaning-q">${qData.cauNghia}</div>`; 
+        correctAnswerText = `${qData.hanTu} (${qData.pinyin})`;
+        questionEl.style.fontSize = '2rem';
     }
     
     questionEl.textContent = questionTextMain;
-    pinyinEl.textContent = questionTextSub;
+    if (currentQuestionMode === 'sentence-cloze') {
+        pinyinEl.innerHTML = questionTextSub;
+    } else {
+        pinyinEl.textContent = questionTextSub;
+    }
     if(!questionTextSub) {
         pinyinEl.style.display = 'none';
         questionEl.style.marginBottom = '0';
     } else {
         pinyinEl.style.display = 'block';
         questionEl.style.marginBottom = '0.2rem';
+        if (currentQuestionMode === 'sentence-cloze') {
+            pinyinEl.style.display = 'block';
+            pinyinEl.style.marginBottom = '0.5rem';
+        } else {
+            pinyinEl.style.fontSize = '1.4rem';
+            pinyinEl.style.color = 'var(--primary-color)';
+            pinyinEl.style.fontStyle = 'normal';
+        }
     }
     
     if (questionTextMain) {
@@ -458,7 +493,9 @@ function loadQuestion() {
         
         let options = [correctAnswerText];
         let pool = [];
-        if (gameMode.includes('sentence')) {
+        if (gameMode === 'sentence-cloze') {
+            pool = vocabulary.filter(v => v.hanTu !== qData.hanTu);
+        } else if (gameMode.includes('sentence')) {
             pool = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cau !== qData.cau && v.cauNghia && v.cauNghia !== '-');
         } else {
             pool = vocabulary.filter(v => v.hanTu !== qData.hanTu);
@@ -474,6 +511,8 @@ function loadQuestion() {
                 options.push(pool[i].cauNghia);
             } else if (currentQuestionMode === 'sentence-viet-trung') {
                 options.push(`${pool[i].cau} (${pool[i].cauPinyin})`);
+            } else if (currentQuestionMode === 'sentence-cloze') {
+                options.push(`${pool[i].hanTu} (${pool[i].pinyin})`);
             }
         }
         
@@ -534,7 +573,9 @@ function handleTimeOut() {
     const qData = currentQuestions[currentQuestionIndex];
     const buttons = optionsContainer.querySelectorAll('.option-btn');
     
-    if (gameMode.includes('sentence')) {
+    if (gameMode === 'sentence-cloze') {
+        explanationText.innerHTML = `⏳ <b>Hết giờ!</b><br>Đáp án đúng là: <b>${qData.hanTu}</b> (${qData.pinyin})<br>Câu đầy đủ: <b>${qData.cau}</b>`;
+    } else if (gameMode.includes('sentence')) {
         explanationText.innerHTML = `⏳ <b>Hết giờ!</b><br>Câu <b>${qData.cau}</b> (${qData.cauPinyin}) có nghĩa là: <br> "<b>${qData.cauNghia}</b>"`;
     } else {
         explanationText.innerHTML = `⏳ <b>Hết giờ!</b><br>Từ <b>${qData.hanTu}</b> (${qData.pinyin}) có nghĩa là: <br> "<b>${qData.tiengViet}</b>"`;
@@ -562,7 +603,7 @@ function normalizeSentence(text) {
 }
 
 function splitSentence(text) {
-    if (/[a-zA-Zà-ỹÀ-Ỹ]/.test(text)) {
+    if (/[a-zA-Z]/.test(text) || /[\u00C0-\u1EF9]/.test(text)) {
         return text.trim().split(/\s+/);
     }
     return text.replace(/[，。？！.,?!、\s]/g, '').split('');
@@ -726,6 +767,9 @@ function checkAnswer(selected, correct, selectedBtn) {
         
         if(explanation) {
             explanationText.innerHTML = explanation;
+            explanationContainer.classList.remove('hidden');
+        } else if (gameMode === 'sentence-cloze') {
+            explanationText.innerHTML = `Sai rồi. Đáp án đúng là: <b>${qData.hanTu}</b> (${qData.pinyin})<br>Câu đầy đủ: <b>${qData.cau}</b>`;
             explanationContainer.classList.remove('hidden');
         }
 

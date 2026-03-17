@@ -244,6 +244,19 @@ p {
     margin-top: 5px;
 }
 
+.pinyin-q {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    font-weight: 400;
+    margin-bottom: 5px;
+}
+
+.meaning-q {
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-style: italic;
+}
+
 .audio-btn {
     background: #f1f5f9;
     border: none;

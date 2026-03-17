@@ -56,7 +56,7 @@
             
             <div class="settings-group" style="margin-bottom: 1rem; text-align: center;">
                 <label for="num-questions" style="display: inline-block; margin-right: 0.5rem; margin-bottom: 0;">Số lượng câu / lượt:</label>
-                <input type="number" id="num-questions" value="10" min="1" max="500" style="width: 80px; display: inline-block; padding: 0.4rem;">
+                <input type="number" id="num-questions" value="30" min="1" max="500" style="width: 80px; display: inline-block; padding: 0.4rem;">
             </div>
             
             <div class="progress-stats" style="text-align: center; background: #F3F4F6; padding: 0.8rem; border-radius: 12px; margin-bottom: 1.2rem; width: 100%;">
@@ -97,7 +97,7 @@
             
             <div class="settings-group" style="margin-bottom: 1rem; text-align: center;">
                 <label for="sentence-num-questions" style="display: inline-block; margin-right: 0.5rem; margin-bottom: 0;">Số lượng câu / lượt:</label>
-                <input type="number" id="sentence-num-questions" value="10" min="1" max="500" style="width: 80px; display: inline-block; padding: 0.4rem;">
+                <input type="number" id="sentence-num-questions" value="30" min="1" max="500" style="width: 80px; display: inline-block; padding: 0.4rem;">
             </div>
             
             <div class="progress-stats" style="text-align: center; background: #F3F4F6; padding: 0.8rem; border-radius: 12px; margin-bottom: 1.2rem; width: 100%;">
@@ -132,7 +132,7 @@
             
             <div class="settings-group" style="margin-bottom: 1rem; text-align: center;">
                 <label for="builder-num-questions" style="display: inline-block; margin-right: 0.5rem; margin-bottom: 0;">Số lượng câu / lượt:</label>
-                <input type="number" id="builder-num-questions" value="10" min="1" max="500" style="width: 80px; display: inline-block; padding: 0.4rem;">
+                <input type="number" id="builder-num-questions" value="30" min="1" max="500" style="width: 80px; display: inline-block; padding: 0.4rem;">
             </div>
             
             <div class="progress-stats" style="text-align: center; background: #F3F4F6; padding: 0.8rem; border-radius: 12px; margin-bottom: 1.2rem; width: 100%;">
@@ -148,8 +148,8 @@
                 <button id="sentence-target-btn" class="btn primary-btn" style="background-color: #6366f1;" onclick="startGame('sentence-target')" disabled>
                     <span class="btn-icon">🧩</span> Ghép câu (➡️ Ngoại ngữ)
                 </button>
-                <button id="sentence-viet-btn" class="btn primary-btn" style="background-color: #8b5cf6;" onclick="startGame('sentence-viet')" disabled>
-                    <span class="btn-icon">🧩</span> Ghép câu (➡️ Tiếng Việt)
+                <button id="cloze-btn" class="btn primary-btn" style="background-color: #f59e0b;" onclick="startGame('sentence-cloze')" disabled>
+                    <span class="btn-icon">📝</span> Điền khuyết (Cloze)
                 </button>
             </div>
         </div>
