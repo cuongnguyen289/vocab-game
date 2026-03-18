@@ -168,6 +168,35 @@ function updateProgressUI() {
         const sentencesWithData = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
         builderTotalEl.textContent = sentencesWithData.length;
     }
+
+    // Update Level Stats
+    const levelStatsContainer = document.getElementById('level-stats-container');
+    if (levelStatsContainer && Object.keys(wordStats).length > 0) {
+        levelStatsContainer.style.display = 'block';
+        const stats = { '1-2': 0, '3-4': 0, '5': 0 };
+        Object.values(wordStats).forEach(s => {
+            if (s.level <= 2) stats['1-2']++;
+            else if (s.level <= 4) stats['3-4']++;
+            else stats['5']++;
+        });
+        document.getElementById('lvl-1-2-count').textContent = stats['1-2'];
+        document.getElementById('lvl-3-4-count').textContent = stats['3-4'];
+        document.getElementById('lvl-5-count').textContent = stats['5'];
+
+        // Update Time Attack Button State & Text
+        const timeAttackBtn = document.getElementById('time-attack-btn');
+        const level3PlusCount = stats['3-4'] + stats['5'];
+        if (timeAttackBtn) {
+            if (level3PlusCount < 5) {
+                timeAttackBtn.disabled = true;
+                timeAttackBtn.title = "Cần ít nhất 5 từ Level 3+";
+                timeAttackBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Phản xạ (${level3PlusCount}/5)</span></div>`;
+            } else {
+                timeAttackBtn.disabled = false;
+                timeAttackBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⚡</span><span>Phản Xạ Nhanh</span></div>`;
+            }
+        }
+    }
 }
 
 function resetProgress() {
