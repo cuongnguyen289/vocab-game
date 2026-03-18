@@ -26,11 +26,14 @@ let gameMode = 'han-viet';
 let currentQuestionMode = 'han-viet';
 let timerInterval;
 let timeRemaining = 10;
+let maxTimeLimit = 5; // For Time Attack
+let correctStreak = 0;
 
 // User variables
 let currentUser = "guest";
-let learnedWords = [];
-let wrongWords = [];
+let wordStats = {}; // SRS Data: { "hanTu": { level, lastReview, nextReview, interval } }
+let learnedWords = []; // For backward compatibility / display
+let wrongWords = [];   // For backward compatibility / display
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
@@ -139,6 +142,19 @@ function updateProgressUI() {
         }
     }
 
+    // Update SRS Review Button
+    const now = Date.now();
+    const reviewReady = Object.keys(wordStats).filter(hanTu => wordStats[hanTu].nextReview <= now);
+    if (reviewBtn && vocabulary.length > 0) {
+        if (reviewReady.length === 0) {
+            reviewBtn.disabled = true;
+            reviewBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⏳</span><span>Đã ôn hết</span></div>';
+        } else {
+            reviewBtn.disabled = false;
+            reviewBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔥</span><span>Ôn Ngay (' + reviewReady.length + ')</span></div>';
+        }
+    }
+
     // Update Sentence Stats
     const sentenceTotalEl = document.getElementById('sentence-total-count');
     if (sentenceTotalEl) {
@@ -158,10 +174,53 @@ function resetProgress() {
     if(confirm(`Bạn có chắc chắn muốn xóa tiến độ để học lại từ đầu không?`)) {
         learnedWords = [];
         wrongWords = [];
+        wordStats = {};
         localStorage.removeItem(`${currentUser}_vocab_learned`);
         localStorage.removeItem(`${currentUser}_vocab_wrong`);
+        localStorage.removeItem(`${currentUser}_vocab_stats`);
         updateProgressUI();
     }
+}
+
+function migrateToSRS() {
+    // Migrate from old learnedWords to SRS
+    let modified = false;
+    learnedWords.forEach(hanTu => {
+        if (!wordStats[hanTu]) {
+            wordStats[hanTu] = {
+                level: 3, 
+                lastReview: Date.now(),
+                nextReview: Date.now() + (3 * 24 * 60 * 60 * 1000), // Default 3 days
+                interval: 3
+            };
+            modified = true;
+        }
+    });
+    // Migrate from wrongWords
+    wrongWords.forEach(hanTu => {
+        if (!wordStats[hanTu]) {
+            wordStats[hanTu] = {
+                level: 1,
+                lastReview: Date.now(),
+                nextReview: Date.now(), // Review now
+                interval: 1
+            };
+            modified = true;
+        }
+    });
+
+    if (modified) {
+        saveSRSData();
+    }
+}
+
+function saveSRSData() {
+    localStorage.setItem(`${currentUser}_vocab_stats`, JSON.stringify(wordStats));
+    // Also update legacy arrays for UI consistency
+    learnedWords = Object.keys(wordStats).filter(k => wordStats[k].level >= 3);
+    localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
+    wrongWords = Object.keys(wordStats).filter(k => wordStats[k].nextReview <= Date.now());
+    localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
 }
 
 // Initialize
@@ -172,6 +231,8 @@ window.addEventListener('DOMContentLoaded', () => {
     try {
         learnedWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_learned`)) || [];
         wrongWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`)) || [];
+        wordStats = JSON.parse(localStorage.getItem(`${currentUser}_vocab_stats`)) || {};
+        migrateToSRS();
     } catch(e) {
         console.warn("Error loading progress", e);
     }
@@ -279,6 +340,12 @@ function parseCSV(csvText) {
             
             btns[1].disabled = false;
             btns[1].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇻🇳</span><span>Việt ➡️ Hán</span></div>';
+            
+            const timeAttackBtn = document.getElementById('time-attack-btn');
+            if (timeAttackBtn) {
+                timeAttackBtn.disabled = false;
+                timeAttackBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⚡</span><span>Phản Xạ Nhanh</span></div>';
+            }
         }
 
         const sentenceButtons = document.getElementById('sentence-mode-buttons');
@@ -339,9 +406,10 @@ function setupQuiz() {
     let availableWords = [];
     
     if (gameMode === 'review') {
-        availableWords = vocabulary.filter(v => wrongWords.includes(v.hanTu));
+        const now = Date.now();
+        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].nextReview <= now);
         if (availableWords.length === 0) {
-            alert("Tuyệt vời! Bạn không có từ vựng nào sai để ôn tập. Quay lại học bài mới nhé!");
+            alert("Tuyệt vời! Bạn không có từ vựng nào cần ôn tập hôm nay. Quay lại học bài mới nhé!");
             showScreen('vocab');
             return;
         }
@@ -366,6 +434,16 @@ function setupQuiz() {
              showScreen('builder');
              return;
         }
+    } else if (gameMode === 'time-attack') {
+        // Only use words that are well-learned (level >= 3)
+        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
+        if (availableWords.length < 5) {
+            alert("Bạn cần thuộc ít nhất 5 từ (Level 3+) để mở khóa thử thách Phản Xạ Nhanh!");
+            showScreen('vocab');
+            return;
+        }
+        maxTimeLimit = 5;
+        correctStreak = 0;
     } else {
         availableWords = vocabulary.filter(v => !learnedWords.includes(v.hanTu));
         if (availableWords.length === 0) {
@@ -379,7 +457,7 @@ function setupQuiz() {
     
     let inputId = 'num-questions';
     if (gameMode.includes('sentence-trung') || gameMode.includes('sentence-viet-trung')) inputId = 'sentence-num-questions';
-    else if (gameMode.includes('sentence-target') || gameMode.includes('sentence-viet') || gameMode === 'sentence-cloze') inputId = 'builder-num-questions';
+    else if (gameMode.includes('sentence-target') || gameMode.includes('sentence-viet') || gameMode === 'sentence-cloze' || gameMode === 'time-attack') inputId = 'builder-num-questions';
     
     const inputQ = document.getElementById(inputId);
     let desiredCount = inputQ ? parseInt(inputQ.value) : 30;
@@ -551,20 +629,26 @@ function startTimer() {
     }
     
     timerContainer.classList.remove('hidden');
-    timeRemaining = 10;
+    timeRemaining = gameMode === 'time-attack' ? maxTimeLimit : 10;
     timerBar.style.width = '100%';
     timerBar.style.backgroundColor = 'var(--secondary-color)';
     
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         timeRemaining -= 0.1;
-        const percentage = (timeRemaining / 10) * 100;
+        const limit = gameMode === 'time-attack' ? maxTimeLimit : 10;
+        const percentage = (timeRemaining / limit) * 100;
         timerBar.style.width = `${percentage}%`;
         
-        if (timeRemaining <= 3) {
+        if (timeRemaining <= (limit * 0.3)) {
             timerBar.style.backgroundColor = 'var(--error-color)';
-        } else if (timeRemaining <= 6) {
+            if (gameMode === 'time-attack') timerBar.classList.add('shake');
+        } else if (timeRemaining <= (limit * 0.6)) {
             timerBar.style.backgroundColor = '#F59E0B';
+            timerBar.classList.remove('shake');
+        } else {
+            timerBar.style.backgroundColor = 'var(--secondary-color)';
+            timerBar.classList.remove('shake');
         }
         
         if (timeRemaining <= 0) {
@@ -804,21 +888,40 @@ function checkAnswer(selected, correct, selectedBtn) {
     
     if (selected === correct) {
         selectedBtn.classList.add('correct');
-        score += 10;
+        score += (gameMode === 'time-attack') ? Math.round(timeRemaining * 5) : 10;
         scoreEl.textContent = score;
+
+        if (gameMode === 'time-attack') {
+            correctStreak++;
+            // Increment max time by 1s (cap at initial max)
+            timeRemaining = Math.min(timeRemaining + 1.5, maxTimeLimit);
+            // Every 5 correct, reduce max time by 0.5s (min 1.5s)
+            if (correctStreak % 5 === 0) {
+                maxTimeLimit = Math.max(maxTimeLimit - 0.5, 1.5);
+            }
+        }
         
         if (gameMode === 'review') {
-            const index = wrongWords.indexOf(qData.hanTu);
-            if(index > -1) {
-                wrongWords.splice(index, 1);
-                localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
-            }
+            // SRS Update for Correct answer
+            const stats = wordStats[qData.hanTu] || { level: 1, interval: 1 };
+            stats.level = Math.min(stats.level + 1, 5);
+            stats.interval = (stats.interval || 1) * 2;
+            stats.lastReview = Date.now();
+            stats.nextReview = Date.now() + (stats.interval * 24 * 60 * 60 * 1000);
+            wordStats[qData.hanTu] = stats;
+            saveSRSData();
         } else if (gameMode === 'test' || gameMode.includes('sentence')) {
             // No progress change for test/sentence mcq
         } else {
-            if (!learnedWords.includes(qData.hanTu)) {
-                learnedWords.push(qData.hanTu);
-                localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
+            // New word learned
+            if (!wordStats[qData.hanTu]) {
+                wordStats[qData.hanTu] = {
+                    level: 2,
+                    lastReview: Date.now(),
+                    nextReview: Date.now() + (1 * 24 * 60 * 60 * 1000), // Next review tomorrow
+                    interval: 1
+                };
+                saveSRSData();
             }
         }
         
@@ -836,14 +939,19 @@ function checkAnswer(selected, correct, selectedBtn) {
         }
     } else {
         selectedBtn.classList.add('wrong');
-        if (!gameMode.includes('sentence') && !wrongWords.includes(qData.hanTu)) {
-            wrongWords.push(qData.hanTu);
-            localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
-            const index = learnedWords.indexOf(qData.hanTu);
-            if(index > -1) {
-                learnedWords.splice(index, 1);
-                localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
-            }
+        if (gameMode === 'time-attack') {
+            correctStreak = 0;
+            timeRemaining = Math.max(timeRemaining - 2, 0); // Big penalty for wrong answer
+        }
+        if (!gameMode.includes('sentence')) {
+            // SRS Update for Wrong answer
+            const stats = wordStats[qData.hanTu] || { level: 1, interval: 1 };
+            stats.level = 1;
+            stats.interval = 1;
+            stats.lastReview = Date.now();
+            stats.nextReview = Date.now(); // Review again soon
+            wordStats[qData.hanTu] = stats;
+            saveSRSData();
         }
 
         let explanation = "";
