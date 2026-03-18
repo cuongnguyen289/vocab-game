@@ -449,6 +449,11 @@ p {
 }
 
 /* Explanation & Example */
+.suggestion-box {
+    animation: fadeIn 0.4s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
 .explanation-box {
     width: 100%;
     background: #fffbeb;

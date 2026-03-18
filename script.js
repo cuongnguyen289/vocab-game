@@ -121,30 +121,14 @@ function updateProgressUI() {
     if(wrongCountEl) wrongCountEl.textContent = wrongWords.length;
     
     // Disable Review button if no wrong words saved, otherwise wait for vocabulary load
-    if(reviewBtn && vocabulary.length > 0) {
-        if(wrongWords.length === 0) {
-            reviewBtn.disabled = true;
-            reviewBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">✅</span><span>Chưa có lỗi</span></div>';
-        } else {
-            reviewBtn.disabled = false;
-            reviewBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">📝</span><span>Ôn Tập (' + wrongWords.length + ')</span></div>';
-        }
-    }
-
-    const testBtn = document.getElementById('test-btn');
-    if(testBtn && vocabulary.length > 0) {
-        if(learnedWords.length < 4) {
-            testBtn.disabled = true;
-            testBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Kiểm Tra (≥4)</span></div>';
-        } else {
-            testBtn.disabled = false;
-            testBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🎯</span><span>Kiểm Tra (' + learnedWords.length + ')</span></div>';
-        }
-    }
-
     // Update SRS Review Button
     const now = Date.now();
-    const reviewReady = Object.keys(wordStats).filter(hanTu => wordStats[hanTu].nextReview <= now);
+    const reviewReady = Object.keys(wordStats).filter(hanTu => {
+        const s = wordStats[hanTu];
+        // Now: Include all Lvl 1-2, AND any other words where nextReview <= now
+        return s.level <= 2 || s.nextReview <= now;
+    });
+
     if (reviewBtn && vocabulary.length > 0) {
         if (reviewReady.length === 0) {
             reviewBtn.disabled = true;
@@ -183,6 +167,12 @@ function updateProgressUI() {
         document.getElementById('lvl-3-4-count').textContent = stats['3-4'];
         document.getElementById('lvl-5-count').textContent = stats['5'];
 
+        // Show/Hide Level 5 suggestions
+        const lvl5Sugg = document.getElementById('level-5-suggestions');
+        if (lvl5Sugg) {
+            lvl5Sugg.style.display = (stats['5'] > 0) ? 'block' : 'none';
+        }
+
         // Update Time Attack Button State & Text
         const timeAttackBtn = document.getElementById('time-attack-btn');
         const reqMsg = document.getElementById('time-attack-req-msg');
@@ -190,9 +180,12 @@ function updateProgressUI() {
         if (timeAttackBtn) {
             if (level3PlusCount < 5) {
                 timeAttackBtn.disabled = true;
-                timeAttackBtn.title = "Cần ít nhất 5 từ Level 3+";
+                timeAttackBtn.title = "Cần ít nhất 5 từ đã qua 5 lần ôn tập (Level 3+)";
                 timeAttackBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Phản xạ (${level3PlusCount}/5)</span></div>`;
-                if (reqMsg) reqMsg.style.display = 'block';
+                if (reqMsg) {
+                    reqMsg.innerHTML = `<i>Bạn cần hoàn thành ít nhất 5 từ Level 1-2 (mỗi từ đúng 5 lần) để mở khóa Phản xạ nhanh. Hiện tại: ${level3PlusCount}/5</i>`;
+                    reqMsg.style.display = 'block';
+                }
             } else {
                 timeAttackBtn.disabled = false;
                 timeAttackBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⚡</span><span>Phản Xạ Nhanh</span></div>`;
@@ -223,7 +216,8 @@ function migrateToSRS() {
                 level: 3, 
                 lastReview: Date.now(),
                 nextReview: Date.now() + (3 * 24 * 60 * 60 * 1000), // Default 3 days
-                interval: 3
+                interval: 3,
+                repCount: 5 // Mastery
             };
             modified = true;
         }
@@ -235,7 +229,8 @@ function migrateToSRS() {
                 level: 1,
                 lastReview: Date.now(),
                 nextReview: Date.now(), // Review now
-                interval: 1
+                interval: 1,
+                repCount: 0
             };
             modified = true;
         }
@@ -375,8 +370,8 @@ function parseCSV(csvText) {
             
             const timeAttackBtn = document.getElementById('time-attack-btn');
             if (timeAttackBtn) {
-                timeAttackBtn.disabled = false;
-                timeAttackBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⚡</span><span>Phản Xạ Nhanh</span></div>';
+                // Initial update based on loaded stats
+                updateProgressUI();
             }
         }
 
@@ -439,18 +434,26 @@ function setupQuiz() {
     
     if (gameMode === 'review') {
         const now = Date.now();
-        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].nextReview <= now);
+        availableWords = vocabulary.filter(v => {
+            const s = wordStats[v.hanTu];
+            if (!s) return false;
+            // Mode Ôn ngay: Lvl 1-2 words ALWAYS, or others that are due
+            return s.level <= 2 || s.nextReview <= now;
+        });
+        
+        // Sort: Lvl 1-2 first, then others by proximity to review time
+        availableWords.sort((a, b) => {
+            const sa = wordStats[a.hanTu];
+            const sb = wordStats[b.hanTu];
+            if (sa.level <= 2 && sb.level > 2) return -1;
+            if (sb.level <= 2 && sa.level > 2) return 1;
+            return sa.nextReview - sb.nextReview;
+        });
+
         if (availableWords.length === 0) {
             alert("Tuyệt vời! Bạn không có từ vựng nào cần ôn tập hôm nay. Quay lại học bài mới nhé!");
             showScreen('vocab');
             return;
-        }
-    } else if (gameMode === 'test') {
-        availableWords = vocabulary.filter(v => learnedWords.includes(v.hanTu));
-        if (availableWords.length < 4) {
-             alert("Danh sách của bạn cần ít nhất 4 từ để chơi chế độ kiểm tra!");
-             showScreen('vocab');
-             return;
         }
     } else if (gameMode === 'sentence-trung-viet' || gameMode === 'sentence-viet-trung') {
         availableWords = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
@@ -672,7 +675,7 @@ function startTimer() {
     const timerContainer = document.getElementById('timer-bar-container');
     const timerBar = document.getElementById('timer-bar');
     
-    if (gameMode !== 'test' && gameMode !== 'time-attack') {
+    if (gameMode !== 'time-attack') {
         timerContainer.classList.add('hidden');
         return;
     }
@@ -958,11 +961,28 @@ function checkAnswer(selected, correct, selectedBtn) {
         
         if (gameMode === 'review') {
             // SRS Update for Correct answer
-            const stats = wordStats[qData.hanTu] || { level: 1, interval: 1 };
-            stats.level = Math.min(stats.level + 1, 5);
-            stats.interval = (stats.interval || 1) * 2;
-            stats.lastReview = Date.now();
-            stats.nextReview = Date.now() + (stats.interval * 24 * 60 * 60 * 1000);
+            const stats = wordStats[qData.hanTu] || { level: 1, interval: 1, repCount: 0 };
+            
+            if (stats.level <= 2) {
+                // Use repCount for level 1-2
+                stats.repCount = (stats.repCount || 0) + 1;
+                if (stats.repCount >= 5) {
+                    stats.level = 3;
+                    stats.interval = 1;
+                    stats.nextReview = Date.now() + (1 * 24 * 60 * 60 * 1000);
+                } else {
+                    // Level stays 1-2, review again soon
+                    stats.nextReview = Date.now() + (1 * 60 * 60 * 1000); // 1 hour for rep logic or just immediate? 
+                    // Let's keep it in "Ôn ngay" (Lvl 1-2 always in reviewReady)
+                }
+            } else {
+                // Classic SRS for level 3-5
+                stats.level = Math.min(stats.level + 1, 5);
+                stats.interval = (stats.interval || 1) * 2;
+                stats.lastReview = Date.now();
+                stats.nextReview = Date.now() + (stats.interval * 24 * 60 * 60 * 1000);
+            }
+            
             wordStats[qData.hanTu] = stats;
             saveSRSData();
         } else if (gameMode === 'time-attack') {
@@ -972,16 +992,17 @@ function checkAnswer(selected, correct, selectedBtn) {
             if (stats.level < 5) stats.level += 0.2; // slow progress in time attack
             wordStats[qData.hanTu] = stats;
             saveSRSData();
-        } else if (gameMode === 'test' || gameMode.includes('sentence')) {
-            // No progress change for test/sentence mcq
+        } else if (gameMode.includes('sentence')) {
+            // No progress change for sentence mcq
         } else {
             // New word learned starting from Level 2
             if (!wordStats[qData.hanTu]) {
                 wordStats[qData.hanTu] = {
-                    level: 2,
+                    level: 1,
                     lastReview: Date.now(),
-                    nextReview: Date.now() + (1 * 24 * 60 * 60 * 1000),
-                    interval: 1
+                    nextReview: Date.now(), 
+                    interval: 1,
+                    repCount: 0
                 };
                 saveSRSData();
             }
@@ -1017,8 +1038,9 @@ function checkAnswer(selected, correct, selectedBtn) {
             }
         } else if (!gameMode.includes('sentence')) {
             // SRS Update for Wrong answer in Review/Normal mode
-            const stats = wordStats[qData.hanTu] || { level: 1, interval: 1 };
+            const stats = wordStats[qData.hanTu] || { level: 1, interval: 1, repCount: 0 };
             stats.level = 1;
+            stats.repCount = 0; // Reset repetition count
             stats.interval = 1;
             stats.lastReview = Date.now();
             stats.nextReview = Date.now(); 
