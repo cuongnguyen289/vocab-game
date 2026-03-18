@@ -513,7 +513,7 @@ function loadQuestion() {
     let correctAnswerText, questionTextMain, questionTextSub;
 
     currentQuestionMode = gameMode;
-    if (gameMode === 'review' || gameMode === 'test') {
+    if (gameMode === 'review' || gameMode === 'test' || gameMode === 'time-attack') {
         currentQuestionMode = Math.random() > 0.5 ? 'han-viet' : 'viet-han';
     }
 
@@ -652,7 +652,7 @@ function startTimer() {
     const timerContainer = document.getElementById('timer-bar-container');
     const timerBar = document.getElementById('timer-bar');
     
-    if (gameMode !== 'test') {
+    if (gameMode !== 'test' && gameMode !== 'time-attack') {
         timerContainer.classList.add('hidden');
         return;
     }
@@ -709,7 +709,13 @@ function handleTimeOut() {
     
     buttons.forEach(btn => btn.disabled = true);
     
-    if (!gameMode.includes('sentence')) {
+    if (gameMode === 'time-attack') {
+        correctStreak = 0;
+        // penalty: reset streak, reduce level
+        const stats = wordStats[qData.hanTu] || { level: 3 };
+        stats.level = Math.max(stats.level - 1, 1);
+        saveSRSData();
+    } else if (!gameMode.includes('sentence')) {
         const index = learnedWords.indexOf(qData.hanTu);
         if(index > -1) {
             learnedWords.splice(index, 1);
@@ -922,9 +928,9 @@ function checkAnswer(selected, correct, selectedBtn) {
 
         if (gameMode === 'time-attack') {
             correctStreak++;
-            // Increment max time by 1s (cap at initial max)
+            // Reward: add time (cap at initial max)
             timeRemaining = Math.min(timeRemaining + 1.5, maxTimeLimit);
-            // Every 5 correct, reduce max time by 0.5s (min 1.5s)
+            // Higher difficulty: Every 5 correct, reduce max time by 0.5s (min 1.5s)
             if (correctStreak % 5 === 0) {
                 maxTimeLimit = Math.max(maxTimeLimit - 0.5, 1.5);
             }
@@ -939,15 +945,22 @@ function checkAnswer(selected, correct, selectedBtn) {
             stats.nextReview = Date.now() + (stats.interval * 24 * 60 * 60 * 1000);
             wordStats[qData.hanTu] = stats;
             saveSRSData();
+        } else if (gameMode === 'time-attack') {
+            // Time attack correct: smaller level boost or no boost?
+            // Let's give a small boost to level if it's below 5
+            const stats = wordStats[qData.hanTu] || { level: 3, interval: 7 };
+            if (stats.level < 5) stats.level += 0.2; // slow progress in time attack
+            wordStats[qData.hanTu] = stats;
+            saveSRSData();
         } else if (gameMode === 'test' || gameMode.includes('sentence')) {
             // No progress change for test/sentence mcq
         } else {
-            // New word learned
+            // New word learned starting from Level 2
             if (!wordStats[qData.hanTu]) {
                 wordStats[qData.hanTu] = {
                     level: 2,
                     lastReview: Date.now(),
-                    nextReview: Date.now() + (1 * 24 * 60 * 60 * 1000), // Next review tomorrow
+                    nextReview: Date.now() + (1 * 24 * 60 * 60 * 1000),
                     interval: 1
                 };
                 saveSRSData();
@@ -968,17 +981,27 @@ function checkAnswer(selected, correct, selectedBtn) {
         }
     } else {
         selectedBtn.classList.add('wrong');
+        
         if (gameMode === 'time-attack') {
             correctStreak = 0;
-            timeRemaining = Math.max(timeRemaining - 2, 0); // Big penalty for wrong answer
-        }
-        if (!gameMode.includes('sentence')) {
-            // SRS Update for Wrong answer
+            // Penalty: reduce time and level
+            timeRemaining = Math.max(timeRemaining - 2, 0);
+            const stats = wordStats[qData.hanTu] || { level: 3 };
+            stats.level = Math.max(stats.level - 1, 1); 
+            wordStats[qData.hanTu] = stats;
+            saveSRSData();
+            
+            if (timeRemaining <= 0) {
+                handleTimeOut();
+                return;
+            }
+        } else if (!gameMode.includes('sentence')) {
+            // SRS Update for Wrong answer in Review/Normal mode
             const stats = wordStats[qData.hanTu] || { level: 1, interval: 1 };
             stats.level = 1;
             stats.interval = 1;
             stats.lastReview = Date.now();
-            stats.nextReview = Date.now(); // Review again soon
+            stats.nextReview = Date.now(); 
             wordStats[qData.hanTu] = stats;
             saveSRSData();
         }
@@ -1014,7 +1037,9 @@ function checkAnswer(selected, correct, selectedBtn) {
         }
 
         buttons.forEach(btn => {
-            if (btn.textContent === correct) btn.classList.add('correct');
+            if (btn.querySelector('.option-text') && btn.querySelector('.option-text').textContent === correct || btn.textContent === correct) {
+                btn.classList.add('correct');
+            }
         });
     }
     nextBtn.classList.remove('hidden');
