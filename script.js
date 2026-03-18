@@ -185,15 +185,18 @@ function updateProgressUI() {
 
         // Update Time Attack Button State & Text
         const timeAttackBtn = document.getElementById('time-attack-btn');
+        const reqMsg = document.getElementById('time-attack-req-msg');
         const level3PlusCount = stats['3-4'] + stats['5'];
         if (timeAttackBtn) {
             if (level3PlusCount < 5) {
                 timeAttackBtn.disabled = true;
                 timeAttackBtn.title = "Cần ít nhất 5 từ Level 3+";
                 timeAttackBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Phản xạ (${level3PlusCount}/5)</span></div>`;
+                if (reqMsg) reqMsg.style.display = 'block';
             } else {
                 timeAttackBtn.disabled = false;
                 timeAttackBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⚡</span><span>Phản Xạ Nhanh</span></div>`;
+                if (reqMsg) reqMsg.style.display = 'none';
             }
         }
     }
