@@ -444,7 +444,7 @@ function loadQuestion() {
         questionEl.style.fontSize = '2rem';
     } else if (currentQuestionMode === 'sentence-target') {
         questionTextMain = qData.cauNghia;
-        questionTextSub = qData.cauPinyin;
+        questionTextSub = ""; // Hide by default, revealed by Hint
         correctAnswerText = qData.cau;
         questionEl.style.fontSize = '1.8rem';
     } else if (currentQuestionMode === 'sentence-viet') {
@@ -618,7 +618,43 @@ function splitSentence(text) {
     if (/[a-zA-Z]/.test(text) || /[\u00C0-\u1EF9]/.test(text)) {
         return text.trim().split(/\s+/);
     }
+    // For Chinese, split into characters or common words if possible
+    // Here we just split by character for simplicity in mapping Pinyin
     return text.replace(/[，。？！.,?!、\s]/g, '').split('');
+}
+
+function getCharPinyin(char) {
+    if (!char) return "";
+    // Search in vocabulary for the best match
+    const found = vocabulary.find(v => v.hanTu === char);
+    if (found) return found.pinyin;
+    
+    // Fallback: search for words starting with or containing the character
+    const partial = vocabulary.find(v => v.hanTu.includes(char));
+    if (partial) {
+        // Simple heuristic: if it's a multi-char word, we can't easily isolate the pinyin
+        // but for single chars it works well.
+        if (partial.hanTu.length === 1) return partial.pinyin;
+    }
+    return "";
+}
+
+function showHint() {
+    const qData = currentQuestions[currentQuestionIndex];
+    const hintArea = document.getElementById('sentence-hint-area');
+    if (!hintArea) return;
+
+    hintArea.innerHTML = `
+        <div class="hint-content">
+            <div class="hint-pinyin">${qData.cauPinyin}</div>
+            <div class="hint-han">${qData.cau}</div>
+        </div>
+    `;
+    hintArea.classList.remove('hidden');
+    
+    setTimeout(() => {
+        hintArea.classList.add('hidden');
+    }, 5000);
 }
 
 function loadSentenceBuilder(qData) {
@@ -646,12 +682,41 @@ function loadSentenceBuilder(qData) {
     const shuffledPieces = [...pieces].sort(() => 0.5 - Math.random());
     
     shuffledPieces.forEach(txt => {
-        const span = document.createElement('div');
-        span.className = 'word-block';
-        span.textContent = txt;
-        span.onclick = () => moveWord(span, sentenceWordBank, sentenceAnswerZone);
-        sentenceWordBank.appendChild(span);
+        const block = document.createElement('div');
+        block.className = 'word-block';
+        
+        if (!targetIsViet) {
+            const pinyin = getCharPinyin(txt);
+            block.innerHTML = `
+                <span class="word-pinyin">${pinyin}</span>
+                <span class="word-char">${txt}</span>
+            `;
+        } else {
+            block.textContent = txt;
+        }
+        
+        block.onclick = () => moveWord(block, sentenceWordBank, sentenceAnswerZone);
+        sentenceWordBank.appendChild(block);
     });
+    
+    // Add Hint button if target is Chinese
+    if (!targetIsViet) {
+        const hintBtn = document.createElement('button');
+        hintBtn.className = 'btn warning-btn hint-btn';
+        hintBtn.style.width = 'auto';
+        hintBtn.style.marginTop = '10px';
+        hintBtn.innerHTML = '💡 Xem Gợi ý (5s)';
+        hintBtn.onclick = showHint;
+        sentenceWordBank.appendChild(hintBtn);
+        
+        // Ensure hint area exists
+        if (!document.getElementById('sentence-hint-area')) {
+            const area = document.createElement('div');
+            area.id = 'sentence-hint-area';
+            area.className = 'hint-box hidden';
+            sentenceBuilderContainer.insertBefore(area, sentenceAnswerZone);
+        }
+    }
 }
 
 function moveWord(element, fromZone, toZone) {
@@ -669,13 +734,32 @@ function checkSentenceAnswer() {
     const targetIsViet = (gameMode === 'sentence-viet');
     const originalSentence = targetIsViet ? qData.cauNghia : qData.cau;
     
-    const userSentence = Array.from(sentenceAnswerZone.children)
-        .map(el => el.textContent)
-        .join(targetIsViet || /[a-zA-Z]/.test(originalSentence) ? ' ' : '');
+    const userPieces = Array.from(sentenceAnswerZone.children)
+        .filter(el => el.classList.contains('word-block'))
+        .map(el => {
+            const charEl = el.querySelector('.word-char');
+            return charEl ? charEl.textContent : el.textContent;
+        });
+    
+    const userSentence = userPieces.join(targetIsViet || /[a-zA-Z]/.test(originalSentence) ? ' ' : '');
     
     const normalizedUser = normalizeSentence(userSentence);
     const normalizedTarget = normalizeSentence(originalSentence);
     
+    // Individual block validation
+    const targetPieces = splitSentence(originalSentence);
+    Array.from(sentenceAnswerZone.children).forEach((el, idx) => {
+        if (!el.classList.contains('word-block')) return;
+        const char = el.querySelector('.word-char') ? el.querySelector('.word-char').textContent : el.textContent;
+        if (idx < targetPieces.length && char === targetPieces[idx]) {
+            el.classList.add('correct-block');
+            el.classList.remove('wrong-block');
+        } else {
+            el.classList.add('wrong-block');
+            el.classList.remove('correct-block');
+        }
+    });
+
     if (normalizedUser === normalizedTarget) {
         sentenceAnswerZone.classList.add('correct');
         score += 20;
