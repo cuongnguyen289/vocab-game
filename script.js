@@ -436,15 +436,27 @@ function loadQuestion() {
         
         let pinyinBlanked = qData.cauPinyin || "";
         if (pinyinBlanked) {
-            // Attempt to replace target pinyin. Simple replace might fail with tone variations/case
-            // but we'll try a basic replace first or just show the whole thing if it's too complex.
-            // For now, let's try to replace it.
             pinyinBlanked = pinyinBlanked.replace(new RegExp(qData.pinyin, 'gi'), "___");
         }
         
         questionTextSub = `<div class="pinyin-q">${pinyinBlanked}</div><div class="meaning-q">${qData.cauNghia}</div>`; 
         correctAnswerText = `${qData.hanTu} (${qData.pinyin})`;
         questionEl.style.fontSize = '2rem';
+    } else if (currentQuestionMode === 'sentence-target') {
+        questionTextMain = qData.cauNghia;
+        questionTextSub = qData.cauPinyin;
+        correctAnswerText = qData.cau;
+        questionEl.style.fontSize = '1.8rem';
+    } else if (currentQuestionMode === 'sentence-viet') {
+        questionTextMain = qData.cau;
+        questionTextSub = qData.cauPinyin;
+        correctAnswerText = qData.cauNghia;
+        questionEl.style.fontSize = '2.5rem';
+    } else {
+        // Default fallbacks to prevent undefined
+        questionTextMain = "";
+        questionTextSub = "";
+        correctAnswerText = "";
     }
     
     questionEl.textContent = questionTextMain;
@@ -615,18 +627,19 @@ function loadSentenceBuilder(qData) {
     sentenceAnswerZone.classList.remove('correct', 'wrong');
     checkSentenceBtn.disabled = false;
     
-    const targetIsViet = (gameMode === 'sentence-viet');
-    const rawSentence = targetIsViet ? qData.cauNghia : qData.cau;
+    const isTargetMode = (gameMode === 'sentence-target');
+    const rawSentence = isTargetMode ? qData.cau : qData.cauNghia;
     
-    if (targetIsViet) {
+    if (isTargetMode) {
+        questionEl.textContent = qData.cauNghia;
+        pinyinEl.textContent = qData.cauPinyin || "";
+        pinyinEl.style.display = qData.cauPinyin ? 'block' : 'none';
+        questionEl.style.fontSize = '1.8rem';
+    } else {
         questionEl.textContent = qData.cau;
         pinyinEl.textContent = qData.cauPinyin || "";
         pinyinEl.style.display = qData.cauPinyin ? 'block' : 'none';
         questionEl.style.fontSize = '2.5rem';
-    } else {
-        questionEl.textContent = qData.cauNghia;
-        pinyinEl.style.display = 'none';
-        questionEl.style.fontSize = '1.8rem';
     }
 
     const pieces = splitSentence(rawSentence);
