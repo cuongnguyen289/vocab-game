@@ -664,12 +664,14 @@ function loadSentenceBuilder(qData) {
     checkSentenceBtn.disabled = false;
     
     const isTargetMode = (gameMode === 'sentence-target');
+    const targetIsViet = (gameMode === 'sentence-viet');
     const rawSentence = isTargetMode ? qData.cau : qData.cauNghia;
     
     if (isTargetMode) {
         questionEl.textContent = qData.cauNghia;
-        pinyinEl.textContent = qData.cauPinyin || "";
-        pinyinEl.style.display = qData.cauPinyin ? 'block' : 'none';
+        // Pinyin hint below prompt is hidden as requested
+        pinyinEl.textContent = "";
+        pinyinEl.style.display = 'none';
         questionEl.style.fontSize = '1.8rem';
     } else {
         questionEl.textContent = qData.cau;
@@ -727,6 +729,10 @@ function moveWord(element, fromZone, toZone) {
     } else {
         fromZone.appendChild(element);
     }
+    
+    // Clear feedback when words are moved
+    sentenceAnswerZone.classList.remove('correct', 'wrong');
+    element.classList.remove('correct-block', 'wrong-block');
 }
 
 function checkSentenceAnswer() {
