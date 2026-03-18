@@ -517,7 +517,14 @@ function loadQuestion() {
 
     currentQuestionMode = gameMode;
     if (gameMode === 'review' || gameMode === 'test' || gameMode === 'time-attack') {
-        currentQuestionMode = Math.random() > 0.5 ? 'han-viet' : 'viet-han';
+        currentQuestionMode = (Math.random() > 0.5) ? 'han-viet' : 'viet-han';
+    }
+    
+    // Safety check for empty data
+    if (!qData) {
+        console.error("No question data found for index", h);
+        showScreen('main-menu');
+        return;
     }
 
     if (currentQuestionMode === 'han-viet') {
@@ -563,10 +570,11 @@ function loadQuestion() {
         correctAnswerText = qData.cauNghia;
         questionEl.style.fontSize = '2.5rem';
     } else {
-        // Default fallbacks to prevent undefined
-        questionTextMain = "";
-        questionTextSub = "";
-        correctAnswerText = "";
+        // Default fallbacks: if currentQuestionMode is somehow invalid (e.g. 'time-attack' wasn't randomized)
+        questionTextMain = qData.hanTu || "";
+        questionTextSub = qData.pinyin || "";
+        correctAnswerText = qData.tiengViet || "";
+        questionEl.style.fontSize = '3.2rem';
     }
     
     questionEl.textContent = questionTextMain;
@@ -622,6 +630,10 @@ function loadQuestion() {
         } else {
             pool = vocabulary.filter(v => v.hanTu !== qData.hanTu);
         }
+        
+        // Ensure pool has enough distractors
+        if (pool.length < 3) pool = [...vocabulary]; 
+        
         pool = pool.sort(() => 0.5 - Math.random());
         
         for (let i = 0; i < 3 && i < pool.length; i++) {
@@ -640,6 +652,7 @@ function loadQuestion() {
         
         options = options.sort(() => 0.5 - Math.random());
         options.forEach(opt => {
+            if (!opt) return;
             const btn = document.createElement('button');
             btn.className = 'btn option-btn';
             btn.textContent = opt;
@@ -647,6 +660,10 @@ function loadQuestion() {
             optionsContainer.appendChild(btn);
         });
     }
+    
+    // Explicitly show containers
+    questionEl.parentElement.parentElement.classList.remove('hidden'); 
+    optionsContainer.parentElement.classList.remove('hidden');
 
     startTimer();
 }
