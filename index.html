@@ -157,9 +157,17 @@
                 <p style="font-size: 0.9rem; margin-bottom: 0.3rem;">
                     📝 Tổng số câu hỏi: <span id="builder-total-count" style="font-weight: bold; color: var(--primary-color);">0</span> câu
                 </p>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0;">
-                    <i>Tiến độ các câu đã học được liên kết với phòng Luyện Câu.</i>
-                </p>
+            </div>
+            
+            <div id="grammar-selection-group" style="margin-bottom: 1.5rem; width: 100%;">
+                <label for="grammar-topic-select" style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">1. Chọn Chuyên Đề Ngữ Pháp:</label>
+                <select id="grammar-topic-select" class="user-input" style="margin-bottom: 0.8rem; border-color: var(--primary-color); background: #f5f3ff;">
+                    <option value="all">--- Tất cả chuyên đề ---</option>
+                </select>
+            </div>
+
+            <div class="mode-buttons-label" style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main); width: 100%; text-align: left;">
+                2. Chọn Chế Độ Chơi:
             </div>
             
             <div class="mode-buttons" id="builder-mode-buttons">
@@ -207,6 +215,8 @@
                 <!-- Controls for checking the sentence -->
                 <div class="sentence-controls">
                     <button id="check-sentence-btn" class="btn primary-btn" onclick="checkSentenceAnswer()">Kiểm tra đáp án 🔎</button>
+                    <!-- Dedicated Hint Button Area -->
+                    <div id="sentence-hint-btn-container"></div>
                 </div>
                 <div id="sentence-word-bank" class="sentence-word-bank">
                     <!-- Các chữ Hán bị xáo trộn ở đây -->

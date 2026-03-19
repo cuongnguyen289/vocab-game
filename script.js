@@ -1,5 +1,7 @@
 const SHEET_ID = "13JmgXrxeuBzmBWadW9qAjtTzxObl1c5x6dk3pNr9f7w";
 const TARGET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+const SENTENCE_GID = "1961448550";
+const SENTENCE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SENTENCE_GID}`;
 
 // Mở khóa định dạng Web Speech API và Audio trên Mobile (iOS/Android) ngay ở lần chạm màn hình đầu tiên
 document.addEventListener('click', function unlockAudio() {
@@ -34,6 +36,7 @@ let currentUser = "guest";
 let wordStats = {}; // SRS Data: { "hanTu": { level, lastReview, nextReview, interval } }
 let learnedWords = []; // For backward compatibility / display
 let wrongWords = [];   // For backward compatibility / display
+let globalCharMap = {}; // Map of { "char": "pinyin" } for fallbacks
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
@@ -193,6 +196,23 @@ function updateProgressUI() {
             }
         }
     }
+
+    // Update Grammar Topics Dropdown in Builder Screen
+    const topicSelect = document.getElementById('grammar-topic-select');
+    if (topicSelect && vocabulary.length > 0) {
+        const currentVal = topicSelect.value;
+        topicSelect.innerHTML = '<option value="all">--- Tất cả chuyên đề ---</option>';
+        
+        const topics = [...new Set(vocabulary.filter(v => v.topic).map(v => v.topic))].sort();
+        topics.forEach(topic => {
+            const opt = document.createElement('option');
+            opt.value = topic;
+            opt.textContent = topic;
+            topicSelect.appendChild(opt);
+        });
+        
+        if (currentVal) topicSelect.value = currentVal;
+    }
 }
 
 function resetProgress() {
@@ -292,28 +312,153 @@ function goToStartScreen(mode) {
 }
 
 async function fetchVocabulary() {
-    let success = false;
+    let successCount = 0;
+    
+    // Fetch Main Vocab (gid=0)
     for (const url of FETCH_URLS) {
         try {
-            console.log("Đang thử kết nối:", url);
+            console.log("Đang tải Vocab:", url);
             const response = await fetch(url);
             if (response.ok) {
                 const csvText = await response.text();
                 parseCSV(csvText);
-                success = true;
+                successCount++;
                 break;
             }
         } catch (error) {
-            console.warn(`Lỗi khi tải từ ${url}:`, error);
+            console.warn(`Lỗi Vocab ${url}:`, error);
+        }
+    }
+
+    // Fetch Sentence Sheet (gid=1961448550)
+    const sentenceUrls = [
+        SENTENCE_URL,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(SENTENCE_URL)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(SENTENCE_URL)}`,
+        `https://corsproxy.io/?${encodeURIComponent(SENTENCE_URL)}`
+    ];
+
+    for (const url of sentenceUrls) {
+        try {
+            console.log("Đang tải Câu:", url);
+            const response = await fetch(url);
+            if (response.ok) {
+                const csvText = await response.text();
+                parseSentenceCSV(csvText);
+                successCount++;
+                break;
+            }
+        } catch (error) {
+            console.warn(`Lỗi Câu ${url}:`, error);
         }
     }
     
-    // Update the UI since we just populated vocabulary
     updateProgressUI();
     
-    if (!success) {
-        alert("Lỗi kết nối mạng: Không tải được danh sách từ vựng. Mời thử lại!");
+    if (successCount === 0) {
+        alert("Lỗi kết nối mạng: Không tải được dữ liệu. Mời thử lại!");
         showScreen('main-menu');
+    }
+}
+
+function splitCSVLine(line) {
+    const parts = [];
+    let currentPart = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            parts.push(currentPart);
+            currentPart = "";
+        } else {
+            currentPart += char;
+        }
+    }
+    parts.push(currentPart);
+    return parts;
+}
+
+function parseSentenceCSV(csvText) {
+    const lines = csvText.split('\n');
+    let addedCount = 0;
+    
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // Structure: STT(0), Câu(1), Pinyin(2), Nghĩa(3), Chuyên đề(4)
+        const parts = splitCSVLine(line);
+        if (parts.length >= 4) {
+            const cau = parts[1] ? parts[1].trim().replace(/['"]/g, '') : "";
+            const phienam = parts[2] ? parts[2].trim().replace(/['"]/g, '') : "";
+            const nghia = parts[3] ? parts[3].trim().replace(/['"]/g, '') : "";
+            const topic = parts[4] ? parts[4].trim().replace(/['"]/g, '') : "";
+
+            if (cau && nghia) {
+                // Check if this sentence already exists to avoid duplicates
+                const exists = vocabulary.some(v => v.cau === cau);
+                if (!exists) {
+                    vocabulary.push({
+                        hanTu: "", // Not a single word entry
+                        pinyin: "",
+                        tiengViet: "",
+                        cau: cau,
+                        cauPinyin: phienam,
+                        cauNghia: nghia,
+                        topic: topic
+                    });
+                    addedCount++;
+                } else {
+                    // Update topic if it exists
+                    const idx = vocabulary.findIndex(v => v.cau === cau);
+                    if (idx > -1 && topic) vocabulary[idx].topic = topic;
+                }
+                updateGlobalCharMap(cau, phienam);
+            }
+        }
+    }
+    console.log(`Đã nạp thêm ${addedCount} câu từ sheet Câu.`);
+}
+
+function splitPinyinIntoSyllables(pinyin) {
+    if (!pinyin) return [];
+    // 1. Initial cleanup and splitting by non-letters
+    const rawTokens = pinyin.toLowerCase().trim().split(/[^a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]+/);
+    const result = [];
+    
+    // 2. Sub-segment each token (e.g., "gongchengshi" -> ["gong", "cheng", "shi"])
+    // Strategy: Split after every vowel group + optional nasal/r
+    // But be careful not to split "ng" from its vowel.
+    const syllableRegex = /[^aeiouüāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]*[aeiouüāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]+(?:ng?|r)?/gi;
+
+    rawTokens.forEach(t => {
+        const matches = t.match(syllableRegex);
+        if (matches) {
+            result.push(...matches);
+        } else if (t.trim()) {
+            result.push(t.trim());
+        }
+    });
+    return result;
+}
+
+function updateGlobalCharMap(text, pinyin) {
+    if (!text || !pinyin) return;
+    const cleanText = text.replace(/[，。？！.,?!、\s]/g, '');
+    const syllables = splitPinyinIntoSyllables(pinyin);
+    
+    // If exact match by length, map characters to syllables
+    if (cleanText.length === syllables.length) {
+        for (let i = 0; i < cleanText.length; i++) {
+            const char = cleanText[i];
+            const syl = syllables[i];
+            // Only update if not exists or if we find a new character
+            if (!globalCharMap[char]) {
+                globalCharMap[char] = syl;
+            }
+        }
     }
 }
 
@@ -339,14 +484,17 @@ function parseCSV(csvText) {
             const cauNghia = parts[8] ? parts[8].trim().replace(/['"]/g, '') : "";
 
             if (hantu && nghia) {
-                vocabulary.push({
+                const entry = {
                     hanTu: hantu,
                     pinyin: phienam,
                     tiengViet: nghia,
                     cau: cau,
                     cauPinyin: cauPinyin,
                     cauNghia: cauNghia
-                });
+                };
+                vocabulary.push(entry);
+                updateGlobalCharMap(hantu, phienam);
+                if (cau && cauPinyin) updateGlobalCharMap(cau, cauPinyin);
             }
         }
     }
@@ -485,6 +633,20 @@ function setupQuiz() {
             alert("Tuyệt vời! Bạn đã thuộc hết tất cả từ vựng trong danh sách hiện tại. Hãy thêm từ mới hoặc nhấn [Học lại từ đầu] nhé!");
             showScreen('vocab');
             return;
+        }
+    }
+
+    // Apply Grammar Topic Filter if in Builder Screen modes
+    if (gameMode.includes('sentence-target') || gameMode === 'sentence-cloze') {
+        const topicSelect = document.getElementById('grammar-topic-select');
+        const selectedTopic = topicSelect ? topicSelect.value : 'all';
+        if (selectedTopic !== 'all') {
+            const filtered = availableWords.filter(v => v.topic === selectedTopic);
+            if (filtered.length > 0) {
+                availableWords = filtered;
+            } else {
+                console.warn(`Không tìm thấy câu nào của chuyên đề "${selectedTopic}". Sử dụng chế độ mặc định.`);
+            }
         }
     }
     
@@ -760,23 +922,58 @@ function splitSentence(text) {
     if (/[a-zA-Z]/.test(text) || /[\u00C0-\u1EF9]/.test(text)) {
         return text.trim().split(/\s+/);
     }
-    // For Chinese, split into characters or common words if possible
-    // Here we just split by character for simplicity in mapping Pinyin
-    return text.replace(/[，。？！.,?!、\s]/g, '').split('');
+    return segmentChineseSentence(text);
+}
+
+function segmentChineseSentence(text) {
+    const cleanText = text.replace(/[，。？！.,?!、\s]/g, '');
+    const result = [];
+    let i = 0;
+    
+    // Sort vocabulary by HanTu length (longest first) to improve matching accuracy
+    const dict = [...vocabulary].sort((a, b) => b.hanTu.length - a.hanTu.length);
+    
+    while (i < cleanText.length) {
+        let matched = false;
+        for (const entry of dict) {
+            const word = entry.hanTu;
+            if (word && cleanText.startsWith(word, i)) {
+                result.push(word);
+                i += word.length;
+                matched = true;
+                break;
+            }
+        }
+        
+        if (!matched) {
+            result.push(cleanText[i]);
+            i++;
+        }
+    }
+    return result;
 }
 
 function getCharPinyin(char) {
     if (!char) return "";
-    // Search in vocabulary for the best match
+    // Priority 1: Exact match in vocabulary
     const found = vocabulary.find(v => v.hanTu === char);
     if (found) return found.pinyin;
     
-    // Fallback: search for words starting with or containing the character
+    // Priority 2: Global Character Map (built from all examples)
+    if (globalCharMap[char]) return globalCharMap[char];
+
+    // Priority 3: Fallback searching for words containing the character
     const partial = vocabulary.find(v => v.hanTu.includes(char));
     if (partial) {
-        // Simple heuristic: if it's a multi-char word, we can't easily isolate the pinyin
-        // but for single chars it works well.
         if (partial.hanTu.length === 1) return partial.pinyin;
+        
+        // Smarter extraction from multi-char words
+        const syllables = splitPinyinIntoSyllables(partial.pinyin || partial.cauPinyin);
+        const cleanHan = (partial.hanTu || partial.cau).replace(/[，。？！.,?!、\s]/g, '');
+        if (syllables.length === cleanHan.length) {
+            const charIdx = cleanHan.indexOf(char);
+            if (charIdx > -1) return syllables[charIdx];
+        }
     }
     return "";
 }
@@ -805,13 +1002,16 @@ function loadSentenceBuilder(qData) {
     sentenceAnswerZone.classList.remove('correct', 'wrong');
     checkSentenceBtn.disabled = false;
     
+    const hintBtnContainer = document.getElementById('sentence-hint-btn-container');
+    if (hintBtnContainer) hintBtnContainer.innerHTML = '';
+
     const isTargetMode = (gameMode === 'sentence-target');
     const targetIsViet = (gameMode === 'sentence-viet');
     const rawSentence = isTargetMode ? qData.cau : qData.cauNghia;
+    const fullPinyin = isTargetMode ? qData.cauPinyin : "";
     
     if (isTargetMode) {
         questionEl.textContent = qData.cauNghia;
-        // Pinyin hint below prompt is hidden as requested
         pinyinEl.textContent = "";
         pinyinEl.style.display = 'none';
         questionEl.style.fontSize = '1.8rem';
@@ -823,35 +1023,72 @@ function loadSentenceBuilder(qData) {
     }
 
     const pieces = splitSentence(rawSentence);
-    const shuffledPieces = [...pieces].sort(() => 0.5 - Math.random());
+    const cleanSentenceString = rawSentence.replace(/[，。？！.,?!、\s]/g, '');
     
-    shuffledPieces.forEach(txt => {
+    // Build a CHARACTER-level alignment for THIS specific question
+    const localCharPinyinMap = {};
+    if (fullPinyin && !targetIsViet) {
+        const syllables = splitPinyinIntoSyllables(fullPinyin);
+        if (syllables.length === cleanSentenceString.length) {
+            for (let i = 0; i < cleanSentenceString.length; i++) {
+                localCharPinyinMap[cleanSentenceString[i]] = syllables[i];
+            }
+        }
+    }
+
+    const piecesWithPinyin = pieces.map((txt) => {
+        let p = "";
+        if (!targetIsViet) {
+            const chars = txt.split('');
+            
+            // Priority 1: Build from Local Alignment Map (Highest accuracy for context)
+            const localPinyins = chars.map(c => localCharPinyinMap[c] || "");
+            if (localPinyins.every(lp => lp !== "")) {
+                p = localPinyins.join('');
+            }
+            
+            // Priority 2: Exact match in vocabulary
+            if (!p) p = getCharPinyin(txt);
+            
+            // Priority 3: Build from characters using Global Map
+            if (!p) {
+                const globalPinyins = chars.map(c => getCharPinyin(c));
+                if (globalPinyins.every(gp => gp !== "")) {
+                    p = globalPinyins.join('');
+                }
+            }
+        }
+        return { text: txt, pinyin: p };
+    });
+
+    const shuffledPieces = [...piecesWithPinyin].sort(() => 0.5 - Math.random());
+    
+    shuffledPieces.forEach(item => {
         const block = document.createElement('div');
         block.className = 'word-block';
         
         if (!targetIsViet) {
-            const pinyin = getCharPinyin(txt);
             block.innerHTML = `
-                <span class="word-pinyin">${pinyin}</span>
-                <span class="word-char">${txt}</span>
+                <span class="word-pinyin">${item.pinyin || ""}</span>
+                <span class="word-char">${item.text}</span>
             `;
         } else {
-            block.textContent = txt;
+            block.textContent = item.text;
         }
         
         block.onclick = () => moveWord(block, sentenceWordBank, sentenceAnswerZone);
         sentenceWordBank.appendChild(block);
     });
     
-    // Add Hint button if target is Chinese
-    if (!targetIsViet) {
+    // Add Hint button if target is Chinese - FIXED LOCATION
+    if (!targetIsViet && hintBtnContainer) {
         const hintBtn = document.createElement('button');
         hintBtn.className = 'btn warning-btn hint-btn';
-        hintBtn.style.width = 'auto';
-        hintBtn.style.marginTop = '10px';
+        hintBtn.style.width = '100%';
+        hintBtn.style.margin = '0';
         hintBtn.innerHTML = '💡 Xem Gợi ý (5s)';
         hintBtn.onclick = showHint;
-        sentenceWordBank.appendChild(hintBtn);
+        hintBtnContainer.appendChild(hintBtn);
         
         // Ensure hint area exists
         if (!document.getElementById('sentence-hint-area')) {

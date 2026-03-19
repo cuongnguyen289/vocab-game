@@ -419,9 +419,16 @@ p {
     border-color: var(--error-color);
 }
 
+#sentence-hint-btn-container {
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
+}
+
 .sentence-controls {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     gap: 10px;
 }
 
