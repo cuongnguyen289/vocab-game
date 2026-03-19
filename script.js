@@ -611,7 +611,7 @@ function setupQuiz() {
              return;
         }
     } else if (gameMode === 'sentence-cloze') {
-        availableWords = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-' && v.cau.includes(v.hanTu));
+        availableWords = vocabulary.filter(v => v.hanTu && v.pinyin && v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-' && v.cau.includes(v.hanTu));
         if (availableWords.length < 4) {
              alert("Danh sách của bạn cần ít nhất 4 từ có câu ví dụ chứa từ đó để chơi chế độ này!");
              showScreen('builder');
@@ -717,8 +717,12 @@ function loadQuestion() {
         questionTextMain = qData.cau.replace(qData.hanTu, blank);
         
         let pinyinBlanked = qData.cauPinyin || "";
-        if (pinyinBlanked) {
-            pinyinBlanked = pinyinBlanked.replace(new RegExp(qData.pinyin, 'gi'), "___");
+        if (pinyinBlanked && qData.pinyin) {
+            // Try direct replacement first (handles most cases)
+            const escapedPinyin = qData.pinyin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const replaced = pinyinBlanked.replace(new RegExp(escapedPinyin, 'gi'), "___");
+            // Only use replacement if something changed, otherwise leave as-is
+            pinyinBlanked = replaced;
         }
         
         questionTextSub = `<div class="pinyin-q">${pinyinBlanked}</div><div class="meaning-q">${qData.cauNghia}</div>`; 
@@ -778,7 +782,7 @@ function loadQuestion() {
         playAudioBtn.classList.add('hidden');
     }
 
-    if (gameMode.startsWith('sentence-target') || gameMode.startsWith('sentence-viet')) {
+    if (gameMode === 'sentence-target' || gameMode === 'sentence-viet') {
         optionsContainer.classList.add('hidden');
         sentenceBuilderContainer.classList.remove('hidden');
         loadSentenceBuilder(qData);
@@ -789,7 +793,7 @@ function loadQuestion() {
         let options = [correctAnswerText];
         let pool = [];
         if (gameMode === 'sentence-cloze') {
-            pool = vocabulary.filter(v => v.hanTu !== qData.hanTu);
+            pool = vocabulary.filter(v => v.hanTu && v.hanTu !== qData.hanTu && v.pinyin);
         } else if (gameMode.includes('sentence')) {
             pool = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cau !== qData.cau && v.cauNghia && v.cauNghia !== '-');
         } else {
@@ -1161,16 +1165,15 @@ function checkSentenceAnswer() {
         checkSentenceBtn.disabled = true;
         nextBtn.classList.remove('hidden');
         
-        if (!learnedWords.includes(qData.hanTu)) {
+        if (qData.hanTu && !learnedWords.includes(qData.hanTu)) {
             learnedWords.push(qData.hanTu);
             localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
         }
     } else {
-        sentenceAnswerZone.classList.add('wrong');
-        sentenceAnswerZone.classList.add('shake');
+        sentenceAnswerZone.classList.add('wrong', 'shake');
         setTimeout(() => {
-            sentenceAnswerZone.classList.remove('wrong', 'shake');
-        }, 800);
+            sentenceAnswerZone.classList.remove('shake');
+        }, 500);
     }
 }
 
@@ -1316,7 +1319,7 @@ function checkAnswer(selected, correct, selectedBtn) {
         }
 
         buttons.forEach(btn => {
-            if (btn.querySelector('.option-text') && btn.querySelector('.option-text').textContent === correct || btn.textContent === correct) {
+            if (btn.textContent.trim() === correct.trim()) {
                 btn.classList.add('correct');
             }
         });
