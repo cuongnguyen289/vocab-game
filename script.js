@@ -119,7 +119,8 @@ function updateProgressUI() {
     const wrongCountEl = document.getElementById('wrong-count');
     const reviewBtn = document.getElementById('review-btn');
     
-    if(totalCountEl) totalCountEl.textContent = vocabulary.length;
+    const vocabOnly = vocabulary.filter(v => v.hanTu && v.hanTu.trim() !== "");
+    if(totalCountEl) totalCountEl.textContent = vocabOnly.length;
     if(countEl) countEl.textContent = learnedWords.length;
     if(wrongCountEl) wrongCountEl.textContent = wrongWords.length;
     
@@ -428,6 +429,7 @@ function parseSentenceCSV(csvText) {
         }
     }
     console.log(`Đã nạp thêm ${addedCount} câu từ sheet Câu.`);
+    console.log(`Tổng cộng có ${vocabulary.length} mục trong bộ nhớ.`);
 }
 
 function splitPinyinIntoSyllables(pinyin) {
@@ -505,6 +507,7 @@ function parseCSV(csvText) {
     }
     
     // Update the UI since we just populated vocabulary
+    console.log(`Đã nạp ${vocabulary.length} từ từ sheet Từ vựng.`);
     updateProgressUI();
     
     if (vocabulary.length < 4) {
@@ -814,7 +817,7 @@ function loadQuestion() {
         // Filter all potential candidates that have the required data for this mode
         let candidates = vocabulary.filter(v => {
             const txt = getModeText(v);
-            return txt && txt !== correctAnswerText;
+            return txt && txt.trim() !== "" && txt.trim() !== correctAnswerText.trim();
         });
 
         // Shuffle candidates
@@ -824,25 +827,26 @@ function loadQuestion() {
         // Pick unique distractors from candidates
         for (const cand of candidates) {
             const txt = getModeText(cand);
-            if (txt && txt.trim() !== "" && txt !== correctAnswerText && !distractors.has(txt)) {
-                distractors.add(txt);
+            if (txt && txt.trim() !== "" && txt.trim() !== correctAnswerText.trim() && !distractors.has(txt.trim())) {
+                distractors.add(txt.trim());
                 if (distractors.size >= 3) break;
             }
         }
 
-        // --- 2. Fallback if insufficient ---
+        // --- 2. Fallback if insufficient (using more exhaustive search) ---
         if (distractors.size < 3) {
             console.warn("Insufficient unique distractors! Attempting exhaustive fallback...");
+            // Also include Sheet 1 items that might have been filtered out but have relevant fields
             for (const item of vocabulary) {
                 const potentialFields = [
                     item.tiengViet, 
-                    item.hanTu ? `${item.hanTu} (${item.pinyin || ''})` : null,
+                    (item.hanTu && item.pinyin) ? `${item.hanTu} (${item.pinyin})` : item.hanTu,
                     item.cauNghia,
                     item.cau
                 ];
                 for (let f of potentialFields) {
-                    if (f && typeof f === 'string' && f.trim() !== "" && f !== correctAnswerText && !distractors.has(f)) {
-                        distractors.add(f);
+                    if (f && typeof f === 'string' && f.trim() !== "" && f.trim() !== correctAnswerText.trim() && !distractors.has(f.trim())) {
+                        distractors.add(f.trim());
                         if (distractors.size >= 3) break;
                     }
                 }
