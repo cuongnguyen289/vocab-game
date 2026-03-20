@@ -370,14 +370,22 @@ function splitCSVLine(line) {
         if (char === '"') {
             inQuotes = !inQuotes;
         } else if (char === ',' && !inQuotes) {
-            parts.push(currentPart);
+            parts.push(currentPart.trim());
             currentPart = "";
         } else {
             currentPart += char;
         }
     }
-    parts.push(currentPart);
-    return parts;
+    parts.push(currentPart.trim());
+    
+    // Clean each part: remove bounding quotes and unescape double-quotes
+    return parts.map(p => {
+        let s = p.trim();
+        if (s.startsWith('"') && s.endsWith('"')) {
+            s = s.substring(1, s.length - 1);
+        }
+        return s.replace(/""/g, '"').trim();
+    });
 }
 
 function parseSentenceCSV(csvText) {
@@ -466,22 +474,19 @@ function parseCSV(csvText) {
     const lines = csvText.split('\n');
     vocabulary = [];
     
-    // Header is assumed to be at row 0 (index 0)
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         
-        // Cột: STT, Hán Tự, Pinyin, Tiếng Việt, Check, Luyện Tập, Câu, Pinyin(câu), Nghĩa
-        const parts = line.split(',');
+        const parts = splitCSVLine(line);
         if (parts.length >= 4) {
-            const hantu = parts[1] ? parts[1].trim() : "";
-            const phienam = parts[2] ? parts[2].trim() : "";
-            const nghia = parts[3] ? parts[3].trim() : "";
+            const hantu = parts[1] || "";
+            const phienam = parts[2] || "";
+            const nghia = parts[3] || "";
             
-            // Lấy thêm ví dụ nếu có (thường nằm ở cột 6, 7, 8 theo CSV dump đã xem)
-            const cau = parts[6] ? parts[6].trim().replace(/['"]/g, '') : "";
-            const cauPinyin = parts[7] ? parts[7].trim().replace(/['"]/g, '') : "";
-            const cauNghia = parts[8] ? parts[8].trim().replace(/['"]/g, '') : "";
+            const cau = parts[6] || "";
+            const cauPinyin = parts[7] || "";
+            const cauNghia = parts[8] || "";
 
             if (hantu && nghia) {
                 const entry = {
@@ -791,43 +796,78 @@ function loadQuestion() {
         sentenceBuilderContainer.classList.add('hidden');
         
         let options = [correctAnswerText];
-        let pool = [];
-        if (gameMode === 'sentence-cloze') {
-            pool = vocabulary.filter(v => v.hanTu && v.hanTu !== qData.hanTu && v.pinyin);
-        } else if (currentQuestionMode === 'han-viet') {
-            pool = vocabulary.filter(v => v.tiengViet && v.tiengViet !== qData.tiengViet);
-        } else if (currentQuestionMode === 'viet-han') {
-            pool = vocabulary.filter(v => v.hanTu && v.pinyin && v.hanTu !== qData.hanTu);
-        } else if (currentQuestionMode === 'sentence-trung-viet') {
-            pool = vocabulary.filter(v => v.cauNghia && v.cauNghia !== qData.cauNghia);
-        } else if (currentQuestionMode === 'sentence-viet-trung') {
-            pool = vocabulary.filter(v => v.cau && v.cauPinyin && v.cau !== qData.cau);
-        } else {
-            pool = vocabulary.filter(v => (v.hanTu !== qData.hanTu) || (v.cau !== qData.cau));
-        }
+        let distractors = new Set();
         
-        // Ensure pool has enough distractors
-        if (pool.length < 3) pool = [...vocabulary]; 
-        
-        pool = pool.sort(() => 0.5 - Math.random());
-        
-        for (let i = 0; i < 3 && i < pool.length; i++) {
-            if (currentQuestionMode === 'han-viet') {
-                options.push(pool[i].tiengViet);
-            } else if (currentQuestionMode === 'viet-han') {
-                options.push(`${pool[i].hanTu} (${pool[i].pinyin})`);
-            } else if (currentQuestionMode === 'sentence-trung-viet') {
-                options.push(pool[i].cauNghia);
-            } else if (currentQuestionMode === 'sentence-viet-trung') {
-                options.push(`${pool[i].cau} (${pool[i].cauPinyin})`);
-            } else if (currentQuestionMode === 'sentence-cloze') {
-                options.push(`${pool[i].hanTu} (${pool[i].pinyin})`);
+        // Function to get the correct text representation for a distractor based on mode
+        const getModeText = (item) => {
+            if (currentQuestionMode === 'han-viet') return item.tiengViet;
+            if (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-cloze') {
+                return (item.hanTu && item.pinyin) ? `${item.hanTu} (${item.pinyin})` : null;
+            }
+            if (currentQuestionMode === 'sentence-trung-viet') return item.cauNghia;
+            if (currentQuestionMode === 'sentence-viet-trung') {
+                return (item.cau && item.cauPinyin) ? `${item.cau} (${item.cauPinyin})` : null;
+            }
+            return null;
+        };
+
+        // Filter all potential candidates that have the required data for this mode
+        let candidates = vocabulary.filter(v => {
+            const txt = getModeText(v);
+            return txt && txt !== correctAnswerText;
+        });
+
+        // Shuffle candidates
+        candidates.sort(() => 0.5 - Math.random());
+
+        // --- 1. Distractor Collection ---
+        // Pick unique distractors from candidates
+        for (const cand of candidates) {
+            const txt = getModeText(cand);
+            if (txt && txt.trim() !== "" && txt !== correctAnswerText && !distractors.has(txt)) {
+                distractors.add(txt);
+                if (distractors.size >= 3) break;
             }
         }
+
+        // --- 2. Fallback if insufficient ---
+        if (distractors.size < 3) {
+            console.warn("Insufficient unique distractors! Attempting exhaustive fallback...");
+            for (const item of vocabulary) {
+                const potentialFields = [
+                    item.tiengViet, 
+                    item.hanTu ? `${item.hanTu} (${item.pinyin || ''})` : null,
+                    item.cauNghia,
+                    item.cau
+                ];
+                for (let f of potentialFields) {
+                    if (f && typeof f === 'string' && f.trim() !== "" && f !== correctAnswerText && !distractors.has(f)) {
+                        distractors.add(f);
+                        if (distractors.size >= 3) break;
+                    }
+                }
+                if (distractors.size >= 3) break;
+            }
+        }
+
+        // --- 3. Emergency Placeholder Fallback (Ensures UI never breaks) ---
+        const placeholders = ["Học tập", "Công việc", "Cuộc sống", "Gia đình", "Bạn bè"];
+        for (let p of placeholders) {
+            if (distractors.size >= 3) break;
+            if (p !== correctAnswerText && !distractors.has(p)) {
+                distractors.add(p);
+            }
+        }
+
+        // --- 4. Final Mix & Unique Guarantee ---
+        let finalOptions = [correctAnswerText, ...Array.from(distractors).slice(0, 3)];
         
-        options = options.sort(() => 0.5 - Math.random());
-        options.forEach(opt => {
-            if (!opt) return;
+        // Shuffle
+        finalOptions.sort(() => 0.5 - Math.random());
+
+        // --- 5. Render Buttons ---
+        finalOptions.forEach(opt => {
+            if (!opt) return; // Should not happen with placeholders
             const btn = document.createElement('button');
             btn.className = 'btn option-btn';
             btn.textContent = opt;
@@ -837,8 +877,9 @@ function loadQuestion() {
     }
     
     // Explicitly show containers
-    questionEl.parentElement.parentElement.classList.remove('hidden'); 
-    optionsContainer.parentElement.classList.remove('hidden');
+    const qParent = questionEl.closest('.question-container');
+    if (qParent) qParent.classList.remove('hidden');
+    optionsContainer.classList.remove('hidden');
 
     startTimer();
 }
