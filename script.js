@@ -794,10 +794,16 @@ function loadQuestion() {
         let pool = [];
         if (gameMode === 'sentence-cloze') {
             pool = vocabulary.filter(v => v.hanTu && v.hanTu !== qData.hanTu && v.pinyin);
-        } else if (gameMode.includes('sentence')) {
-            pool = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cau !== qData.cau && v.cauNghia && v.cauNghia !== '-');
+        } else if (currentQuestionMode === 'han-viet') {
+            pool = vocabulary.filter(v => v.tiengViet && v.tiengViet !== qData.tiengViet);
+        } else if (currentQuestionMode === 'viet-han') {
+            pool = vocabulary.filter(v => v.hanTu && v.pinyin && v.hanTu !== qData.hanTu);
+        } else if (currentQuestionMode === 'sentence-trung-viet') {
+            pool = vocabulary.filter(v => v.cauNghia && v.cauNghia !== qData.cauNghia);
+        } else if (currentQuestionMode === 'sentence-viet-trung') {
+            pool = vocabulary.filter(v => v.cau && v.cauPinyin && v.cau !== qData.cau);
         } else {
-            pool = vocabulary.filter(v => v.hanTu !== qData.hanTu);
+            pool = vocabulary.filter(v => (v.hanTu !== qData.hanTu) || (v.cau !== qData.cau));
         }
         
         // Ensure pool has enough distractors
