@@ -778,15 +778,17 @@ function loadQuestion() {
     }
     
     if (questionTextMain) {
-        playAudioBtn.classList.remove('hidden');
-        let langCode = 'zh-CN';
-        if (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-viet-trung') {
-            langCode = 'vi';
-        }
+        let isVietnamese = (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-viet-trung' || currentQuestionMode === 'sentence-target');
         
-        const triggerAudio = () => playAudio(questionTextMain, langCode);
-        playAudioBtn.onclick = triggerAudio;
-        setTimeout(triggerAudio, 300);
+        if (isVietnamese) {
+            playAudioBtn.classList.add('hidden');
+        } else {
+            playAudioBtn.classList.remove('hidden');
+            let langCode = 'zh-CN';
+            const triggerAudio = () => playAudio(questionTextMain, langCode);
+            playAudioBtn.onclick = triggerAudio;
+            setTimeout(triggerAudio, 300);
+        }
     } else {
         playAudioBtn.classList.add('hidden');
     }
