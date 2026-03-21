@@ -21,6 +21,7 @@ const FETCH_URLS = [
 ];
 
 let vocabulary = [];
+let sentencePool = [];
 let currentQuestions = [];
 let currentQuestionIndex = 0;
 let score = 0;
@@ -119,8 +120,7 @@ function updateProgressUI() {
     const wrongCountEl = document.getElementById('wrong-count');
     const reviewBtn = document.getElementById('review-btn');
     
-    const vocabOnly = vocabulary.filter(v => v.hanTu && v.hanTu.trim() !== "");
-    if(totalCountEl) totalCountEl.textContent = vocabOnly.length;
+    if(totalCountEl) totalCountEl.textContent = vocabulary.length;
     if(countEl) countEl.textContent = learnedWords.length;
     if(wrongCountEl) wrongCountEl.textContent = wrongWords.length;
     
@@ -146,15 +146,13 @@ function updateProgressUI() {
     // Update Sentence Stats
     const sentenceTotalEl = document.getElementById('sentence-total-count');
     if (sentenceTotalEl) {
-        const sentencesWithData = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
-        sentenceTotalEl.textContent = sentencesWithData.length;
+        sentenceTotalEl.textContent = sentencePool.length;
     }
     
     // Update Builder Stats
     const builderTotalEl = document.getElementById('builder-total-count');
     if (builderTotalEl) {
-        const sentencesWithData = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
-        builderTotalEl.textContent = sentencesWithData.length;
+        builderTotalEl.textContent = sentencePool.length;
     }
 
     // Update Level Stats
@@ -204,7 +202,7 @@ function updateProgressUI() {
         const currentVal = topicSelect.value;
         topicSelect.innerHTML = '<option value="all">--- Tất cả chuyên đề ---</option>';
         
-        const topics = [...new Set(vocabulary.filter(v => v.topic).map(v => v.topic))].sort();
+        const topics = [...new Set(sentencePool.filter(v => v.topic).map(v => v.topic))].sort();
         topics.forEach(topic => {
             const opt = document.createElement('option');
             opt.value = topic;
@@ -390,14 +388,13 @@ function splitCSVLine(line) {
 }
 
 function parseSentenceCSV(csvText) {
-    const lines = csvText.split('\n');
+    const lines = csvText.split(/\r?\n/);
     let addedCount = 0;
     
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         
-        // Structure: STT(0), Câu(1), Pinyin(2), Nghĩa(3), Chuyên đề(4)
         const parts = splitCSVLine(line);
         if (parts.length >= 4) {
             const cau = parts[1] ? parts[1].trim().replace(/['"]/g, '') : "";
@@ -406,30 +403,21 @@ function parseSentenceCSV(csvText) {
             const topic = parts[4] ? parts[4].trim().replace(/['"]/g, '') : "";
 
             if (cau && nghia) {
-                // Check if this sentence already exists to avoid duplicates
-                const exists = vocabulary.some(v => v.cau === cau);
+                const exists = sentencePool.some(s => s.cau === cau);
                 if (!exists) {
-                    vocabulary.push({
-                        hanTu: "", // Not a single word entry
-                        pinyin: "",
-                        tiengViet: "",
+                    sentencePool.push({
                         cau: cau,
                         cauPinyin: phienam,
                         cauNghia: nghia,
                         topic: topic
                     });
                     addedCount++;
-                } else {
-                    // Update topic if it exists
-                    const idx = vocabulary.findIndex(v => v.cau === cau);
-                    if (idx > -1 && topic) vocabulary[idx].topic = topic;
                 }
                 updateGlobalCharMap(cau, phienam);
             }
         }
     }
-    console.log(`Đã nạp thêm ${addedCount} câu từ sheet Câu.`);
-    console.log(`Tổng cộng có ${vocabulary.length} mục trong bộ nhớ.`);
+    console.log(`Đã nạp ${addedCount} câu từ sheet Câu.`);
 }
 
 function splitPinyinIntoSyllables(pinyin) {
@@ -473,8 +461,9 @@ function updateGlobalCharMap(text, pinyin) {
 }
 
 function parseCSV(csvText) {
-    const lines = csvText.split('\n');
+    const lines = csvText.split(/\r?\n/);
     vocabulary = [];
+    sentencePool = []; // Refresh pool
     
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
@@ -491,22 +480,29 @@ function parseCSV(csvText) {
             const cauNghia = parts[8] || "";
 
             if (hantu && nghia) {
-                const entry = {
+                vocabulary.push({
                     hanTu: hantu,
                     pinyin: phienam,
                     tiengViet: nghia,
                     cau: cau,
                     cauPinyin: cauPinyin,
                     cauNghia: cauNghia
-                };
-                vocabulary.push(entry);
+                });
                 updateGlobalCharMap(hantu, phienam);
-                if (cau && cauPinyin) updateGlobalCharMap(cau, cauPinyin);
+                
+                // Add example sentence to pool if valid
+                if (cau && cau !== '-' && cauNghia && cauNghia !== '-') {
+                    sentencePool.push({
+                        cau: cau,
+                        cauPinyin: (cauPinyin === '-') ? "" : cauPinyin,
+                        cauNghia: cauNghia,
+                        topic: ""
+                    });
+                    if (cauPinyin && cauPinyin !== '-') updateGlobalCharMap(cau, cauPinyin);
+                }
             }
         }
     }
-    
-    // Update the UI since we just populated vocabulary
     console.log(`Đã nạp ${vocabulary.length} từ từ sheet Từ vựng.`);
     updateProgressUI();
     
@@ -534,8 +530,7 @@ function parseCSV(csvText) {
         const sentenceButtons = document.getElementById('sentence-mode-buttons');
         if(sentenceButtons) {
             const btns = sentenceButtons.querySelectorAll('button');
-            const hasSentences = vocabulary.some(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
-            if(hasSentences) {
+            if(sentencePool.length >= 4) {
                 btns[0].disabled = false;
                 btns[0].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇨🇳</span><span>Trung ➡️ Việt</span></div>';
                 
@@ -550,8 +545,7 @@ function parseCSV(csvText) {
         const builderButtons = document.getElementById('builder-mode-buttons');
         if(builderButtons) {
             const btns = builderButtons.querySelectorAll('button');
-            const wordsWithSentences = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
-            if(wordsWithSentences.length >= 2) {
+            if(sentencePool.length >= 2) {
                 btns[0].disabled = false;
                 btns[0].innerHTML = '<span class="btn-icon">🧩</span> Ghép câu (➡️ Ngoại ngữ)';
                 btns[1].disabled = false;
@@ -612,7 +606,7 @@ function setupQuiz() {
             return;
         }
     } else if (gameMode === 'sentence-trung-viet' || gameMode === 'sentence-viet-trung') {
-        availableWords = vocabulary.filter(v => v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-');
+        availableWords = sentencePool;
         if (availableWords.length < 4) {
              alert("Danh sách của bạn cần ít nhất 4 câu ví dụ để chơi chế độ này!");
              showScreen('sentence');
@@ -624,6 +618,13 @@ function setupQuiz() {
              alert("Danh sách của bạn cần ít nhất 4 từ có câu ví dụ chứa từ đó để chơi chế độ này!");
              showScreen('builder');
              return;
+        }
+    } else if (gameMode === 'sentence-target' || gameMode === 'sentence-viet') {
+        availableWords = sentencePool;
+        if (availableWords.length < 2) {
+            alert("Cần ít nhất 2 câu để vào chế độ này.");
+            showScreen('builder');
+            return;
         }
     } else if (gameMode === 'time-attack') {
         // Only use words that are well-learned (level >= 3)
@@ -814,8 +815,12 @@ function loadQuestion() {
             return null;
         };
 
+        // Determine the correct pool for distractors
+        const isSentenceMode = currentQuestionMode.includes('sentence');
+        const primaryPool = isSentenceMode ? sentencePool : vocabulary;
+
         // Filter all potential candidates that have the required data for this mode
-        let candidates = vocabulary.filter(v => {
+        let candidates = primaryPool.filter(v => {
             const txt = getModeText(v);
             return txt && txt.trim() !== "" && txt.trim() !== correctAnswerText.trim();
         });
@@ -833,11 +838,11 @@ function loadQuestion() {
             }
         }
 
-        // --- 2. Fallback if insufficient (using more exhaustive search) ---
+        // --- 2. Fallback if insufficient (using exhaustive search across all pools) ---
         if (distractors.size < 3) {
             console.warn("Insufficient unique distractors! Attempting exhaustive fallback...");
-            // Also include Sheet 1 items that might have been filtered out but have relevant fields
-            for (const item of vocabulary) {
+            const allItems = [...vocabulary, ...sentencePool];
+            for (const item of allItems) {
                 const potentialFields = [
                     item.tiengViet, 
                     (item.hanTu && item.pinyin) ? `${item.hanTu} (${item.pinyin})` : item.hanTu,
@@ -1342,32 +1347,35 @@ function checkAnswer(selected, correct, selectedBtn) {
         let explanation = "";
         if (gameMode.includes('sentence')) {
             if (currentQuestionMode === 'sentence-trung-viet') {
-                const found = vocabulary.find(v => v.cauNghia === selected);
-                if(found) explanation = `Sai rồi. "<b>${selected}</b>" là nghĩa của câu: <br> <b>${found.cau}</b> (${found.cauPinyin})`;
+                const found = vocabulary.find(v => v.cauNghia === selected) || sentencePool.find(v => v.cauNghia === selected);
+                explanation = `Sai rồi. Đáp án đúng là: <br>"<b>${correct}</b>"<br>`;
+                if(found) explanation += `<i>("<b>${selected}</b>" là nghĩa của câu: <b>${found.cau}</b> - ${found.cauPinyin})</i>`;
             } else {
                 const cauOnly = selected.split('(')[0].trim();
-                const found = vocabulary.find(v => v.cau === cauOnly);
-                if(found) explanation = `Sai rồi. Câu <b>${found.cau}</b> (${found.cauPinyin}) có nghĩa là: <br> "<b>${found.cauNghia}</b>"`;
+                const found = vocabulary.find(v => v.cau === cauOnly) || sentencePool.find(v => v.cau === cauOnly);
+                explanation = `Sai rồi. Đáp án đúng là: <br><b>${correct}</b><br>`;
+                if(found) explanation += `<i>(Câu <b>${found.cau}</b> có nghĩa là: "<b>${found.cauNghia}</b>")</i>`;
             }
         } else {
             let answeredVietnamese = !selected.includes('(');
             if (answeredVietnamese) {
-                const found = vocabulary.find(v => v.tiengViet === selected);
-                if(found) explanation = `Sai rồi. "<b>${selected}</b>" là nghĩa của từ: <br> <b>${found.hanTu}</b> (${found.pinyin})`;
+                const found = vocabulary.find(v => v.tiengViet === selected) || sentencePool.find(v => v.cauNghia === selected);
+                explanation = `Sai rồi. Đáp án đúng là: <br>"<b>${correct}</b>"<br>`;
+                if(found) explanation += `<i>("<b>${selected}</b>" là nghĩa của từ: <b>${found.hanTu || found.cau}</b> - ${found.pinyin || found.cauPinyin})</i>`;
             } else {
                 const hantuOnly = selected.split('(')[0].trim();
-                const found = vocabulary.find(v => v.hanTu === hantuOnly);
-                if(found) explanation = `Sai rồi. Từ <b>${found.hanTu}</b> (${found.pinyin}) có nghĩa là: <br> "<b>${found.tiengViet}</b>"`;
+                const found = vocabulary.find(v => v.hanTu === hantuOnly) || sentencePool.find(v => v.cau === hantuOnly);
+                explanation = `Sai rồi. Đáp án đúng là: <br><b>${correct}</b><br>`;
+                if(found) explanation += `<i>(Từ <b>${found.hanTu || found.cau}</b> có nghĩa là: "<b>${found.tiengViet || found.cauNghia}</b>")</i>`;
             }
         }
         
-        if(explanation) {
-            explanationText.innerHTML = explanation;
-            explanationContainer.classList.remove('hidden');
-        } else if (gameMode === 'sentence-cloze') {
+        if (gameMode === 'sentence-cloze') {
             explanationText.innerHTML = `Sai rồi. Đáp án đúng là: <b>${qData.hanTu}</b> (${qData.pinyin})<br>Câu đầy đủ: <b>${qData.cau}</b>`;
-            explanationContainer.classList.remove('hidden');
+        } else {
+            explanationText.innerHTML = explanation;
         }
+        explanationContainer.classList.remove('hidden');
 
         buttons.forEach(btn => {
             if (btn.textContent.trim() === correct.trim()) {
