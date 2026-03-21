@@ -1213,10 +1213,8 @@ function checkSentenceAnswer() {
         if (gameMode === 'sentence-target') {
             pinyinEl.textContent = qData.cauPinyin || "";
             pinyinEl.style.display = qData.cauPinyin ? 'block' : 'none';
-            playAudio(qData.cau, 'zh-CN');
-        } else {
-            playAudio(qData.cauNghia, 'vi');
         }
+        playAudio(qData.cau, 'zh-CN');
 
         checkSentenceBtn.disabled = true;
         nextBtn.classList.remove('hidden');
