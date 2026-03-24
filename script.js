@@ -38,6 +38,7 @@ let wordStats = {}; // SRS Data: { "hanTu": { level, lastReview, nextReview, int
 let learnedWords = []; // For backward compatibility / display
 let wrongWords = [];   // For backward compatibility / display
 let globalCharMap = {}; // Map of { "char": "pinyin" } for fallbacks
+let vocabHistory = {}; // Daily Level Stats: { "YYYY-MM-DD": { 1, 2, 3, 4, 5 } }
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
@@ -46,6 +47,7 @@ const screens = {
     builderStart: document.getElementById('builder-start-screen'),
     loading: document.getElementById('loading-screen'),
     quiz: document.getElementById('quiz-screen'),
+    history: document.getElementById('history-screen'),
     result: document.getElementById('result-screen')
 };
 
@@ -236,6 +238,11 @@ function updateProgressUI() {
         
         if (currentVal) topicSelect.value = currentVal;
     }
+
+    // Save Current Stats to Daily History
+    const today = getTodayDate();
+    vocabHistory[today] = { 1: stats[1], 2: stats[2], 3: stats[3], 4: stats[4], 5: stats[5] };
+    saveHistoryData();
 }
 
 function resetProgress() {
@@ -302,6 +309,7 @@ window.addEventListener('DOMContentLoaded', () => {
         learnedWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_learned`)) || [];
         wrongWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`)) || [];
         wordStats = JSON.parse(localStorage.getItem(`${currentUser}_vocab_stats`)) || {};
+        vocabHistory = JSON.parse(localStorage.getItem(`${currentUser}_vocab_history`)) || {};
         migrateToSRS();
     } catch(e) {
         console.warn("Error loading progress", e);
@@ -321,6 +329,7 @@ function showScreen(screenName) {
     else if(screenName === 'vocab') screens.vocabStart.classList.add('active');
     else if(screenName === 'sentence') screens.sentenceStart.classList.add('active');
     else if(screenName === 'builder') screens.builderStart.classList.add('active');
+    else if(screenName === 'history-screen') screens.history.classList.add('active');
     else if(screens[screenName]) screens[screenName].classList.add('active');
 }
 
@@ -1442,4 +1451,70 @@ function endGame() {
 function returnToMenu() {
     stopTimer();
     showScreen('main-menu');
+}
+
+// Daily History Functions
+function getTodayDate() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function saveHistoryData() {
+    localStorage.setItem(`${currentUser}_vocab_history`, JSON.stringify(vocabHistory));
+}
+
+function showHistoryScreen() {
+    renderHistory();
+    showScreen('history-screen');
+}
+
+function renderHistory() {
+    const container = document.getElementById('history-container');
+    if (!container) return;
+    
+    const dates = Object.keys(vocabHistory).sort().reverse(); // Newest first
+    if (dates.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">Chưa có dữ liệu lịch sử. Hãy bắt đầu học ngay!</p>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    dates.forEach(date => {
+        const data = vocabHistory[date];
+        const dataValues = [data[1]||0, data[2]||0, data[3]||0, data[4]||0, data[5]||0];
+        const total = dataValues.reduce((a, b) => a + b, 0);
+        
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.style.cssText = 'background: #fff; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 1rem;';
+        
+        let barsHtml = '';
+        const colors = { 1: '#94a3b8', 2: '#6366f1', 3: '#10b981', 4: '#f59e0b', 5: '#ec4899' };
+        
+        for (let l = 1; l <= 5; l++) {
+            const count = data[l] || 0;
+            const pct = total > 0 ? (count / total * 100) : 0;
+            if (pct > 0) {
+                barsHtml += `<div style="width: ${pct}%; background: ${colors[l]}; height: 8px;" title="Level ${l}: ${count}"></div>`;
+            }
+        }
+        
+        item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.6rem; font-size: 0.9rem;">
+                <span style="font-weight: bold; color: var(--text-main);">${date}</span>
+                <span style="color: var(--text-muted);">Tổng: ${total} từ</span>
+            </div>
+            <div style="display: flex; border-radius: 4px; overflow: hidden; height: 8px; background: #f1f5f9; margin-bottom: 0.6rem;">
+                ${barsHtml}
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.75rem; font-weight: 600;">
+                <span style="color: ${colors[1]};">L1: ${data[1] || 0}</span>
+                <span style="color: ${colors[2]};">L2: ${data[2] || 0}</span>
+                <span style="color: ${colors[3]};">L3: ${data[3] || 0}</span>
+                <span style="color: ${colors[4]};">L4: ${data[4] || 0}</span>
+                <span style="color: ${colors[5]};">L5: ${data[5] || 0}</span>
+            </div>
+        `;
+        container.appendChild(item);
+    });
 }
