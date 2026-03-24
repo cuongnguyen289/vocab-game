@@ -116,20 +116,40 @@ const checkSentenceBtn = document.getElementById('check-sentence-btn');
 
 function updateProgressUI() {
     const totalCountEl = document.getElementById('total-count');
-    const countEl = document.getElementById('learned-count');
-    const wrongCountEl = document.getElementById('wrong-count');
     const reviewBtn = document.getElementById('review-btn');
     
     if(totalCountEl) totalCountEl.textContent = vocabulary.length;
-    if(countEl) countEl.textContent = learnedWords.length;
-    if(wrongCountEl) wrongCountEl.textContent = wrongWords.length;
     
-    // Disable Review button if no wrong words saved, otherwise wait for vocabulary load
-    // Update SRS Review Button
+    // Calculate Level Stats (1-5)
+    const stats = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    Object.values(wordStats).forEach(s => {
+        let lvl = Math.floor(s.level || 1);
+        if (lvl < 1) lvl = 1;
+        if (lvl > 5) lvl = 5;
+        stats[lvl]++;
+    });
+
+    // Words not yet studied are considered Level 1
+    const studiedCount = Object.keys(wordStats).length;
+    const unstudiedCount = Math.max(0, vocabulary.length - studiedCount);
+    stats[1] += unstudiedCount;
+
+    // Update Top Level Stats
+    const topEls = {
+        1: document.getElementById('top-lvl-1-count'),
+        2: document.getElementById('top-lvl-2-count'),
+        3: document.getElementById('top-lvl-3-count'),
+        4: document.getElementById('top-lvl-4-count'),
+        5: document.getElementById('top-lvl-5-count')
+    };
+    for (let l = 1; l <= 5; l++) {
+        if (topEls[l]) topEls[l].textContent = stats[l];
+    }
+    
+    // Disable Review button if no words need review, otherwise wait for vocabulary load
     const now = Date.now();
     const reviewReady = Object.keys(wordStats).filter(hanTu => {
         const s = wordStats[hanTu];
-        // Now: Include all Lvl 1-2, AND any other words where nextReview <= now
         return s.level <= 2 || s.nextReview <= now;
     });
 
@@ -155,24 +175,28 @@ function updateProgressUI() {
         builderTotalEl.textContent = sentencePool.length;
     }
 
-    // Update Level Stats
+    // Update Level Stats Container (the bottom one)
     const levelStatsContainer = document.getElementById('level-stats-container');
     if (levelStatsContainer && Object.keys(wordStats).length > 0) {
         levelStatsContainer.style.display = 'block';
-        const stats = { '1-2': 0, '3-4': 0, '5': 0 };
-        Object.values(wordStats).forEach(s => {
-            if (s.level <= 2) stats['1-2']++;
-            else if (s.level <= 4) stats['3-4']++;
-            else stats['5']++;
-        });
-        document.getElementById('lvl-1-2-count').textContent = stats['1-2'];
-        document.getElementById('lvl-3-4-count').textContent = stats['3-4'];
-        document.getElementById('lvl-5-count').textContent = stats['5'];
+        
+        // Update the sub-stats (L1-2, L3-4, L5)
+        const lvl12 = stats[1] + stats[2];
+        const lvl34 = stats[3] + stats[4];
+        const lvl5 = stats[5];
+
+        const lvl12El = document.getElementById('lvl-1-2-count');
+        const lvl34El = document.getElementById('lvl-3-4-count');
+        const lvl5El = document.getElementById('lvl-5-count');
+
+        if (lvl12El) lvl12El.textContent = lvl12;
+        if (lvl34El) lvl34El.textContent = lvl34;
+        if (lvl5El) lvl5El.textContent = lvl5;
 
         // Show/Hide Level 5 suggestions
         const lvl5Sugg = document.getElementById('level-5-suggestions');
         if (lvl5Sugg) {
-            lvl5Sugg.style.display = (stats['5'] > 0) ? 'block' : 'none';
+            lvl5Sugg.style.display = (lvl5 > 0) ? 'block' : 'none';
         }
 
         // Update Time Attack Button State & Text
