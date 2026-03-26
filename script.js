@@ -1379,6 +1379,11 @@ function checkAnswer(selected, correct, selectedBtn) {
             stats.nextReview = Date.now(); 
             wordStats[qData.hanTu] = stats;
             saveSRSData();
+            
+            // Loop wrong words in review mode until correctly answered
+            if (gameMode === 'review') {
+                currentQuestions.push(qData);
+            }
         }
 
         let explanation = "";
