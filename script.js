@@ -38,6 +38,7 @@ let wordStats = {}; // SRS Data: { "hanTu": { level, lastReview, nextReview, int
 let learnedWords = []; // For backward compatibility / display
 let wrongWords = [];   // For backward compatibility / display
 let globalCharMap = {}; // Map of { "char": "pinyin" } for fallbacks
+let vocabHistory = {}; // Daily Level Stats: { "YYYY-MM-DD": { 1, 2, 3, 4, 5 } }
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
@@ -46,6 +47,7 @@ const screens = {
     builderStart: document.getElementById('builder-start-screen'),
     loading: document.getElementById('loading-screen'),
     quiz: document.getElementById('quiz-screen'),
+    history: document.getElementById('history-screen'),
     result: document.getElementById('result-screen')
 };
 
@@ -116,16 +118,37 @@ const checkSentenceBtn = document.getElementById('check-sentence-btn');
 
 function updateProgressUI() {
     const totalCountEl = document.getElementById('total-count');
-    const countEl = document.getElementById('learned-count');
-    const wrongCountEl = document.getElementById('wrong-count');
     const reviewBtn = document.getElementById('review-btn');
     
     if(totalCountEl) totalCountEl.textContent = vocabulary.length;
-    if(countEl) countEl.textContent = learnedWords.length;
-    if(wrongCountEl) wrongCountEl.textContent = wrongWords.length;
     
-    // Disable Review button if no wrong words saved, otherwise wait for vocabulary load
-    // Update SRS Review Button
+    // Calculate Level Stats (0-5)
+    const stats = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    Object.values(wordStats).forEach(s => {
+        let lvl = Math.floor(s.level || 0);
+        if (lvl < 0) lvl = 0;
+        if (lvl > 5) lvl = 5;
+        stats[lvl]++;
+    });
+
+    // Words not yet studied are considered Level 0
+    const studiedCount = Object.keys(wordStats).length;
+    const unstudiedCount = Math.max(0, vocabulary.length - studiedCount);
+    stats[0] += unstudiedCount;
+
+    // Update Top Level Stats
+    const topEls = {
+        1: document.getElementById('top-lvl-1-count'),
+        2: document.getElementById('top-lvl-2-count'),
+        3: document.getElementById('top-lvl-3-count'),
+        4: document.getElementById('top-lvl-4-count'),
+        5: document.getElementById('top-lvl-5-count')
+    };
+    for (let l = 1; l <= 5; l++) {
+        if (topEls[l]) topEls[l].textContent = stats[l];
+    }
+    
+    // Disable Review button if no words need review, otherwise wait for vocabulary load
     const now = Date.now();
     const reviewReady = Object.keys(wordStats).filter(hanTu => {
         const s = wordStats[hanTu];
@@ -155,28 +178,30 @@ function updateProgressUI() {
         builderTotalEl.textContent = sentencePool.length;
     }
 
-    // Update Level Stats
+    // Update Level Stats Container (the bottom one)
     const levelStatsContainer = document.getElementById('level-stats-container');
     if (levelStatsContainer && Object.keys(wordStats).length >= 0) {
         levelStatsContainer.style.display = 'block';
-        const stats = { '0': 0, '1-2': 0, '3-4': 0, '5': 0 };
-        // Count based on vocabulary to find Level 0 (New/Unstudied)
-        vocabulary.forEach(v => {
-            const s = wordStats[v.hanTu];
-            if (!s || s.level === 0) stats['0']++;
-            else if (s.level <= 2) stats['1-2']++;
-            else if (s.level <= 4) stats['3-4']++;
-            else stats['5']++;
-        });
-        document.getElementById('lvl-0-count').textContent = stats['0'];
-        document.getElementById('lvl-1-2-count').textContent = stats['1-2'];
-        document.getElementById('lvl-3-4-count').textContent = stats['3-4'];
-        document.getElementById('lvl-5-count').textContent = stats['5'];
+        // Update the sub-stats (L0, L1-2, L3-4, L5)
+        const lvl0 = stats[0];
+        const lvl12 = stats[1] + stats[2];
+        const lvl34 = stats[3] + stats[4];
+        const lvl5 = stats[5];
+
+        const lvl0El = document.getElementById('lvl-0-count');
+        const lvl12El = document.getElementById('lvl-1-2-count');
+        const lvl34El = document.getElementById('lvl-3-4-count');
+        const lvl5El = document.getElementById('lvl-5-count');
+
+        if (lvl0El) lvl0El.textContent = lvl0;
+        if (lvl12El) lvl12El.textContent = lvl12;
+        if (lvl34El) lvl34El.textContent = lvl34;
+        if (lvl5El) lvl5El.textContent = lvl5;
 
         // Show/Hide Level 5 suggestions
         const lvl5Sugg = document.getElementById('level-5-suggestions');
         if (lvl5Sugg) {
-            lvl5Sugg.style.display = (stats['5'] > 0) ? 'block' : 'none';
+            lvl5Sugg.style.display = (lvl5 > 0) ? 'block' : 'none';
         }
 
         // Update Time Attack Button State & Text
@@ -216,6 +241,11 @@ function updateProgressUI() {
         
         if (currentVal) topicSelect.value = currentVal;
     }
+
+    // Save Current Stats to Daily History
+    const today = getTodayDate();
+    vocabHistory[today] = { 1: stats[1], 2: stats[2], 3: stats[3], 4: stats[4], 5: stats[5] };
+    saveHistoryData();
 }
 
 function resetProgress() {
@@ -283,6 +313,7 @@ window.addEventListener('DOMContentLoaded', () => {
         learnedWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_learned`)) || [];
         wrongWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`)) || [];
         wordStats = JSON.parse(localStorage.getItem(`${currentUser}_vocab_stats`)) || {};
+        vocabHistory = JSON.parse(localStorage.getItem(`${currentUser}_vocab_history`)) || {};
         migrateToSRS();
     } catch(e) {
         console.warn("Error loading progress", e);
@@ -302,6 +333,7 @@ function showScreen(screenName) {
     else if(screenName === 'vocab') screens.vocabStart.classList.add('active');
     else if(screenName === 'sentence') screens.sentenceStart.classList.add('active');
     else if(screenName === 'builder') screens.builderStart.classList.add('active');
+    else if(screenName === 'history-screen') screens.history.classList.add('active');
     else if(screens[screenName]) screens[screenName].classList.add('active');
 }
 
@@ -1422,4 +1454,70 @@ function endGame() {
 function returnToMenu() {
     stopTimer();
     showScreen('main-menu');
+}
+
+// Daily History Functions
+function getTodayDate() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function saveHistoryData() {
+    localStorage.setItem(`${currentUser}_vocab_history`, JSON.stringify(vocabHistory));
+}
+
+function showHistoryScreen() {
+    renderHistory();
+    showScreen('history-screen');
+}
+
+function renderHistory() {
+    const container = document.getElementById('history-container');
+    if (!container) return;
+    
+    const dates = Object.keys(vocabHistory).sort().reverse(); // Newest first
+    if (dates.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">Chưa có dữ liệu lịch sử. Hãy bắt đầu học ngay!</p>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    dates.forEach(date => {
+        const data = vocabHistory[date];
+        const dataValues = [data[1]||0, data[2]||0, data[3]||0, data[4]||0, data[5]||0];
+        const total = dataValues.reduce((a, b) => a + b, 0);
+        
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.style.cssText = 'background: #fff; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 1rem;';
+        
+        let barsHtml = '';
+        const colors = { 1: '#94a3b8', 2: '#6366f1', 3: '#10b981', 4: '#f59e0b', 5: '#ec4899' };
+        
+        for (let l = 1; l <= 5; l++) {
+            const count = data[l] || 0;
+            const pct = total > 0 ? (count / total * 100) : 0;
+            if (pct > 0) {
+                barsHtml += `<div style="width: ${pct}%; background: ${colors[l]}; height: 8px;" title="Level ${l}: ${count}"></div>`;
+            }
+        }
+        
+        item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.6rem; font-size: 0.9rem;">
+                <span style="font-weight: bold; color: var(--text-main);">${date}</span>
+                <span style="color: var(--text-muted);">Tổng: ${total} từ</span>
+            </div>
+            <div style="display: flex; border-radius: 4px; overflow: hidden; height: 8px; background: #f1f5f9; margin-bottom: 0.6rem;">
+                ${barsHtml}
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.75rem; font-weight: 600;">
+                <span style="color: ${colors[1]};">L1: ${data[1] || 0}</span>
+                <span style="color: ${colors[2]};">L2: ${data[2] || 0}</span>
+                <span style="color: ${colors[3]};">L3: ${data[3] || 0}</span>
+                <span style="color: ${colors[4]};">L4: ${data[4] || 0}</span>
+                <span style="color: ${colors[5]};">L5: ${data[5] || 0}</span>
+            </div>
+        `;
+        container.appendChild(item);
+    });
 }
