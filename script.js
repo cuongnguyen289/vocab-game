@@ -673,9 +673,10 @@ function setupQuiz() {
         maxTimeLimit = 5;
         correctStreak = 0;
     } else {
-        availableWords = vocabulary.filter(v => !learnedWords.includes(v.hanTu));
+        // Normal Learning Mode (Hán->Việt, Việt->Hán) ONLY covers Level 0 (New Words)
+        availableWords = vocabulary.filter(v => !wordStats[v.hanTu]);
         if (availableWords.length === 0) {
-            alert("Tuyệt vời! Bạn đã thuộc hết tất cả từ vựng trong danh sách hiện tại. Hãy thêm từ mới hoặc nhấn [Học lại từ đầu] nhé!");
+            alert("Tuyệt vời! Bạn đã vượt qua đợt 1 (làm quen) với tất cả từ vựng trong danh sách hiện tại. Hãy chuyển sang chế độ [Ôn Ngay] để củng cố trí nhớ nhé!");
             showScreen('vocab');
             return;
         }
