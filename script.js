@@ -129,8 +129,8 @@ function updateProgressUI() {
     const now = Date.now();
     const reviewReady = Object.keys(wordStats).filter(hanTu => {
         const s = wordStats[hanTu];
-        // Now: Include all Lvl 1-2, AND any other words where nextReview <= now
-        return s.level <= 2 || s.nextReview <= now;
+        // Now: ONLY words with Level > 0 that are due for review
+        return s.level > 0 && s.nextReview <= now;
     });
 
     if (reviewBtn && vocabulary.length > 0) {
@@ -157,14 +157,18 @@ function updateProgressUI() {
 
     // Update Level Stats
     const levelStatsContainer = document.getElementById('level-stats-container');
-    if (levelStatsContainer && Object.keys(wordStats).length > 0) {
+    if (levelStatsContainer && Object.keys(wordStats).length >= 0) {
         levelStatsContainer.style.display = 'block';
-        const stats = { '1-2': 0, '3-4': 0, '5': 0 };
-        Object.values(wordStats).forEach(s => {
-            if (s.level <= 2) stats['1-2']++;
+        const stats = { '0': 0, '1-2': 0, '3-4': 0, '5': 0 };
+        // Count based on vocabulary to find Level 0 (New/Unstudied)
+        vocabulary.forEach(v => {
+            const s = wordStats[v.hanTu];
+            if (!s || s.level === 0) stats['0']++;
+            else if (s.level <= 2) stats['1-2']++;
             else if (s.level <= 4) stats['3-4']++;
             else stats['5']++;
         });
+        document.getElementById('lvl-0-count').textContent = stats['0'];
         document.getElementById('lvl-1-2-count').textContent = stats['1-2'];
         document.getElementById('lvl-3-4-count').textContent = stats['3-4'];
         document.getElementById('lvl-5-count').textContent = stats['5'];
@@ -265,7 +269,8 @@ function saveSRSData() {
     // Also update legacy arrays for UI consistency
     learnedWords = Object.keys(wordStats).filter(k => wordStats[k].level >= 3);
     localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
-    wrongWords = Object.keys(wordStats).filter(k => wordStats[k].nextReview <= Date.now());
+    const now = Date.now();
+    wrongWords = Object.keys(wordStats).filter(k => wordStats[k].level > 0 && wordStats[k].nextReview <= now);
     localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
 }
 
@@ -586,9 +591,8 @@ function setupQuiz() {
         const now = Date.now();
         availableWords = vocabulary.filter(v => {
             const s = wordStats[v.hanTu];
-            if (!s) return false;
-            // Mode Ôn ngay: Lvl 1-2 words ALWAYS, or others that are due
-            return s.level <= 2 || s.nextReview <= now;
+            // Mode Ôn ngay: ONLY words that have been studied (lvl > 0) AND are due
+            return s && s.level > 0 && s.nextReview <= now;
         });
         
         // Sort: Lvl 1-2 first, then others by proximity to review time
@@ -1291,14 +1295,14 @@ function checkAnswer(selected, correct, selectedBtn) {
         } else if (gameMode.includes('sentence')) {
             // No progress change for sentence mcq
         } else {
-            // New word learned starting from Level 2
+            // New word (Level 0) learned for the first time
             if (!wordStats[qData.hanTu]) {
                 wordStats[qData.hanTu] = {
                     level: 1,
                     lastReview: Date.now(),
-                    nextReview: Date.now(), 
+                    nextReview: Date.now() + (1 * 60 * 60 * 1000), // First review in 1 hour
                     interval: 1,
-                    repCount: 0
+                    repCount: 1 // First correct count
                 };
                 saveSRSData();
             }
