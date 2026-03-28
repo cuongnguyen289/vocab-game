@@ -746,6 +746,7 @@ function loadQuestion() {
     // Reset Speech UI
     document.getElementById('speech-feedback-container').classList.add('hidden');
     document.getElementById('voice-input-container').classList.add('hidden');
+    document.getElementById('skip-speech-btn').classList.add('hidden');
     document.getElementById('speech-result-display').innerHTML = '';
     document.getElementById('speech-score-display').textContent = 'Độ chính xác: 0%';
     
@@ -862,6 +863,7 @@ function loadQuestion() {
     if (gameMode === 'speech-challenge') {
         const voiceInputContainer = document.getElementById('voice-input-container');
         voiceInputContainer.classList.remove('hidden');
+        document.getElementById('skip-speech-btn').classList.remove('hidden');
         optionsContainer.classList.add('hidden'); // Hide multiple choice options
         
         // Use Hán Tự as the target for comparison
@@ -1716,4 +1718,37 @@ function compareAndHighlight(target, recognized) {
 
     const accuracyScore = (correctCount / targetArr.length) * 100;
     return { score: accuracyScore, html };
+}
+
+function skipSpeechQuestion() {
+    if (recognition && isRecording) {
+        recognition.stop();
+    }
+    
+    const qData = currentQuestions[currentQuestionIndex];
+    if (!qData) return;
+    
+    const statusEl = document.getElementById('speech-status');
+    const feedbackContainer = document.getElementById('speech-feedback-container');
+    const resultDisplay = document.getElementById('speech-result-display');
+    const skipBtn = document.getElementById('skip-speech-btn');
+
+    if (statusEl) statusEl.textContent = "Đã bỏ qua. Hãy xem đáp án bên dưới! ⏩";
+    if (feedbackContainer) feedbackContainer.classList.remove('hidden');
+    if (skipBtn) skipBtn.classList.add('hidden');
+
+    // Show correct characters in neutral color or highlight them
+    const { html } = compareAndHighlight(qData.hanTu, "");
+    if (resultDisplay) resultDisplay.innerHTML = html;
+
+    // Reveal Next Button
+    nextBtn.classList.remove('hidden');
+    nextBtn.onclick = () => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < currentQuestions.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    };
 }

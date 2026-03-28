@@ -267,11 +267,12 @@
             </div>
 
             <!-- Voice Input Button for Speech Challenge -->
-            <div id="voice-input-container" class="voice-input-container hidden">
+            <div id="voice-input-container" class="voice-input-container hidden" style="flex-direction: column; align-items: center; gap: 1rem;">
                 <button id="voice-input-btn" class="voice-btn" onclick="startVoiceRecognition()">
                     <span class="mic-icon">🎤</span>
                     <span class="mic-text">Nhấn để nói</span>
                 </button>
+                <button id="skip-speech-btn" class="btn skip-btn hidden" onclick="skipSpeechQuestion()">Bỏ qua từ này ⏩</button>
             </div>
             
             <div id="explanation-container" class="explanation-box hidden">

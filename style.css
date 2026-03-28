@@ -690,3 +690,21 @@ p {
 .mic-icon {
     font-size: 1.4rem;
 }
+
+.skip-btn {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+    width: auto !important;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.skip-btn:hover {
+    background: #e2e8f0;
+    color: var(--text-main);
+}
