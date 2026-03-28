@@ -113,6 +113,9 @@
                 <button id="time-attack-btn" class="btn secondary-btn" style="background-color: #f43f5e;" onclick="startGame('time-attack')" disabled>
                     <span class="btn-icon">⚡</span> Phản Xạ Nhanh
                 </button>
+                <button id="speech-challenge-btn" class="btn primary-btn" style="background-color: #8b5cf6;" onclick="startGame('speech-challenge')" disabled>
+                    <span class="btn-icon">🎙️</span> Kiểm tra Phát âm (Lvl 5)
+                </button>
             </div>
         </div>
 
@@ -235,6 +238,15 @@
                 <div id="pinyin-text" class="pinyin" style="margin-top: 5px;"></div>
             </div>
             
+            <!-- Speech Recognition Feedback -->
+            <div id="speech-feedback-container" class="speech-feedback-box hidden">
+                <div id="speech-status" class="speech-status">Đang lắng nghe... 🎙️</div>
+                <div id="speech-result-display" class="speech-result-display">
+                    <!-- Highlighting will happen here -->
+                </div>
+                <div id="speech-score-display" class="speech-score-display">Độ chính xác: 0%</div>
+            </div>
+
             <div id="options-container" class="options-grid">
                 <!-- Options will be injected here by JS -->
             </div>
@@ -252,6 +264,14 @@
                 <div id="sentence-word-bank" class="sentence-word-bank">
                     <!-- Các chữ Hán bị xáo trộn ở đây -->
                 </div>
+            </div>
+
+            <!-- Voice Input Button for Speech Challenge -->
+            <div id="voice-input-container" class="voice-input-container hidden">
+                <button id="voice-input-btn" class="voice-btn" onclick="startVoiceRecognition()">
+                    <span class="mic-icon">🎤</span>
+                    <span class="mic-text">Nhấn để nói</span>
+                </button>
             </div>
             
             <div id="explanation-container" class="explanation-box hidden">

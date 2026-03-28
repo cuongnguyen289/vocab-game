@@ -584,3 +584,109 @@ p {
     background: #e2e8f0;
     border-radius: 3px;
 }
+
+/* Speech Challenge Styles */
+.speech-feedback-box {
+    width: 100%;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 2px solid #e2e8f0;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    animation: fadeIn 0.3s ease;
+}
+
+.speech-status {
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.speech-result-display {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 1rem;
+    min-height: 4rem;
+    align-items: flex-end;
+}
+
+.char-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.char-result .char-han {
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.char-result .char-pinyin {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.char-result.correct { color: var(--secondary-color); }
+.char-result.wrong { color: var(--error-color); }
+.char-result.missing { color: #94a3b8; opacity: 0.5; }
+
+.speech-score-display {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    padding-top: 0.8rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.voice-input-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.voice-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 1.2rem 2.5rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 15px rgba(99, 102, 241, 0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.voice-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 20px rgba(99, 102, 241, 0.4);
+    background: var(--primary-dark);
+}
+
+.voice-btn.recording {
+    background: var(--error-color);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+    animation: breathing 1.5s infinite;
+}
+
+@keyframes breathing {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.mic-icon {
+    font-size: 1.4rem;
+}

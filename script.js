@@ -39,6 +39,9 @@ let learnedWords = []; // For backward compatibility / display
 let wrongWords = [];   // For backward compatibility / display
 let globalCharMap = {}; // Map of { "char": "pinyin" } for fallbacks
 let vocabHistory = {}; // Daily Level Stats: { "YYYY-MM-DD": { 1, 2, 3, 4, 5 } }
+let activityHistory = {}; // Daily Correct Count: { "YYYY-MM-DD": count }
+let recognition; // SpeechRecognition instance
+let isRecording = false;
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
@@ -223,6 +226,18 @@ function updateProgressUI() {
                 if (reqMsg) reqMsg.style.display = 'none';
             }
         }
+
+        // Update Speech Challenge Button
+        const speechBtn = document.getElementById('speech-challenge-btn');
+        if (speechBtn) {
+            if (stats[5] > 0) {
+                speechBtn.disabled = false;
+                speechBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🎙️</span><span>Luyện Phát Âm (${stats[5]})</span></div>`;
+            } else {
+                speechBtn.disabled = true;
+                speechBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Luyện Phát Âm (Cần Lvl 5)</span></div>`;
+            }
+        }
     }
 
     // Update Grammar Topics Dropdown in Builder Screen
@@ -314,6 +329,7 @@ window.addEventListener('DOMContentLoaded', () => {
         wrongWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`)) || [];
         wordStats = JSON.parse(localStorage.getItem(`${currentUser}_vocab_stats`)) || {};
         vocabHistory = JSON.parse(localStorage.getItem(`${currentUser}_vocab_history`)) || {};
+        activityHistory = JSON.parse(localStorage.getItem(`${currentUser}_activity_history`)) || {};
         migrateToSRS();
     } catch(e) {
         console.warn("Error loading progress", e);
@@ -672,6 +688,13 @@ function setupQuiz() {
         }
         maxTimeLimit = 5;
         correctStreak = 0;
+    } else if (gameMode === 'speech-challenge') {
+        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 5);
+        if (availableWords.length === 0) {
+            alert("Bạn chưa có từ vựng nào đạt Level 5 để luyện phát âm!");
+            showScreen('vocab');
+            return;
+        }
     } else {
         // Normal Learning Mode (Hán->Việt, Việt->Hán) ONLY covers Level 0 (New Words)
         availableWords = vocabulary.filter(v => !wordStats[v.hanTu]);
@@ -719,6 +742,12 @@ function loadQuestion() {
     explanationContainer.classList.add('hidden');
     exampleContainer.classList.add('hidden');
     optionsContainer.innerHTML = '';
+    
+    // Reset Speech UI
+    document.getElementById('speech-feedback-container').classList.add('hidden');
+    document.getElementById('voice-input-container').classList.add('hidden');
+    document.getElementById('speech-result-display').innerHTML = '';
+    document.getElementById('speech-score-display').textContent = 'Độ chính xác: 0%';
     
     const h = currentQuestionIndex;
     const qData = currentQuestions[h];
@@ -830,7 +859,14 @@ function loadQuestion() {
         playAudioBtn.classList.add('hidden');
     }
 
-    if (gameMode === 'sentence-target' || gameMode === 'sentence-viet') {
+    if (gameMode === 'speech-challenge') {
+        const voiceInputContainer = document.getElementById('voice-input-container');
+        voiceInputContainer.classList.remove('hidden');
+        optionsContainer.classList.add('hidden'); // Hide multiple choice options
+        
+        // Use Hán Tự as the target for comparison
+        correctAnswerText = qData.hanTu;
+    } else if (gameMode === 'sentence-target' || gameMode === 'sentence-viet') {
         optionsContainer.classList.add('hidden');
         sentenceBuilderContainer.classList.remove('hidden');
         loadSentenceBuilder(qData);
@@ -1245,6 +1281,11 @@ function checkSentenceAnswer() {
     });
 
     if (normalizedUser === normalizedTarget) {
+        // Track activity
+        const today = getTodayDate();
+        activityHistory[today] = (activityHistory[today] || 0) + 1;
+        saveActivityData();
+
         sentenceAnswerZone.classList.add('correct');
         score += 20;
         scoreEl.textContent = score;
@@ -1278,6 +1319,11 @@ function checkAnswer(selected, correct, selectedBtn) {
     const qData = currentQuestions[currentQuestionIndex];
     
     if (selected === correct) {
+        // Track activity
+        const today = getTodayDate();
+        activityHistory[today] = (activityHistory[today] || 0) + 1;
+        saveActivityData();
+
         selectedBtn.classList.add('correct');
         score += (gameMode === 'time-attack') ? Math.round(timeRemaining * 5) : 10;
         scoreEl.textContent = score;
@@ -1472,6 +1518,10 @@ function saveHistoryData() {
     localStorage.setItem(`${currentUser}_vocab_history`, JSON.stringify(vocabHistory));
 }
 
+function saveActivityData() {
+    localStorage.setItem(`${currentUser}_activity_history`, JSON.stringify(activityHistory));
+}
+
 function showHistoryScreen() {
     renderHistory();
     showScreen('history-screen');
@@ -1526,4 +1576,144 @@ function renderHistory() {
         `;
         container.appendChild(item);
     });
+}
+
+/**
+ * SPEECH RECOGNITION & PHONETIC ANALYSIS
+ */
+
+function startVoiceRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói. Vui lòng dùng Chrome hoặc Edge.");
+        return;
+    }
+
+    if (isRecording) return;
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'zh-CN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    const voiceBtn = document.getElementById('voice-input-btn');
+    const statusEl = document.getElementById('speech-status');
+    const feedbackContainer = document.getElementById('speech-feedback-container');
+
+    recognition.onstart = () => {
+        isRecording = true;
+        voiceBtn.classList.add('recording');
+        const micText = voiceBtn.querySelector('.mic-text');
+        if (micText) micText.textContent = "Đang nghe...";
+        statusEl.textContent = "Đang lắng nghe... 🎙️";
+        feedbackContainer.classList.remove('hidden');
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        console.log("Transcript:", transcript);
+        processSpeechResult(transcript);
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Speech Error:", event.error);
+        statusEl.textContent = "Lỗi: " + event.error;
+        stopRecording();
+    };
+
+    recognition.onend = () => {
+        stopRecording();
+    };
+
+    recognition.start();
+}
+
+function stopRecording() {
+    isRecording = false;
+    const voiceBtn = document.getElementById('voice-input-btn');
+    if (voiceBtn) {
+        voiceBtn.classList.remove('recording');
+        const micText = voiceBtn.querySelector('.mic-text');
+        if (micText) micText.textContent = "Nhấn để nói lại";
+    }
+}
+
+function processSpeechResult(recognizedText) {
+    const qData = currentQuestions[currentQuestionIndex];
+    if (!qData) return;
+    
+    const targetText = qData.hanTu;
+    const { score: accuracyScore, html } = compareAndHighlight(targetText, recognizedText);
+    
+    const resultDisplay = document.getElementById('speech-result-display');
+    const scoreDisplay = document.getElementById('speech-score-display');
+    const statusEl = document.getElementById('speech-status');
+
+    if (resultDisplay) resultDisplay.innerHTML = html;
+    if (scoreDisplay) scoreDisplay.textContent = `Độ chính xác: ${Math.round(accuracyScore)}%`;
+    if (statusEl) statusEl.textContent = accuracyScore >= 80 ? "Tuyệt vời! Phát âm rất chuẩn. ✅" : "Bạn thử lại nhé! 🔄";
+
+    if (accuracyScore >= 80) {
+        // Update activity history
+        const today = getTodayDate();
+        activityHistory[today] = (activityHistory[today] || 0) + 1;
+        saveActivityData();
+        
+        // Show next button
+        nextBtn.classList.remove('hidden');
+        nextBtn.onclick = () => {
+             currentQuestionIndex++;
+             if (currentQuestionIndex < currentQuestions.length) {
+                 loadQuestion();
+             } else {
+                 showResult();
+             }
+        };
+        
+        // Success visual feedback
+        const quizScreen = document.getElementById('quiz-screen');
+        if (quizScreen) {
+            quizScreen.style.backgroundColor = '#ecfdf5';
+            setTimeout(() => quizScreen.style.backgroundColor = '', 500);
+        }
+    } else {
+        // Shake feedback
+        const feedbackBox = document.querySelector('.speech-feedback-box');
+        if (feedbackBox) {
+            feedbackBox.classList.add('shake');
+            setTimeout(() => feedbackBox.classList.remove('shake'), 500);
+        }
+    }
+}
+
+function compareAndHighlight(target, recognized) {
+    const targetArr = target.split('');
+    const recognizedArr = recognized.split('');
+    
+    let correctCount = 0;
+    let html = '';
+
+    targetArr.forEach((char, index) => {
+        const recChar = recognizedArr[index] || '';
+        let status = 'missing';
+        let displayPinyin = globalCharMap[char] || '?';
+
+        if (char === recChar) {
+            status = 'correct';
+            correctCount++;
+        } else if (recChar !== '') {
+            status = 'wrong';
+            displayPinyin = globalCharMap[recChar] || `[${recChar}]`;
+        }
+
+        html += `
+            <div class="char-result ${status}">
+                <span class="char-pinyin">${displayPinyin}</span>
+                <span class="char-han">${char}</span>
+            </div>
+        `;
+    });
+
+    const accuracyScore = (correctCount / targetArr.length) * 100;
+    return { score: accuracyScore, html };
 }
