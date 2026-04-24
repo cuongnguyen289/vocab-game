@@ -110,6 +110,9 @@
                 <button id="review-btn" class="btn warning-btn" onclick="startGame('review')" disabled>
                     <span class="btn-icon">⏳</span> Đang tải...
                 </button>
+                <button id="type-pinyin-btn" class="btn warning-btn" style="background-color: #0ea5e9;" onclick="startGame('type-pinyin')" disabled>
+                    <span class="btn-icon">⏳</span> Đang tải...
+                </button>
                 <button id="time-attack-btn" class="btn secondary-btn" style="background-color: #f43f5e;" onclick="startGame('time-attack')" disabled>
                     <span class="btn-icon">⚡</span> Phản Xạ Nhanh
                 </button>
@@ -249,6 +252,12 @@
 
             <div id="options-container" class="options-grid">
                 <!-- Options will be injected here by JS -->
+            </div>
+
+            <!-- Pinyin Input Container -->
+            <div id="pinyin-input-container" class="pinyin-input-container hidden" style="display: flex; flex-direction: column; align-items: center; gap: 1rem; width: 100%;">
+                <input type="text" id="pinyin-input" class="user-input" placeholder="Gõ pinyin (không dấu)..." style="font-size: 1.2rem; padding: 0.8rem; text-align: center; width: 100%; border: 2px solid var(--primary-color); border-radius: 12px;" autocomplete="off">
+                <button id="check-pinyin-btn" class="btn primary-btn" onclick="checkPinyinAnswer()">Kiểm tra 🔎</button>
             </div>
             
             <div id="sentence-builder-container" class="sentence-builder hidden">

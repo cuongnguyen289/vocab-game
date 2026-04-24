@@ -578,6 +578,12 @@ function parseCSV(csvText) {
                 // Initial update based on loaded stats
                 updateProgressUI();
             }
+
+            const typePinyinBtn = document.getElementById('type-pinyin-btn');
+            if (typePinyinBtn) {
+                typePinyinBtn.disabled = false;
+                typePinyinBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⌨️</span><span>Gõ Pinyin</span></div>';
+            }
         }
 
         const sentenceButtons = document.getElementById('sentence-mode-buttons');
@@ -695,6 +701,8 @@ function setupQuiz() {
             showScreen('vocab');
             return;
         }
+    } else if (gameMode === 'type-pinyin') {
+        availableWords = vocabulary;
     } else {
         // Normal Learning Mode (Hán->Việt, Việt->Hán) ONLY covers Level 0 (New Words)
         availableWords = vocabulary.filter(v => !wordStats[v.hanTu]);
@@ -742,6 +750,10 @@ function loadQuestion() {
     explanationContainer.classList.add('hidden');
     exampleContainer.classList.add('hidden');
     optionsContainer.innerHTML = '';
+    
+    // Hide pinyin input container by default
+    document.getElementById('pinyin-input-container').classList.add('hidden');
+    document.getElementById('pinyin-input').value = '';
     
     // Reset Speech UI
     document.getElementById('speech-feedback-container').classList.add('hidden');
@@ -814,6 +826,11 @@ function loadQuestion() {
         questionTextSub = qData.cauPinyin;
         correctAnswerText = qData.cauNghia;
         questionEl.style.fontSize = '2.5rem';
+    } else if (currentQuestionMode === 'type-pinyin') {
+        questionTextMain = qData.hanTu;
+        questionTextSub = qData.tiengViet; // Show meaning as subtitle
+        correctAnswerText = qData.pinyin;
+        questionEl.style.fontSize = '3.2rem';
     } else {
         // Default fallbacks: if currentQuestionMode is somehow invalid (e.g. 'time-attack' wasn't randomized)
         questionTextMain = qData.hanTu || "";
@@ -868,6 +885,16 @@ function loadQuestion() {
         
         // Use Hán Tự as the target for comparison
         correctAnswerText = qData.hanTu;
+    } else if (gameMode === 'type-pinyin') {
+        optionsContainer.classList.add('hidden');
+        sentenceBuilderContainer.classList.add('hidden');
+        document.getElementById('pinyin-input-container').classList.remove('hidden');
+        
+        // Focus the input automatically
+        setTimeout(() => {
+            const inputEl = document.getElementById('pinyin-input');
+            if (inputEl) inputEl.focus();
+        }, 100);
     } else if (gameMode === 'sentence-target' || gameMode === 'sentence-viet') {
         optionsContainer.classList.add('hidden');
         sentenceBuilderContainer.classList.remove('hidden');
@@ -1752,3 +1779,138 @@ function skipSpeechQuestion() {
         }
     };
 }
+
+function stripPinyinTones(pinyin) {
+    if (!pinyin) return "";
+    return pinyin.normalize("NFD")
+                 .replace(/[\u0300-\u036f]/g, "")
+                 .replace(/ü/g, "v")
+                 .replace(/ū/g, "u")
+                 .replace(/[^a-z]/gi, "")
+                 .toLowerCase();
+}
+
+function checkPinyinAnswer() {
+    if (gameMode !== 'type-pinyin') return;
+    
+    const inputEl = document.getElementById('pinyin-input');
+    const qData = currentQuestions[currentQuestionIndex];
+    const userInput = inputEl.value;
+    
+    const normalizedUser = stripPinyinTones(userInput);
+    const normalizedTarget = stripPinyinTones(qData.pinyin);
+    
+    if (normalizedUser === "") return; // Empty input, do nothing
+    
+    // Disable input while showing result
+    inputEl.disabled = true;
+    document.getElementById('check-pinyin-btn').disabled = true;
+    
+    if (normalizedUser === normalizedTarget) {
+        // Track activity
+        const today = getTodayDate();
+        activityHistory[today] = (activityHistory[today] || 0) + 1;
+        saveActivityData();
+
+        inputEl.style.backgroundColor = '#dcfce7';
+        inputEl.style.borderColor = '#10b981';
+        score += 15;
+        scoreEl.textContent = score;
+        
+        // Progress update (similar to normal learning)
+        if (!wordStats[qData.hanTu]) {
+            wordStats[qData.hanTu] = {
+                level: 1,
+                lastReview: Date.now(),
+                nextReview: Date.now() + (1 * 60 * 60 * 1000),
+                interval: 1,
+                repCount: 1
+            };
+            saveSRSData();
+        } else {
+             // For Pinyin mode, maybe just increase repCount slightly
+             const stats = wordStats[qData.hanTu];
+             stats.repCount = (stats.repCount || 0) + 0.5;
+             saveSRSData();
+        }
+
+        // Show example if exists
+        if(qData.cau && qData.cau !== '-') {
+            exampleSentence.textContent = qData.cau;
+            examplePinyin.textContent = qData.cauPinyin !== '-' ? qData.cauPinyin : "";
+            exampleMeaning.textContent = qData.cauNghia !== '-' ? qData.cauNghia : "";
+            examplePinyin.style.display = (qData.cauPinyin !== '-') ? 'block' : 'none';
+            exampleMeaning.style.display = (qData.cauNghia !== '-') ? 'block' : 'none';
+            const playExAudioBtn = document.getElementById('play-ex-audio-btn');
+            if (playExAudioBtn) {
+                playExAudioBtn.onclick = () => playAudio(qData.cau, 'zh-CN');
+                playExAudioBtn.classList.remove('hidden');
+            }
+            exampleContainer.classList.remove('hidden');
+        }
+    } else {
+        inputEl.style.backgroundColor = '#fee2e2';
+        inputEl.style.borderColor = '#ef4444';
+        
+        // Handle Wrong Answer Progress
+        const stats = wordStats[qData.hanTu] || { level: 1, interval: 1, repCount: 0 };
+        stats.level = 1;
+        stats.repCount = 0;
+        stats.interval = 1;
+        stats.nextReview = Date.now();
+        wordStats[qData.hanTu] = stats;
+        saveSRSData();
+        
+        const index = learnedWords.indexOf(qData.hanTu);
+        if(index > -1) {
+            learnedWords.splice(index, 1);
+            localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
+        }
+        if (!wrongWords.includes(qData.hanTu)) {
+            wrongWords.push(qData.hanTu);
+            localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
+        }
+        
+        explanationText.innerHTML = `❌ <b>Sai rồi!</b><br>Từ <b>${qData.hanTu}</b> có Pinyin là: <b>${qData.pinyin}</b><br>Bạn nhập: <b>${userInput}</b>`;
+        explanationContainer.classList.remove('hidden');
+    }
+    
+    nextBtn.classList.remove('hidden');
+    
+    // Auto proceed if correct
+    if (normalizedUser === normalizedTarget) {
+         setTimeout(() => {
+             if (!nextBtn.classList.contains('hidden')) {
+                 nextBtn.click();
+             }
+         }, 1500);
+    }
+    
+    // Reset styles for next question
+    setTimeout(() => {
+        inputEl.style.backgroundColor = '';
+        inputEl.style.borderColor = 'var(--primary-color)';
+        inputEl.disabled = false;
+        document.getElementById('check-pinyin-btn').disabled = false;
+    }, 1500); // Will be reset on loadQuestion anyway, but just in case
+}
+
+// Add global keydown for Enter in Pinyin mode
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const inputContainer = document.getElementById('pinyin-input-container');
+        const nextBtn = document.getElementById('next-btn');
+        
+        if (inputContainer && !inputContainer.classList.contains('hidden')) {
+            // If next button is visible, it means the question is answered, go to next
+            if (nextBtn && !nextBtn.classList.contains('hidden')) {
+                nextBtn.click();
+            } else {
+                const inputEl = document.getElementById('pinyin-input');
+                if (document.activeElement === inputEl || inputEl.value !== "") {
+                    checkPinyinAnswer();
+                }
+            }
+        }
+    }
+});
