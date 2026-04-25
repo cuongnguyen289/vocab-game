@@ -238,6 +238,30 @@ function updateProgressUI() {
                 speechBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Luyện Phát Âm (Cần Lvl 5)</span></div>`;
             }
         }
+
+        const typePinyinBtn = document.getElementById('type-pinyin-btn');
+        if (typePinyinBtn) {
+            const level3Plus = (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
+            if (level3Plus > 0) {
+                typePinyinBtn.disabled = false;
+                typePinyinBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⌨️</span><span>Gõ Pinyin (${level3Plus})</span></div>`;
+            } else {
+                typePinyinBtn.disabled = true;
+                typePinyinBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Gõ Pinyin (Cần Lvl 3)</span></div>`;
+            }
+        }
+
+        const typeHanziBtn = document.getElementById('type-hanzi-btn');
+        if (typeHanziBtn) {
+            const level4Plus = (stats[4] || 0) + (stats[5] || 0);
+            if (level4Plus > 0) {
+                typeHanziBtn.disabled = false;
+                typeHanziBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">✍️</span><span>Gõ Mặt Chữ (${level4Plus})</span></div>`;
+            } else {
+                typeHanziBtn.disabled = true;
+                typeHanziBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Gõ Mặt Chữ (Cần Lvl 4)</span></div>`;
+            }
+        }
     }
 
     // Update Grammar Topics Dropdown in Builder Screen
@@ -579,11 +603,7 @@ function parseCSV(csvText) {
                 updateProgressUI();
             }
 
-            const typePinyinBtn = document.getElementById('type-pinyin-btn');
-            if (typePinyinBtn) {
-                typePinyinBtn.disabled = false;
-                typePinyinBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⌨️</span><span>Gõ Pinyin</span></div>';
-            }
+            // Type typing buttons are handled dynamically by updateProgressUI
         }
 
         const sentenceButtons = document.getElementById('sentence-mode-buttons');
@@ -702,7 +722,19 @@ function setupQuiz() {
             return;
         }
     } else if (gameMode === 'type-pinyin') {
-        availableWords = vocabulary;
+        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
+        if (availableWords.length === 0) {
+            alert("Bạn cần có ít nhất 1 từ đạt Level 3 để mở khóa chế độ Gõ Pinyin!");
+            showScreen('vocab');
+            return;
+        }
+    } else if (gameMode === 'type-hanzi') {
+        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 4);
+        if (availableWords.length === 0) {
+            alert("Bạn cần có ít nhất 1 từ đạt Level 4 để mở khóa chế độ Gõ Mặt Chữ Hán!");
+            showScreen('vocab');
+            return;
+        }
     } else {
         // Normal Learning Mode (Hán->Việt, Việt->Hán) ONLY covers Level 0 (New Words)
         availableWords = vocabulary.filter(v => !wordStats[v.hanTu]);
@@ -831,6 +863,11 @@ function loadQuestion() {
         questionTextSub = qData.tiengViet; // Show meaning as subtitle
         correctAnswerText = qData.pinyin;
         questionEl.style.fontSize = '3.2rem';
+    } else if (currentQuestionMode === 'type-hanzi') {
+        questionTextMain = qData.tiengViet;
+        questionTextSub = qData.pinyin; // Show pinyin as subtitle
+        correctAnswerText = qData.hanTu;
+        questionEl.style.fontSize = '2rem';
     } else {
         // Default fallbacks: if currentQuestionMode is somehow invalid (e.g. 'time-attack' wasn't randomized)
         questionTextMain = qData.hanTu || "";
@@ -885,16 +922,17 @@ function loadQuestion() {
         
         // Use Hán Tự as the target for comparison
         correctAnswerText = qData.hanTu;
-    } else if (gameMode === 'type-pinyin') {
+    } else if (gameMode === 'type-pinyin' || gameMode === 'type-hanzi') {
         optionsContainer.classList.add('hidden');
         sentenceBuilderContainer.classList.add('hidden');
         document.getElementById('pinyin-input-container').classList.remove('hidden');
         
-        // Focus the input automatically
-        setTimeout(() => {
-            const inputEl = document.getElementById('pinyin-input');
-            if (inputEl) inputEl.focus();
-        }, 100);
+        const inputEl = document.getElementById('pinyin-input');
+        if (inputEl) {
+            inputEl.value = '';
+            inputEl.placeholder = gameMode === 'type-pinyin' ? "Gõ pinyin (không dấu)..." : "Gõ chữ Hán...";
+            setTimeout(() => inputEl.focus(), 100);
+        }
     } else if (gameMode === 'sentence-target' || gameMode === 'sentence-viet') {
         optionsContainer.classList.add('hidden');
         sentenceBuilderContainer.classList.remove('hidden');
@@ -1790,15 +1828,24 @@ function stripPinyinTones(pinyin) {
                  .toLowerCase();
 }
 
-function checkPinyinAnswer() {
-    if (gameMode !== 'type-pinyin') return;
+function checkTypingAnswer() {
+    if (gameMode !== 'type-pinyin' && gameMode !== 'type-hanzi') return;
     
     const inputEl = document.getElementById('pinyin-input');
     const qData = currentQuestions[currentQuestionIndex];
-    const userInput = inputEl.value;
+    const userInput = inputEl.value.trim();
     
-    const normalizedUser = stripPinyinTones(userInput);
-    const normalizedTarget = stripPinyinTones(qData.pinyin);
+    let normalizedUser = userInput;
+    let normalizedTarget = "";
+    
+    if (gameMode === 'type-pinyin') {
+        normalizedUser = stripPinyinTones(userInput);
+        normalizedTarget = stripPinyinTones(qData.pinyin);
+    } else {
+        // type-hanzi
+        normalizedUser = userInput.replace(/\s+/g, '');
+        normalizedTarget = qData.hanTu;
+    }
     
     if (normalizedUser === "") return; // Empty input, do nothing
     
@@ -1871,7 +1918,11 @@ function checkPinyinAnswer() {
             localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
         }
         
-        explanationText.innerHTML = `❌ <b>Sai rồi!</b><br>Từ <b>${qData.hanTu}</b> có Pinyin là: <b>${qData.pinyin}</b><br>Bạn nhập: <b>${userInput}</b>`;
+        if (gameMode === 'type-pinyin') {
+            explanationText.innerHTML = `❌ <b>Sai rồi!</b><br>Từ <b>${qData.hanTu}</b> có Pinyin là: <b>${qData.pinyin}</b><br>Bạn nhập: <b>${userInput}</b>`;
+        } else {
+            explanationText.innerHTML = `❌ <b>Sai rồi!</b><br>Nghĩa <b>${qData.tiengViet}</b> là từ: <b>${qData.hanTu}</b> (${qData.pinyin})<br>Bạn nhập: <b>${userInput}</b>`;
+        }
         explanationContainer.classList.remove('hidden');
     }
     
@@ -1908,9 +1959,25 @@ document.addEventListener('keydown', (e) => {
             } else {
                 const inputEl = document.getElementById('pinyin-input');
                 if (document.activeElement === inputEl || inputEl.value !== "") {
-                    checkPinyinAnswer();
+                    checkTypingAnswer();
                 }
             }
         }
     }
 });
+
+let typingAudioTimeout = null;
+const typingInputEl = document.getElementById('pinyin-input');
+if (typingInputEl) {
+    typingInputEl.addEventListener('input', () => {
+        if (gameMode === 'type-pinyin' || gameMode === 'type-hanzi') {
+            const qData = currentQuestions[currentQuestionIndex];
+            if (qData && qData.hanTu) {
+                if (typingAudioTimeout) clearTimeout(typingAudioTimeout);
+                typingAudioTimeout = setTimeout(() => {
+                    playAudio(qData.hanTu, 'zh-CN');
+                }, 400);
+            }
+        }
+    });
+}
