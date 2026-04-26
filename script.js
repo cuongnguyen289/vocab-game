@@ -1395,6 +1395,12 @@ function checkAnswer(selected, correct, selectedBtn) {
         score += (gameMode === 'time-attack') ? Math.round(timeRemaining * 5) : 10;
         scoreEl.textContent = score;
 
+        if (currentQuestionMode === 'viet-han') {
+            playAudio(qData.hanTu, 'zh-CN');
+            playAudioBtn.classList.remove('hidden');
+            playAudioBtn.onclick = () => playAudio(qData.hanTu, 'zh-CN');
+        }
+
         if (gameMode === 'time-attack') {
             correctStreak++;
             // Reward: add time (cap at initial max)
