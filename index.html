@@ -7,12 +7,23 @@
     <!-- Modern Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=1.6">
+    <!-- Firebase Compat SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div class="container">
         <!-- Main Menu (Chọn chế độ) -->
         <div id="main-menu-screen" class="screen active">
-            <div class="header" style="text-align: center; width: 100%;">
+            <!-- User Profile / Auth Area -->
+            <div id="user-profile-container" style="position: absolute; top: 1.5rem; right: 1.5rem; display: flex; align-items: center; gap: 0.8rem; z-index: 10;">
+                <span id="user-name-display" style="font-weight: 600; font-size: 0.95rem; display: none; color: var(--primary-color);">Chào bạn</span>
+                <button id="login-btn-top" class="btn primary-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; border-radius: 10px; width: auto; margin-bottom: 0;" onclick="showAuthModal()">Đăng Nhập</button>
+                <button id="logout-btn-top" class="btn warning-btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; border-radius: 10px; width: auto; margin-bottom: 0; display: none;" onclick="logoutUser()">Đăng Xuất</button>
+            </div>
+
+            <div class="header" style="text-align: center; width: 100%; margin-top: 1rem;">
                 <div class="header-icon" style="margin-bottom: 0.2rem;">🎮</div>
                 <h1 style="font-size: 1.8rem; margin-bottom: 0.2rem;">Sảnh Chờ</h1>
                 <p style="margin-bottom: 0.5rem; font-size: 0.95rem;">Bạn muốn luyện tập gì hôm nay?</p>
@@ -315,6 +326,38 @@
             </div>
             <p id="feedback-text">Bạn hoàn thành rất tốt!</p>
             <button class="btn primary-btn pulse-anim" onclick="returnToMenu()">🔄 Chơi Lại Từ Đầu</button>
+        </div>
+        <!-- Auth Modal -->
+        <div id="auth-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Tài Khoản</h2>
+                    <button class="close-modal-btn" onclick="hideAuthModal()">×</button>
+                </div>
+                <div class="auth-tabs">
+                    <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Đăng nhập</button>
+                    <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Đăng ký</button>
+                </div>
+                
+                <div id="form-login" class="auth-form active">
+                    <input type="email" id="login-email" class="user-input auth-input" placeholder="Email" autocomplete="email">
+                    <input type="password" id="login-password" class="user-input auth-input" placeholder="Mật khẩu">
+                    <button class="btn primary-btn" onclick="loginWithEmail()">Đăng Nhập</button>
+                </div>
+                
+                <div id="form-register" class="auth-form hidden">
+                    <input type="email" id="reg-email" class="user-input auth-input" placeholder="Email" autocomplete="email">
+                    <input type="password" id="reg-password" class="user-input auth-input" placeholder="Mật khẩu (ít nhất 6 ký tự)">
+                    <button class="btn secondary-btn" onclick="registerWithEmail()">Tạo Tài Khoản</button>
+                </div>
+                
+                <div class="auth-divider"><span>HOẶC</span></div>
+                
+                <button class="btn" style="background: white; color: #333; border: 1px solid #ccc; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 0;" onclick="loginWithGoogle()">
+                    <span style="font-size: 1.2rem; margin-right: 10px;">🌐</span>
+                    Đăng nhập bằng Google
+                </button>
+            </div>
         </div>
     </div>
     

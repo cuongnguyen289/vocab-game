@@ -1,3 +1,21 @@
+// Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyD-a5McTnf2Dd0niPKgPg9xb0UVTLh41b0",
+  authDomain: "voca-game.firebaseapp.com",
+  projectId: "voca-game",
+  storageBucket: "voca-game.firebasestorage.app",
+  messagingSenderId: "1045354806669",
+  appId: "1:1045354806669:web:c779d6307ec8fa5f4391c4",
+  measurementId: "G-L1S872LQPF"
+};
+
+// Initialize Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const auth = firebase.auth();
+const db = firebase.firestore();
+
 const SHEET_ID = "13JmgXrxeuBzmBWadW9qAjtTzxObl1c5x6dk3pNr9f7w";
 const TARGET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
 const SENTENCE_GID = "1961448550";
@@ -341,13 +359,42 @@ function saveSRSData() {
     const now = Date.now();
     wrongWords = Object.keys(wordStats).filter(k => wordStats[k].level > 0 && wordStats[k].nextReview <= now);
     localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
+    
+    saveProgressToCloud();
 }
 
 // Initialize
 window.addEventListener('DOMContentLoaded', () => {
     fetchVocabulary();
     
-    // Load progress
+    // Listen for Auth State Changes
+    auth.onAuthStateChanged((user) => {
+        const userNameDisplay = document.getElementById('user-name-display');
+        const loginBtnTop = document.getElementById('login-btn-top');
+        const logoutBtnTop = document.getElementById('logout-btn-top');
+
+        if (user) {
+            currentUser = user.uid;
+            if (userNameDisplay) {
+                userNameDisplay.textContent = `👋 Chào, ${user.displayName || user.email.split('@')[0]}`;
+                userNameDisplay.style.display = 'inline-block';
+            }
+            if (loginBtnTop) loginBtnTop.style.display = 'none';
+            if (logoutBtnTop) logoutBtnTop.style.display = 'inline-block';
+            
+            loadProgressFromCloud(user.uid);
+        } else {
+            currentUser = "guest";
+            if (userNameDisplay) userNameDisplay.style.display = 'none';
+            if (loginBtnTop) loginBtnTop.style.display = 'inline-block';
+            if (logoutBtnTop) logoutBtnTop.style.display = 'none';
+            
+            loadProgressFromLocal();
+        }
+    });
+});
+
+function loadProgressFromLocal() {
     try {
         learnedWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_learned`)) || [];
         wrongWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`)) || [];
@@ -355,10 +402,11 @@ window.addEventListener('DOMContentLoaded', () => {
         vocabHistory = JSON.parse(localStorage.getItem(`${currentUser}_vocab_history`)) || {};
         activityHistory = JSON.parse(localStorage.getItem(`${currentUser}_activity_history`)) || {};
         migrateToSRS();
+        updateProgressUI();
     } catch(e) {
         console.warn("Error loading progress", e);
     }
-});
+}
 
 function showScreen(screenName) {
     if(screenName === 'vocabStart' || screenName === 'sentenceStart' || screenName === 'main-menu') {
@@ -1621,10 +1669,12 @@ function getTodayDate() {
 
 function saveHistoryData() {
     localStorage.setItem(`${currentUser}_vocab_history`, JSON.stringify(vocabHistory));
+    saveProgressToCloud();
 }
 
 function saveActivityData() {
     localStorage.setItem(`${currentUser}_activity_history`, JSON.stringify(activityHistory));
+    saveProgressToCloud();
 }
 
 function showHistoryScreen() {
@@ -2053,5 +2103,131 @@ if (exampleClozeInputEl) {
             const nextBtn = document.getElementById('next-btn');
             if (nextBtn) nextBtn.classList.remove('hidden');
         }
+    });
+}
+
+// ==========================================
+// FIREBASE AUTH & SYNC LOGIC
+// ==========================================
+
+function showAuthModal() {
+    document.getElementById('auth-modal').classList.remove('hidden');
+}
+
+function hideAuthModal() {
+    document.getElementById('auth-modal').classList.add('hidden');
+}
+
+function switchAuthTab(tab) {
+    if (tab === 'login') {
+        document.getElementById('tab-login').classList.add('active');
+        document.getElementById('tab-register').classList.remove('active');
+        document.getElementById('form-login').classList.remove('hidden');
+        document.getElementById('form-register').classList.add('hidden');
+    } else {
+        document.getElementById('tab-register').classList.add('active');
+        document.getElementById('tab-login').classList.remove('active');
+        document.getElementById('form-register').classList.remove('hidden');
+        document.getElementById('form-login').classList.add('hidden');
+    }
+}
+
+function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+        .then((result) => {
+            hideAuthModal();
+            console.log("Đăng nhập Google thành công:", result.user.email);
+        })
+        .catch((error) => {
+            alert("Lỗi đăng nhập Google: " + error.message);
+        });
+}
+
+function loginWithEmail() {
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-password').value;
+    if (!email || !pass) return alert("Vui lòng nhập đầy đủ thông tin");
+    auth.signInWithEmailAndPassword(email, pass)
+        .then(() => hideAuthModal())
+        .catch((error) => alert("Lỗi đăng nhập: " + error.message));
+}
+
+function registerWithEmail() {
+    const email = document.getElementById('reg-email').value;
+    const pass = document.getElementById('reg-password').value;
+    if (!email || !pass) return alert("Vui lòng nhập đầy đủ thông tin");
+    auth.createUserWithEmailAndPassword(email, pass)
+        .then(() => {
+            hideAuthModal();
+            alert("Đăng ký thành công!");
+        })
+        .catch((error) => alert("Lỗi đăng ký: " + error.message));
+}
+
+function logoutUser() {
+    if(confirm("Bạn có chắc muốn đăng xuất?")) {
+        auth.signOut().then(() => {
+            // UI sẽ được reset bởi onAuthStateChanged
+        });
+    }
+}
+
+let syncTimeout = null;
+function saveProgressToCloud() {
+    if (currentUser === "guest") return;
+    
+    // Debounce to prevent exceeding Firebase quota
+    if (syncTimeout) clearTimeout(syncTimeout);
+    
+    syncTimeout = setTimeout(() => {
+        db.collection("users").doc(currentUser).set({
+            wordStats: wordStats,
+            vocabHistory: vocabHistory,
+            activityHistory: activityHistory,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true })
+        .then(() => console.log("Đã lưu dữ liệu lên Cloud."))
+        .catch(err => console.error("Lỗi lưu Cloud:", err));
+    }, 2000);
+}
+
+function loadProgressFromCloud(uid) {
+    const loadingScreen = document.getElementById('loading-screen');
+    if(loadingScreen) {
+        loadingScreen.querySelector('p').textContent = "Đang đồng bộ dữ liệu Cloud...";
+        loadingScreen.classList.add('active');
+    }
+
+    db.collection("users").doc(uid).get().then((doc) => {
+        if (doc.exists) {
+            const data = doc.data();
+            if (data.wordStats) wordStats = data.wordStats;
+            if (data.vocabHistory) vocabHistory = data.vocabHistory;
+            if (data.activityHistory) activityHistory = data.activityHistory;
+            
+            // Rebuild legacy arrays
+            learnedWords = Object.keys(wordStats).filter(k => wordStats[k].level >= 3);
+            const now = Date.now();
+            wrongWords = Object.keys(wordStats).filter(k => wordStats[k].level > 0 && wordStats[k].nextReview <= now);
+            
+            // Backup to local
+            localStorage.setItem(`${uid}_vocab_stats`, JSON.stringify(wordStats));
+            localStorage.setItem(`${uid}_vocab_history`, JSON.stringify(vocabHistory));
+            localStorage.setItem(`${uid}_activity_history`, JSON.stringify(activityHistory));
+            localStorage.setItem(`${uid}_vocab_learned`, JSON.stringify(learnedWords));
+            localStorage.setItem(`${uid}_vocab_wrong`, JSON.stringify(wrongWords));
+            
+            updateProgressUI();
+            console.log("Đã tải dữ liệu từ Cloud.");
+        } else {
+            console.log("User chưa có dữ liệu trên Cloud. Đẩy dữ liệu hiện tại lên.");
+            saveProgressToCloud();
+        }
+    }).catch((error) => {
+        console.error("Lỗi tải dữ liệu từ Cloud:", error);
+        loadProgressFromLocal();
+    }).finally(() => {
+        if(loadingScreen) loadingScreen.classList.remove('active');
     });
 }
