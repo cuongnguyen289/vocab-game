@@ -1384,6 +1384,7 @@ function checkAnswer(selected, correct, selectedBtn) {
     buttons.forEach(btn => btn.disabled = true);
     
     const qData = currentQuestions[currentQuestionIndex];
+    let requireCloze = false;
     
     if (selected === correct) {
         // Track activity
@@ -1461,16 +1462,44 @@ function checkAnswer(selected, correct, selectedBtn) {
         }
         
         if(qData.cau && qData.cau !== '-' && !gameMode.includes('sentence')) {
-            exampleSentence.textContent = qData.cau;
-            examplePinyin.textContent = qData.cauPinyin !== '-' ? qData.cauPinyin : "";
-            exampleMeaning.textContent = qData.cauNghia !== '-' ? qData.cauNghia : "";
-            examplePinyin.style.display = (qData.cauPinyin !== '-') ? 'block' : 'none';
-            exampleMeaning.style.display = (qData.cauNghia !== '-') ? 'block' : 'none';
+            const hasWord = qData.cau.includes(qData.hanTu);
+            const clozeContainer = document.getElementById('example-cloze-container');
+            
+            if (hasWord) {
+                requireCloze = true;
+                exampleSentence.innerHTML = qData.cau.replace(qData.hanTu, "（___）");
+                examplePinyin.style.display = 'none'; // Hide pinyin until solved
+                exampleMeaning.textContent = qData.cauNghia !== '-' ? qData.cauNghia : "";
+                exampleMeaning.style.display = (qData.cauNghia !== '-') ? 'block' : 'none';
+                
+                if (clozeContainer) {
+                    clozeContainer.classList.remove('hidden');
+                    const clozeInput = document.getElementById('example-cloze-input');
+                    if (clozeInput) {
+                        clozeInput.value = '';
+                        clozeInput.disabled = false;
+                        clozeInput.style.backgroundColor = '';
+                        clozeInput.style.borderColor = 'var(--primary-color)';
+                        setTimeout(() => clozeInput.focus(), 100);
+                    }
+                }
+            } else {
+                exampleSentence.textContent = qData.cau;
+                examplePinyin.textContent = qData.cauPinyin !== '-' ? qData.cauPinyin : "";
+                exampleMeaning.textContent = qData.cauNghia !== '-' ? qData.cauNghia : "";
+                examplePinyin.style.display = (qData.cauPinyin !== '-') ? 'block' : 'none';
+                exampleMeaning.style.display = (qData.cauNghia !== '-') ? 'block' : 'none';
+                if (clozeContainer) clozeContainer.classList.add('hidden');
+            }
+            
             if (playExAudioBtn) {
                 playExAudioBtn.onclick = () => playAudio(qData.cau, 'zh-CN');
                 playExAudioBtn.classList.remove('hidden');
             }
             exampleContainer.classList.remove('hidden');
+        } else {
+            const clozeContainer = document.getElementById('example-cloze-container');
+            if (clozeContainer) clozeContainer.classList.add('hidden');
         }
     } else {
         selectedBtn.classList.add('wrong');
@@ -1544,7 +1573,10 @@ function checkAnswer(selected, correct, selectedBtn) {
             }
         });
     }
-    nextBtn.classList.remove('hidden');
+    
+    if (!requireCloze) {
+        nextBtn.classList.remove('hidden');
+    }
 }
 
 nextBtn.onclick = () => {
@@ -1984,6 +2016,42 @@ if (typingInputEl) {
                     playAudio(qData.hanTu, 'zh-CN');
                 }, 400);
             }
+        }
+    });
+}
+
+// Event listener for Example Cloze Input
+const exampleClozeInputEl = document.getElementById('example-cloze-input');
+if (exampleClozeInputEl) {
+    exampleClozeInputEl.addEventListener('input', function() {
+        const qData = currentQuestions[currentQuestionIndex];
+        if (!qData) return;
+        
+        const userInput = stripPinyinTones(this.value.trim());
+        const targetPinyin = stripPinyinTones(qData.pinyin);
+        
+        if (userInput === targetPinyin && userInput !== "") {
+            this.disabled = true;
+            this.style.backgroundColor = '#dcfce7';
+            this.style.borderColor = '#10b981';
+            
+            // Reveal full sentence and pinyin
+            const exampleSentence = document.getElementById('example-sentence');
+            const examplePinyin = document.getElementById('example-pinyin');
+            if (exampleSentence) exampleSentence.textContent = qData.cau;
+            if (examplePinyin) {
+                examplePinyin.textContent = qData.cauPinyin !== '-' ? qData.cauPinyin : "";
+                examplePinyin.style.display = (qData.cauPinyin !== '-') ? 'block' : 'none';
+            }
+            
+            // Track extra activity for typing practice
+            const today = getTodayDate();
+            activityHistory[today] = (activityHistory[today] || 0) + 1;
+            saveActivityData();
+            
+            // Show Next Button
+            const nextBtn = document.getElementById('next-btn');
+            if (nextBtn) nextBtn.classList.remove('hidden');
         }
     });
 }

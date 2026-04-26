@@ -150,7 +150,7 @@
                 </p>
             </div>
             
-            <div class="mode-buttons" id="sentence-mode-buttons" style="grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+            <div class="mode-buttons" id="sentence-mode-buttons">
                 <button class="btn primary-btn" onclick="startGame('sentence-trung-viet')" disabled>
                     <span class="btn-icon">⏳</span> Đang tải...
                 </button>
@@ -297,6 +297,9 @@
                     <button id="play-ex-audio-btn" class="audio-btn hidden" title="Nghe câu này" style="font-size: 1.2rem; margin-top: 0;">🔊</button>
                 </div>
                 <p id="example-sentence" class="ex-sentence"></p>
+                <div id="example-cloze-container" class="hidden" style="margin: 0.8rem 0; display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                    <input type="text" id="example-cloze-input" class="user-input" placeholder="Gõ pinyin (không dấu)..." style="font-size: 1.1rem; padding: 0.6rem; text-align: center; width: 100%; border: 2px solid var(--primary-color); border-radius: 8px;" autocomplete="off">
+                </div>
                 <p id="example-pinyin" class="ex-pinyin"></p>
                 <p id="example-meaning" class="ex-meaning"></p>
             </div>
