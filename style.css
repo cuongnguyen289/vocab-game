@@ -867,7 +867,7 @@ p {
 }
 
 .large-char {
-    font-size: 15rem;
+    font-size: min(35vw, 15rem);
     font-weight: 800;
     color: var(--primary-color);
     transform: scale(0.3);
@@ -875,10 +875,12 @@ p {
     text-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
     margin-bottom: 0rem;
     line-height: 1.1;
+    text-align: center;
+    word-break: break-all;
 }
 
 .large-pinyin {
-    font-size: 6rem;
+    font-size: min(12vw, 6rem);
     font-weight: 600;
     color: var(--secondary-color);
     margin-bottom: 2rem;
@@ -886,7 +888,9 @@ p {
     opacity: 0;
     transform: translateY(10px);
     transition: all 0.5s ease 0.2s;
-    line-height: 1;
+    line-height: 1.2;
+    text-align: center;
+    max-width: 95vw;
 }
 
 .character-overlay.active .large-pinyin {

@@ -2196,6 +2196,19 @@ function showFullscreenReveal(char, pinyin, callback) {
 
     display.textContent = char;
     if (pinyinDisplay) pinyinDisplay.textContent = pinyin || "";
+
+    // Dynamic Font Scaling for long text
+    if (char.length > 3) {
+        display.style.fontSize = `min(${35 / (char.length/2)}vw, ${15 / (char.length/2)}rem)`;
+    } else {
+        display.style.fontSize = ""; // Reset to CSS default
+    }
+
+    if (pinyin && pinyin.length > 10) {
+        pinyinDisplay.style.fontSize = `min(${12 / (pinyin.length/10)}vw, ${6 / (pinyin.length/10)}rem)`;
+    } else {
+        pinyinDisplay.style.fontSize = ""; // Reset to CSS default
+    }
     
     // Radical Analysis Logic
     if (analysis) {
