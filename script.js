@@ -389,8 +389,19 @@ function updateSRSProgress(hanTu, isCorrect, mode = "") {
     const now = Date.now();
     
     if (isCorrect) {
+        // Calculate boost based on mode difficulty
+        let boost = 1.0; 
+        if (mode === 'mcq' || mode === 'review' || mode === 'han-viet' || mode === 'viet-han') {
+            boost = 0.5; // Multiple choice is easy, needs more reps
+        } else if (mode.includes('type')) {
+            boost = 1.0; // Typing is medium difficulty
+        } else if (mode.includes('sentence') || mode.includes('cloze')) {
+            boost = 1.5; // Contextual usage is hard
+        } else if (mode === 'time-attack') {
+            boost = 0.8; // Fast but still MCQ
+        }
+
         if (stats.level <= 2) {
-            const boost = (mode === 'time-attack') ? 0.3 : 1.0;
             stats.repCount = (stats.repCount || 0) + boost;
             
             if (stats.repCount >= 3) {
@@ -399,18 +410,26 @@ function updateSRSProgress(hanTu, isCorrect, mode = "") {
                 stats.repCount = 0;
                 stats.nextReview = now + (1 * 24 * 60 * 60 * 1000);
             } else {
-                stats.nextReview = now + (4 * 60 * 60 * 1000);
+                // Not yet leveled up, review again soon
+                stats.nextReview = now + (2 * 60 * 60 * 1000); 
             }
         } else {
-            if (mode === 'time-attack') {
-                stats.level = Math.min(stats.level + 0.1, 5);
-            } else {
-                stats.level = Math.min(stats.level + 1, 5);
+            // Progression for Level 3-5 (Mastery)
+            // Harder modes give a full level, easier modes give a fractional level
+            const levelJump = (boost >= 1.0) ? 1 : 0.4;
+            
+            if (stats.level + levelJump >= Math.floor(stats.level) + 1) {
+                // Transition to next full level
+                stats.level = Math.min(Math.floor(stats.level) + 1, 5);
                 stats.interval = (stats.interval || 1) * 2;
                 stats.nextReview = now + (stats.interval * 24 * 60 * 60 * 1000);
+            } else {
+                // Fractional progress within current level
+                stats.level = Math.min(stats.level + levelJump, 5);
             }
         }
     } else {
+        // Penalty for wrong answer
         stats.level = 1;
         stats.repCount = 0;
         stats.interval = 1;
