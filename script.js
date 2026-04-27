@@ -1906,12 +1906,186 @@ function skipSpeechQuestion() {
     };
 }
 
+const RADICAL_DICTIONARY = {
+    '爪': { name: 'Trảo', meaning: 'Móng vuốt' },
+    '爫': { name: 'Trảo', meaning: 'Móng vuốt' },
+    '冖': { name: 'Mịch', meaning: 'Khăn trùm' },
+    '友': { name: 'Hữu', meaning: 'Bạn bè' },
+    '又': { name: 'Hựu', meaning: 'Lặp lại' },
+    '用': { name: 'Dụng', meaning: 'Sử dụng' },
+    '儿': { name: 'Nhi', meaning: 'Trẻ con' },
+    '冂': { name: 'Quynh', meaning: 'Vùng biên giới' },
+    '口': { name: 'Khẩu', meaning: 'Cái miệng' },
+    '月': { name: 'Nguyệt', meaning: 'Mặt trăng' },
+    '刂': { name: 'Đao', meaning: 'Con dao' },
+    '丷': { name: 'Bát', meaning: 'Số 8' },
+    '一': { name: 'Nhất', meaning: 'Số 1' },
+    '土': { name: 'Thổ', meaning: 'Đất' },
+    '心': { name: 'Tâm', meaning: 'Quả tim' },
+    '忄': { name: 'Tâm', meaning: 'Quả tim (đứng)' },
+    '子': { name: 'Tử', meaning: 'Con cái' },
+    '宀': { name: 'Miên', meaning: 'Mái nhà' },
+    '门': { name: 'Môn', meaning: 'Cửa' },
+    '人': { name: 'Nhân', meaning: 'Người' },
+    '亻': { name: 'Nhân', meaning: 'Người (đứng)' },
+    '扌': { name: 'Thủ', meaning: 'Tay' },
+    '辶': { name: 'Sước', meaning: 'Bước đi' },
+    '讠': { name: 'Ngôn', meaning: 'Lời nói' },
+    '饣': { name: 'Thực', meaning: 'Ăn' },
+    '纟': { name: 'Mịch', meaning: 'Sợi tơ' },
+    '钅': { name: 'Kim', meaning: 'Kim loại' },
+    '氵': { name: 'Thủy', meaning: 'Nước' },
+    '火': { name: 'Hỏa', meaning: 'Lửa' },
+    '灬': { name: 'Hỏa', meaning: 'Lửa (nằm)' },
+    '木': { name: 'Mộc', meaning: 'Cây' },
+    '艹': { name: 'Thảo', meaning: 'Cỏ' },
+    '女': { name: 'Nữ', meaning: 'Phụ nữ' },
+    '日': { name: 'Nhật', meaning: 'Mặt trời' },
+    '目': { name: 'Mục', meaning: 'Mắt' },
+    '犭': { name: 'Khuyển', meaning: 'Con chó' },
+    '马': { name: 'Mã', meaning: 'Con ngựa' },
+    '鳥': { name: 'Điểu', meaning: 'Con chim' },
+    '鸟': { name: 'Điểu', meaning: 'Con chim' },
+    '虫': { name: 'Trùng', meaning: 'Sâu bọ' },
+    '疒': { name: 'Nạch', meaning: 'Bệnh tật' },
+    '走': { name: 'Tẩu', meaning: 'Chạy' },
+    '车': { name: 'Xa', meaning: 'Xe' },
+    '舟': { name: 'Chu', meaning: 'Thuyền' },
+    '衣': { name: 'Y', meaning: 'Áo' },
+    '衤': { name: 'Y', meaning: 'Áo (đứng)' },
+    '礻': { name: 'Thị', meaning: 'Thần đất' },
+    '卩': { name: 'Tiết', meaning: 'Đốt tre' },
+    '阝': { name: 'Phụ/Ấp', meaning: 'Gò đất/Thành' },
+    '隹': { name: 'Chuy', meaning: 'Chim đuôi ngắn' },
+    '夂': { name: 'Truy', meaning: 'Đến sau' },
+    '田': { name: 'Điền', meaning: 'Ruộng' },
+    '工': { name: 'Công', meaning: 'Công việc' },
+    '乍': { name: 'Sạ', meaning: 'Bỗng nhiên' },
+    '⺌': { name: 'Tiểu', meaning: 'Nhỏ (biến thể)' },
+    '小': { name: 'Tiểu', meaning: 'Nhỏ' },
+    '乙': { name: 'Ất', meaning: 'Thứ hai' },
+    '丶': { name: 'Chủ', meaning: 'Dấu chấm' },
+    '生': { name: 'Sinh', meaning: 'Sống/Đẻ' },
+    '舌': { name: 'Thiệt', meaning: 'Cái lưỡi' },
+    '匕': { name: 'Chủy', meaning: 'Cái thìa' },
+    '丿': { name: 'Phiệt', meaning: 'Nét phẩy' },
+    '巾': { name: 'Cân', meaning: 'Khăn mặt' },
+    '贝': { name: 'Bối', meaning: 'Vỏ sò/Tiền' },
+    '力': { name: 'Lực', meaning: 'Sức mạnh' },
+    '尸': { name: 'Thi', meaning: 'Xác chết/Mái' },
+    '歹': { name: 'Ngạt', meaning: 'Xấu/Chết' },
+    '也': { name: 'Dã', meaning: 'Cũng' },
+    '大': { name: 'Đại', meaning: 'Lớn' },
+    '夫': { name: 'Phu', meaning: 'Chồng/Người đàn ông' },
+    '见': { name: 'Kiến', meaning: 'Nhìn thấy' },
+    '斤': { name: 'Cân', meaning: 'Cái búa/Rìu' },
+    '方': { name: 'Phương', meaning: 'Hình vuông/Hướng' }
+};
+
+const CHAR_DECOMPOSITION = {
+    '爱': ['爫', '冖', '友'],
+    '用': ['用'],
+    '先': ['土', '儿'],
+    '再': ['一', '冂', '土'],
+    '后': ['口'],
+    '前': ['丷', '一', '月', '刂'],
+    '准': ['氵', '隹'],
+    '备': ['夂', '田'],
+    '工': ['工'],
+    '作': ['亻', '乍'],
+    '学': ['⺌', '冖', '子'],
+    '习': ['乙', '丶'],
+    '生': ['生'],
+    '活': ['氵', '舌'],
+    '朋': ['月', '月'],
+    '友': ['又', '丶'],
+    '老': ['土', '丿', '匕'],
+    '师': ['刂', '一', '巾'],
+    '家': ['宀', '豕'],
+    '里': ['日', '土'],
+    '睡': ['目', '垂'],
+    '觉': ['⺌', '冖', '见'],
+    '起': ['走', '己'],
+    '床': ['广', '木'],
+    '吃': ['口', '乞'],
+    '饭': ['饣', '反'],
+    '喝': ['口', '曷'],
+    '水': ['水'],
+    '运': ['辶', '云'],
+    '动': ['云', '力'],
+    '看': ['手', '目'],
+    '书': ['乙', '丨'],
+    '听': ['口', '斤'],
+    '音': ['立', '日'],
+    '乐': ['丿', '木'],
+    '写': ['冖', '与'],
+    '字': ['宀', '子'],
+    '说': ['讠', '兑'],
+    '汉': ['氵', '又'],
+    '语': ['讠', '五', '口'],
+    '去': ['土', '厶'],
+    '超': ['走', '召'],
+    '市': ['亠', '巾'],
+    '买': ['乛', '头'],
+    '东': ['一', ' middle'],
+    '西': ['西'],
+    '坐': ['人', '人', '土'],
+    '公': ['八', '厶'],
+    '交': ['亠', '父'],
+    '车': ['车'],
+    '打': ['扌', '丁'],
+    '路': ['足', '各'],
+    '旅': ['方', '人'],
+    '游': ['氵', '方', '子'],
+    '高': ['亠', '口', '冂', '口'],
+    '兴': ['丷', '一', '八'],
+    '难': ['又', '隹'],
+    '过': ['辶', '寸'],
+    '累': ['田', '糸'],
+    '饿': ['饣', '我'],
+    '渴': ['氵', '曷'],
+    '舒': ['舍', '予'],
+    '服': ['月', '卩', '又'],
+    '疼': ['疒', '冬'],
+    '感': ['咸', '心'],
+    '冒': ['曰', '目'],
+    '发': ['癶', '乂'],
+    '烧': ['火', '尧'],
+    '药': ['艹', '约']
+};
+
 function showFullscreenReveal(char, callback) {
     const overlay = document.getElementById('character-reveal-overlay');
     const display = document.getElementById('large-char-display');
+    const analysis = document.getElementById('radical-analysis');
+    
     if (!overlay || !display) return callback ? callback() : null;
 
     display.textContent = char;
+    
+    // Radical Analysis Logic
+    if (analysis) {
+        analysis.innerHTML = '';
+        const components = CHAR_DECOMPOSITION[char] || [char];
+        
+        components.forEach(comp => {
+            const data = RADICAL_DICTIONARY[comp];
+            const item = document.createElement('div');
+            item.className = 'radical-item';
+            
+            if (data) {
+                item.innerHTML = `
+                    <span class="radical-char">${comp}</span>
+                    <span class="radical-name">${data.name}</span>
+                    <span class="radical-meaning">${data.meaning}</span>
+                `;
+            } else {
+                item.innerHTML = `<span class="radical-char">${comp}</span><span class="radical-name">Hán tự</span>`;
+            }
+            analysis.appendChild(item);
+        });
+    }
+
     overlay.classList.remove('shrinking');
     overlay.classList.add('active');
     

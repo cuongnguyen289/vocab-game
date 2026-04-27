@@ -1,0 +1,707 @@
+STT,Hán Tự,Pinyin,Tiếng Việt,,,Cau,pinyi,nghia tieng viet
+1,时间,shíjiān,thời gian,,,我没有时间做这件事情。,wǒ méiyǒu shíjiān zuò zhè jiàn shìqing.,Tôi không có thời gian làm việc này.
+2,小时,xiǎoshí,Tiếng / Giờ đồng hồ,,,我一天上班八个小时。,wǒ yì tiān shàngbān bā gè xiǎoshí.,Tôi đi làm 8 tiếng một ngày.
+3,分钟,fēnzhōng,Phút,,,他测试功能测了五分钟。,tā cèshì gōngnéng cè le wǔ fēnzhōng.,Anh ấy test chức năng 5 phút.
+4,秒,miǎo,Giây,,,他锁螺丝锁了三十秒。,tā suǒ luósī suǒ le sānshí miǎo.,Anh ấy siết ốc 30 giây.
+5,点,diǎn,Giờ (mốc thời gian),,,现在几点？,xiànzài jǐ diǎn?,Bây giờ mấy giờ rồi?
+6,半,bàn,Rưỡi / Nửa,,,八点半。,bā diǎn bàn.,8h rưỡi.
+7,差,chā,Kém,,,八点差十五分钟。,bā diǎn chà shíwǔ fēnzhōng.,8h kém 15 phút.
+8,早上,zǎoshang,Buổi sáng sớm,,,早上八点。,zǎoshang bā diǎn.,8h sáng.
+9,上午,shàngwǔ,Buổi sáng,,,上午好。,shàngwǔ hǎo.,Chào buổi sáng.
+10,中午,zhōngwǔ,Buổi trưa,,,中午好。,zhōngwǔ hǎo.,Chào buổi trưa.
+11,下午,xiàwǔ,Buổi chiều,,,下午好。,xiàwǔ hǎo.,Chào buổi chiều.
+12,晚上,wǎnshàng,Buổi tối,,,晚上十点。,wǎnshang shí diǎn.,10h tối.
+13,白天,báitiān,Ban ngày,,,白天我很忙。,báitiān wǒ hěn máng.,Ban ngày tôi rất bận.
+14,夜里,yèli,Ban đêm,,,夜里不用加班。,yèli bú yòng jiābān.,Ban đêm không cần tăng ca.
+15,白班,báibān,Ca ngày,,,我想换白班。,wǒ xiǎng huàn báibān.,Tôi muốn đổi sang ca ngày.
+16,夜班,yèbān,Ca đêm,,,我上过夜班。,wǒ shàng guò yèbān.,Tôi đã từng làm ca đêm.
+17,加班,jiābān,Tăng ca,,,这个星期六，谁想加班？,"zhè ge xīngqīliù, shuí xiǎng jiābān?","Thứ bảy tuần này, ai muốn tăng ca?"
+18,上班,shàngbān,Đi làm / Vào ca,,,每天上班都要打卡。,měitiān shàngbān dōu yào dǎkǎ.,Hàng ngày đi làm đều cần quẹt thẻ.
+19,下班,xiàbān,Tan ca / Tan làm,,,我刚下班。,wǒ gāng xiàbān.,Tôi vừa mới tan ca.
+20,休息,xiūxi,Nghỉ ngơi,,,快要休息了。,kuài yào xiūxi le.,Sắp đến giờ nghỉ rồi.
+21,天,tiān,Ngày,,,每天我们开一次会。,měitiān wǒmen kāi yí cì huì.,Mỗi ngày chúng tôi họp 1 lần.
+22,号,hào,Ngày (mốc ngày),,,今天几号？,jīntiān jǐ hào?,Hôm nay ngày mấy?
+23,昨天,zuótiān,Hôm qua,,,昨天她来了。,zuótiān tā lái le.,Hôm qua cô ấy đến rồi.
+24,今天,jīntiān,Hôm nay,,,今天几号？,jīntiān jǐ hào?,Hôm nay ngày mấy?
+25,明天,míngtiān,Ngày mai,,,明天我去北宁。,míngtiān wǒ qù běiníng.,Ngày mai tôi đi Bắc Ninh.
+26,前天,qiántiān,Hôm kia,,,前天他没来工厂。,qiántiān tā méi lái gōngchǎng.,Hôm kia anh ấy không đến xưởng.
+27,后天,hòutiān,Ngày kia,,,后天我们要开会。,hòutiān wǒmen yào kāihuì.,Ngày kia chúng ta phải họp.
+28,每天,měitiān,Mỗi ngày / Hằng ngày,,,每天上班都要打卡。,měitiān shàngbān dōu yào dǎkǎ.,Hàng ngày đi làm đều cần quẹt thẻ.
+29,星期,xīngqī,Thứ / Tuần,,,这个星期六，谁想加班？,"zhè ge xīngqīliù, shuí xiǎng jiābān?","Thứ bảy tuần này, ai muốn tăng ca?"
+30,周末,zhōumò,Cuối tuần,,,周末我不上班。,zhōumò wǒ bú shàngbān.,Cuối tuần tôi không đi làm.
+31,月,yuè,Tháng,,,几个月？,jǐ gè yuè?,Mấy tháng?
+32,月初,yuèchū,Đầu tháng,,,月初工作很多。,yuèchū gōngzuò hěn duō.,Đầu tháng công việc rất nhiều.
+33,月中,yuè zhōng,Giữa tháng,,,我们月中发工资。,wǒmen yuèzhōng fā gōngzī.,Chúng tôi phát lương vào giữa tháng.
+34,月底,yuèdǐ,Cuối tháng,,,月底要交报告。,yuèdǐ yào jiāo bàogào.,Cuối tháng phải nộp báo cáo.
+35,年,nián,Năm,,,你那年出生？,nǐ nà nián chūshēng?,Bạn sinh năm nào?
+36,去年,qùnián,Năm ngoái,,,去年我在越南工作。,qùnián wǒ zài yuènán gōngzuò.,Năm ngoái tôi làm việc ở Việt Nam.
+37,今年,jīnnián,Năm nay,,,我今年三十五岁。,wǒ jīnnián sānshíwǔ suì.,Tôi năm nay 35 tuổi.
+38,明年,míngnián,Năm sau,,,明年我想去中国。,míngnián wǒ xiǎng qù zhōngguó.,Năm sau tôi muốn đi Trung Quốc.
+39,生日,shēngrì,Sinh nhật,,,你的生日是几月几号？,nǐ de shēngrì shì jǐ yuè jǐ hào?,Sinh nhật của bạn là ngày nào tháng nào?
+40,现在,xiànzài,Bây giờ,,,现在几点？,xiànzài jǐ diǎn?,Bây giờ mấy giờ rồi?
+41,刚,gāng,Vừa mới,,,我刚开机器。,wǒ gāng kāi jīqì.,Tôi vừa mới mở máy.
+42,马上,mǎshàng,Ngay lập tức,,,我马上处理这个问题。,wǒ mǎshàng chǔlǐ zhège wèntí.,Tôi xử lý vấn đề này ngay lập tức.
+43,正在,zhèngzài,Đang,,,经理正在开会。,jīnglǐ zhèngzài kāihuì.,Giám đốc đang họp.
+44,快要,kuàiyào,Sắp... rồi,,,机器快要修好了。,jīqì kuài yào xiū hǎo le.,Máy sắp sửa xong rồi.
+45,已经,yǐjīng,Đã... rồi,,,机器已经修好了。,jīqì yǐjīng xiū hǎo le.,Máy đã sửa xong rồi.
+46,先,xiān,Trước,,,我先去工厂。,wǒ xiān qù gōngchǎng.,Tôi đi xuống xưởng trước.
+47,再,zài,Rồi / Sau đó,,,先洗手再吃饭。,xiān xǐshǒu zài chīfàn.,Rửa tay rồi ăn cơm.
+48,然后,ránhòu,Sau đó,,,先洗手，然后再吃饭。,"xiān xǐshǒu, ránhòu zài chīfàn.","Rửa tay trước, sau đó mới ăn cơm."
+49,以前,yǐqián,Trước đây / Trước khi,,,来中国以前，我在越南工作。,"lái zhōngguó yǐqián, wǒ zài yuènán gōngzuò.","Trước khi đến Trung Quốc, tôi làm việc ở Việt Nam."
+50,以后,yǐhòu,Sau này,,,以后有什么问题可以问我。,yǐhòu yǒu shénme wèntí kěyǐ wèn wǒ.,Sau này có vấn đề gì có thể hỏi tôi.
+51,准时,zhǔnshí,Đúng giờ,,,我不能准时完成这个工作。,wǒ bù néng zhǔnshí wánchéng zhè ge gōngzuò.,Tôi không thể hoàn thành công việc này đúng giờ.
+52,具体,jùtǐ,Cụ thể,,,具体是什么时候？,jùtǐ shì shénme shíhou?,Cụ thể là lúc nào?
+53,连续,liánxù,Liên tục,,,这台机器能连续运行八个小时。,zhè tái jīqì néng liánxù yùnxíng bā gè xiǎoshí.,Máy này có thể chạy liên tục 8 tiếng.
+54,同时,tóngshí,Đồng thời,,,这两台机器同时运行。,zhè liǎng tái jīqì tóngshí yùnxíng.,Hai cỗ máy này vận hành đồng thời.
+55,同步,tóngbù,Đồng bộ,,,机台要同步参数。,jītái yào tóngbù cānshù.,Máy móc cần đồng bộ thông số.
+56,方向,fāngxiàng,Phương hướng,,,你锁错方向了。,nǐ suǒ cuò fāngxiàng le.,Bạn vặn sai hướng rồi.
+57,位置,wèizhi,Vị trí,,,不要放错位置。,bú yào fàng cuò wèizhì.,Đừng đặt sai vị trí.
+58,上面,shàngmiàn,Bên trên,,,上面有我的工具。,shàngmiàn yǒu wǒ de gōngjù.,Phía trên có dụng cụ của tôi.
+59,下面,xiàmiàn,Bên dưới,,,桌子下有箱子。,zhuōzi xià yǒu xiāngzi.,Dưới bàn có thùng.
+60,前面,qiánmiàn,Phía trước,,,前面有一个人。,qiánmiàn yǒu yí gè rén.,Phía trước có một người.
+61,后面,hòumiàn,Phía sau,,,仓库在车间后面。,cāngkù zài chējiān hòumiàn.,Nhà kho ở phía sau nhà xưởng.
+62,左边,zuǒbian,Bên trái,,,零件在机器左边。,língjiàn zài jīqì zuǒbian.,Linh kiện ở bên trái máy.
+63,右边,yòubian,Bên phải,,,工具箱在右边。,gōngjùxiāng zài yòubian.,Hộp dụng cụ ở bên phải.
+64,中间,zhōngjiān,Ở giữa,,,主管站在中间。,zhǔguǎn zhàn zài zhōngjiān.,Chủ quản đứng ở giữa.
+65,旁边,pángbiān,Bên cạnh,,,请放在我旁边。,qǐng fàng zài wǒ pángbiān.,Vui lòng đặt ở bên cạnh tôi.
+66,里面,lǐmiàn,Bên trong,,,箱子里面有材料。,xiāngzi lǐmiàn yǒu cáiliào.,Bên trong thùng có vật liệu.
+67,外面,wàimiàn,Bên ngoài,,,外面有人等你。,wàimiàn yǒu rén děng nǐ.,Bên ngoài có người đợi bạn.
+68,对面,duìmiàn,Đối diện,,,办公室在工厂对面。,bàngōngshì zài gōngchǎng duìmiàn.,Văn phòng đối diện nhà máy.
+69,这边,zhèbiān,Bên này,,,请走这边。,qǐng zǒu zhèbiān.,Xin mời đi bên này.
+70,那边,nàbian,Bên kia,,,物料在那边。,wùliào zài nàbiān.,Vật liệu ở bên kia.
+71,哪里,nǎlǐ,Ở đâu,,,你的部门在哪里？,nǐ de bùmén zài nǎlǐ?,Bộ phận của bạn ở đâu?
+72,远,yuǎn,Xa,,,我家离工厂很远。,wǒ jiā lí gōngchǎng hěn yuǎn.,Nhà tôi cách nhà máy rất xa.
+73,近,jìn,Gần,,,仓库离这里很近。,cāngkù lí zhèlǐ hěn jìn.,Nhà kho cách đây rất gần.
+74,高,gāo,Cao,,,不要放太高。,bú yào fàng tài gāo.,Đừng đặt quá cao.
+75,低,dī,Thấp,,,放低下来。,fàng dī xiàlái.,Đặt thấp xuống.
+76,经理,jīnglǐ,Giám đốc,,,经理正在开会。,jīnglǐ zhèngzài kāihuì.,Giám đốc đang họp.
+77,总经理,zǒngjīnglǐ,Tổng giám đốc,,,总经理明天来车间。,zǒngjīnglǐ míngtiān lái chējiān.,Tổng giám đốc ngày mai đến xưởng.
+78,副经理,fùjīnglǐ,Phó giám đốc,,,副经理正在开会。,fùjīnglǐ zhèngzài kāihuì.,Phó giám đốc đang họp.
+79,科长,kēzhǎng,Trưởng phòng,,,科长安排了工作。,kēzhǎng ānpái le gōngzuò.,Trưởng phòng đã sắp xếp công việc.
+80,主管,zhǔguǎn,Chủ quản,,,没有主管的同意，不可以加班。,"méiyǒu zhǔguǎn de tóngyì, bù kěyǐ jiābān.",Không có sự đồng ý của chủ quản thì không được tăng ca.
+81,厂长,chǎngzhǎng,Xưởng trưởng,,,你的厂长是谁？,nǐ de chǎngzhǎng shì shuí?,Xưởng trưởng của bạn là ai?
+82,组长,zǔzhǎng,Tổ trưởng,,,你好阿草组长。,nǐhǎo ā cǎo zǔzhǎng.,Chào tổ trưởng Thảo.
+83,线长,xiàn cháng,Chuyền trưởng,,,线长说要加班。,xiàncháng shuō yào jiābān.,Chuyền trưởng nói phải tăng ca.
+84,工程师,gōngchéngshī,Kỹ sư,,,我是工程师。,wǒ shì gōngchéngshī.,Tôi là kỹ sư.
+85,人员,rényuán,Nhân viên (nói chung),,,这些人员是我的朋友。,zhèxiē rényuán shì wǒ de péngyou.,Những nhân viên này là bạn của tôi.
+86,员工,yuángōng,Nhân viên,,,新员工不会用这个机器。,xīn yuángōng bú huì yòng zhè ge jīqì.,Nhân viên mới chưa biết dùng máy này.
+87,工人,gōngrén,Công nhân,,,我做过工人。,wǒ zuò guò gōngrén.,Tôi đã từng làm công nhân rồi.
+88,同事,tóngshì,Đồng nghiệp,,,这是我的新同事。,zhè shì wǒ de xīn tóngshì.,Đây là đồng nghiệp mới của tôi.
+89,客户,kèhù,Khách hàng,,,我昨天给客户发邮件了。,wǒ zuótiān gěi kèhù fā yóujiàn le.,Hôm qua tôi đã gửi email cho khách hàng rồi.
+90,供应商,gōngyìngshāng,Nhà cung ứng,,,给供应商进来。,gěi gōngyìngshāng jìnlái.,Cho nhà cung ứng vào.
+91,朋友,péngyou,Bạn bè,,,这些人员是我的朋友。,zhèxiē rényuán shì wǒ de péngyou.,Những nhân viên này là bạn của tôi.
+92,部门,bùmén,Bộ phận,,,你是哪个部门的？,nǐ shì nǎ ge bùmén de?,Bạn ở bộ phận nào?
+93,岗位,gǎngwèi,Vị trí công tác,,,他打算下个月换岗位。,tā dǎsuàn xià gè yuè huàn gǎngwèi.,Anh ấy dự định tháng sau đổi vị trí.
+94,工厂,gōngchǎng,Nhà máy,,,我先去工厂。,wǒ xiān qù gōngchǎng.,Tôi đi xuống xưởng trước.
+95,车间,chējiān,Nhà xưởng,,,车间里很热。,chējiān lǐ hěn rè.,Trong xưởng rất nóng.
+96,仓库,cāngkù,Nhà kho,,,他去仓库拿物料。,tā qù cāngkù ná wùliào.,Anh ấy đi nhà kho lấy vật liệu.
+97,办公室,bàngōngshì,Văn phòng,,,我去办公室开会。,wǒ qù bàngōngshì kāihuì.,Tôi đi đến văn phòng để họp.
+98,公司,gōngsī,Công ty,,,我来到公司了。,wǒ lái dào gōngsī le.,Tôi đến công ty rồi.
+99,房间,fángjiān,Phòng,,,经理在房间里正在开会。,jīnglǐ zài fángjiān lǐ zhèngzài kāihuì.,Giám đốc đang họp trong phòng.
+100,谢谢,xièxie,Cảm ơn,,,谢谢你的帮助。,xièxiè nǐ de bāngzhù.,Cảm ơn sự giúp đỡ của bạn.
+101,不客气,bù kèqi,Đừng khách sáo,,,谢谢你！- 不客气。,xièxie nǐ! - bù kèqi.,Cám ơn bạn! - Đừng khách sáo.
+102,对不起,duìbuqǐ,Xin lỗi,,,对不起，我错了。,"duìbuqǐ, wǒ cuò le.","Xin lỗi, tôi sai rồi."
+103,不好意思,bùhǎoyìsi,Ngại quá / Xin lỗi,,,不好意思，麻烦你了。,"bù hǎoyìsi, máfan nǐ le.","Ngại quá, làm phiền bạn rồi."
+104,原谅,yuánliàng,Tha lỗi / Tha thứ,,,希望你可以原谅。,xīwàng nǐ kěyǐ yuánliàng.,Hi vọng bạn có thể tha lỗi.
+105,没关系,méiguānxi,Không sao đâu,,,对不起！- 没关系。,duìbuqǐ! - méiguānxi.,Xin lỗi! - Không sao đâu.
+106,没事,méishì,Không sao,,,你没事吗？,nǐ méishì ma?,Bạn không sao chứ?
+107,麻烦,máfan,Làm phiền / Phiền phức,,,麻烦你了。,máfan nǐ le.,Làm phiền bạn rồi.
+108,打扰,dǎrǎo,Làm phiền,,,打扰你了。,dǎrǎo nǐ le.,Làm phiền bạn rồi.
+109,辛苦,xīnkǔ,Vất vả,,,你辛苦了。,nǐ xīnkǔ le.,Bạn vất vả rồi.
+110,请问,qǐngwèn,Xin hỏi,,,请问，这个要怎么做？,"qǐngwèn, zhè ge yào zěnme zuò?",Xin hỏi cái này phải làm như thế nào?
+111,介绍,jièshào,Giới thiệu,,,我先介绍一下。,wǒ xiān jièshào yíxià.,Tôi xin giới thiệu 1 chút.
+112,认识,rènshi,Quen biết / Làm quen,,,很高兴认识你。,hěn gāoxìng rènshi nǐ.,Rất vui được quen biết bạn.
+113,帮助,bāngzhù,Giúp đỡ,,,谢谢你给我帮助。,xièxiè nǐ gěi wǒ bāngzhù.,Cảm ơn sự giúp đỡ của bạn dành cho tôi.
+114,告诉,gàosu,Nói với / Báo,,,请告诉主管。,qǐng gàosu zhǔguǎn.,Hãy nói với chủ quản.
+115,通知,tōngzhī,Thông báo,,,我有一个问题要跟你们通知。,wǒ yǒu yí gè wèntí yào gēn nǐmen tōngzhī.,Tôi có 1 vấn đề cần thông báo với các bạn.
+116,怎么,zěnme,Như thế nào / Làm sao,,,这个要怎么做？,zhè ge yào zěnme zuò?,Cái này phải làm như thế nào?
+117,为什么,wèishénme,Tại sao,,,为什么机器停了？,wèishénme jīqì tíng le?,Tại sao máy dừng rồi?
+118,听懂,tīngdǒng,Nghe hiểu,,,老板说你听懂吗？,lǎobǎn shuō nǐ tīng dǒng ma?,Sếp nói bạn nghe hiểu không?
+119,知道,zhīdào,Biết,,,你知道吗？,nǐ zhīdào ma?,Bạn biết không?
+120,记得,jìde,Nhớ / Recall,,,你记得吗？,nǐ jìde ma?,Bạn nhớ không?
+121,记住,jìzhu,Ghi nhớ,,,记住了吗？,jìzhù le ma?,Nhớ chưa?
+122,同意,tóngyì,Đồng ý,,,没有主管的同意，不可以加班。,"méiyǒu zhǔguǎn de tóngyì, bù kěyǐ jiābān.",Không có sự đồng ý của chủ quản thì không được tăng ca.
+123,打算,dǎsuàn,Dự định / Kế hoạch,,,我打算去中国旅行。,wǒ dǎsuàn qù zhōngguó lǚxíng.,Tôi dự định đi Trung Quốc du lịch.
+124,希望,xīwàng,Hy vọng,,,希望你可以原谅。,xīwàng nǐ kěyǐ yuánliàng.,Hi vọng bạn có thể tha lỗi.
+125,安排,ānpái,Sắp xếp,,,管理会安排工作。,guǎnlǐ huì ānpái gōngzuò.,Quản lý biết sắp xếp công việc.
+126,负责,fùzé,Phụ trách,,,我主要负责写SOP。,wǒ zhǔyào fùzé xiě SOP.,Tôi chủ yếu phụ trách viết SOP.
+127,请假,qǐngjià,Xin nghỉ phép,,,请我请假。,qǐng wǒ qǐngjià.,Cho tôi nghỉ phép.
+128,开会,kāihuì,Họp,,,经理正在开会。,jīnglǐ zhèngzài kāihuì.,Giám đốc đang họp.
+129,安静,ānjìng,Im lặng,,,请安静一点。,qǐng ānjìng yìdiǎn.,Xin im lặng một chút.
+130,注意,zhùyì,Chú ý,,,注意温度不能调整太高。,zhùyì wēndù bù néng tiáozhěng tài gāo.,Chú ý nhiệt độ không được điều chỉnh cao quá.
+131,小心,xiǎoxīn,Cẩn thận,,,开机器前，要检查，小心一点。,"kāi jīqì qián, yào jiǎnchá, xiǎoxīn yìdiǎn.","Trước khi mở máy, phải kiểm tra, cẩn thận một chút."
+132,专心,zhuānxīn,Chuyên tâm,,,你们要专心工作。,nǐmen yào zhuānxīn gōngzuò.,Các bạn phải chuyên tâm làm việc.
+133,随便,suíbiàn,Tùy tiện,,,不要随便拆零件。,bú yào suíbiàn chāi língjiàn.,Đừng tuỳ tiện tháo linh kiện.
+134,机器,jīqì,Máy móc,,,这个机器有什么问题？,zhè ge jīqì yǒu shénme wèntí?,Cái máy này có vấn đề gì?
+135,机台,jītái,Cỗ máy,,,机台要同步参数。,jītái yào tóngbù cānshù.,Máy móc cần đồng bộ thông số.
+136,设备,shèbèi,Thiết bị,,,我想先检查设备。,wǒ xiǎng xiān jiǎnchá shèbèi.,Tôi muốn kiểm tra thiết bị trước.
+137,治具,zhìjù,Fixture / Trị cụ,,,治具坏了。,zhìjù huài le.,Trị cụ hỏng rồi.
+138,载具,zàijù,Carrier / Tải cụ,,,请拿载具过来。,qǐng ná zǎijù guòlái.,Vui lòng lấy tải cụ qua đây.
+139,零件,língjiàn,Linh kiện,,,这个零件中文怎么叫？,zhè ge língjiàn zhōngwén zěnme jiào?,Linh kiện này tiếng Trung gọi là gì?
+140,物料,wùliào,Vật liệu,,,他去仓库拿物料。,tā qù cāngkù ná wùliào.,Anh ấy đi nhà kho lấy vật liệu.
+141,材料,cáiliào,Tài liệu / Vật liệu,,,这里可以放材料吗？,zhè lǐ kěyǐ fàng cáiliào ma?,Ở đây có thể để vật liệu không?
+142,原料,yuánliào,Nguyên liệu,,,生产原料不够了。,shēngchǎn yuánliào bú gòu le.,Nguyên liệu sản xuất không đủ rồi.
+143,胶桶,jiāotǒng,Lọ keo / Thùng keo,,,胶桶快要完了。,jiāotǒng kuài yào wán le.,Lọ keo sắp hết keo rồi.
+144,螺丝,luósī,Ốc vít,,,请锁紧螺丝。,qǐng suǒ jǐn luósī.,Hãy vặn chặt con ốc.
+145,螺母,luómǔ,Đai ốc,,,螺丝和螺母都在工具箱里面。,luósī hé luómǔ dōu zài gōngjùxiāng lǐmiàn.,Ốc vít và đai ốc đều ở trong hộp dụng cụ.
+146,胶带,jiāodài,Băng dính,,,贴胶带。,tiē jiāodài.,Dán băng dính.
+147,标签,biāoqiān,Tem / Nhãn / Label,,,标签贴上了。,biāoqiān tiē shàng le.,Tem đã được dán lên rồi.
+148,电池,diànchí,Pin,,,电池放上了。,diànchí fàng shàng le.,Pin đã được đặt vào rồi.
+149,充电器,chōngdiànqì,Bộ sạc / Cục sạc,,,我的充电器在哪儿？,wǒ de chōngdiànqì zài nǎ'er?,Bộ sạc của tôi ở đâu?
+150,屏幕,píngmù,Màn hình,,,她测试屏幕测了三分钟。,tā cèshì píngmù cè le sān fēnzhōng.,Cô ấy test màn hình 3 phút.
+151,接口,jiēkǒu,Cổng / Giao diện,,,接口插上了。,jiēkǒu chā shàng le.,Cổng đã được cắm vào rồi.
+152,插头,chātóu,Ổ cắm / Phích cắm,,,请拔掉插头。,qǐng bá diào chātóu.,Hãy rút phích cắm ra.
+153,电线,diànxiàn,Dây điện,,,检查一下电线。,jiǎnchá yíxià diànxiàn.,Kiểm tra dây điện một chút.
+154,外壳,wàiké,Vỏ / Vỏ ngoài,,,外壳装上了。,wàiké zhuāng shàng le.,Vỏ ngoài đã được lắp lên rồi.
+155,外观,wàiguān,Ngoại quan,,,她看见外观问题了。,tā kàn jiàn wàiguān wèntí le.,Cô ấy thấy lỗi ngoại quan rồi.
+156,功能,gōngnéng,Công năng / Chức năng,,,他测试功能测了五分钟。,tā cèshì gōngnéng cè le wǔ fēnzhōng.,Anh ấy test chức năng 5 phút.
+157,电脑,diànnǎo,Máy tính,,,谁正在使用电脑？,shuí zhèngzài shǐyòng diànnǎo?,Ai đang dùng máy tính vậy?
+158,笔记本,bǐjìběn,Sổ tay / Laptop,,,笔记本电脑在桌子上。,bǐjìběn diànnǎo zài zhuōzi shàng.,Laptop ở trên bàn.
+159,软件,ruǎnjiàn,Phần mềm,,,学汉语的软件。,xué hànyǔ de ruǎnjiàn.,App học tiếng Trung.
+160,硬件,yìngjiàn,Phần cứng,,,这个设备的硬件有问题。,zhège shèbèi de yìngjiàn yǒu wèntí.,Phần cứng của thiết bị này có vấn đề.
+161,网络,wǎngluò,Mạng internet,,,这里的网络很慢。,zhèlǐ de wǎngluò hěn màn.,Mạng ở đây rất chậm.
+162,工具,gōngjù,Dụng cụ,,,上面有我的工具。,shàngmiàn yǒu wǒ de gōngjù.,Phía trên có dụng cụ của tôi.
+163,工具箱,gōngjùxiāng,Hộp dụng cụ,,,螺丝和螺母都在工具箱里面。,luósī hé luómǔ dōu zài gōngjùxiāng lǐmiàn.,Ốc vít và đai ốc đều ở trong hộp dụng cụ.
+164,订单,dìngdān,Đơn hàng,,,我们要完成订单。,wǒmen yào wánchéng dìngdān.,Chúng ta phải hoàn thành đơn hàng.
+165,邮件,yóujiàn,Email,,,我昨天给客户发邮件了。,wǒ zuótiān gěi kèhù fā yóujiàn le.,Hôm qua tôi đã gửi email cho khách hàng rồi.
+166,报告,bàogào,Báo cáo,,,我发完报告了。,wǒ fā wán bàogào le.,Tôi gửi xong báo cáo rồi.
+167,说明书,shuōmíngshū,Sách hướng dẫn,,,我看了一次说明书。,wǒ kàn le yí cì shuōmíngshū.,Tôi xem sách hướng dẫn 1 lần.
+168,参数,cānshù,Thông số,,,机台要同步参数。,jītái yào tóngbù cānshù.,Máy móc cần đồng bộ thông số.
+169,尺寸,chǐcùn,Kích thước,,,检查产品的尺寸。,jiǎnchá chǎnpǐn de chǐcùn.,Kiểm tra kích thước của sản phẩm.
+170,型号,xínghào,Model / Loại,,,型号选错了。,xínghào xuǎn cuò le.,Model chọn sai rồi.
+171,标准,biāozhǔn,Tiêu chuẩn,,,做到标准了。,zuò dào biāozhǔn le.,Đã làm đạt tiêu chuẩn rồi.
+172,流程,liúchéng,Quy trình,,,可以按照流程做。,kěyǐ ànzhào liúchéng zuò.,Có thể làm theo quy trình.
+173,误差,wùchā,Sai số,,,量误差。,liàng wùchā.,Đo sai số.
+174,工时,gōngshí,Giờ làm việc (Công thời),,,量工时。,liàng gōngshí.,Đo giờ làm.
+175,温度,wēndù,Nhiệt độ,,,注意温度不能调整太高。,zhùyì wēndù bù néng tiáozhěng tài gāo.,Chú ý nhiệt độ không được điều chỉnh cao quá.
+176,湿度,shīdù,Độ ẩm,,,车间湿度太高了。,chējiān shīdù tài gāo le.,Độ ẩm xưởng quá cao rồi.
+177,高度,gāodù,Độ cao,,,调整机器的高度。,tiáozhěng jīqì de gāodù.,Điều chỉnh độ cao của máy.
+178,长度,chángdù,Độ dài,,,这个长度不符合标准。,zhège chángdù bù fúhé biāozhǔn.,Độ dài này không đúng tiêu chuẩn.
+179,宽度,kuāndù,Độ rộng,,,量一下宽度。,liàng yíxià kuāndù.,Đo độ rộng một chút.
+180,厚度,hòudù,Độ dày,,,产品的厚度不够。,chǎnpǐn de hòudù bú gòu.,Độ dày sản phẩm không đủ.
+181,深度,shēndù,Độ sâu,,,量深度。,liàng shēndù.,Đo độ sâu.
+182,凹度,āodù,Độ lõm,,,测试屏幕的凹度。,cèshì píngmù de āodù.,Test độ lõm của màn hình.
+183,凸度,tūdù,Độ lồi,,,凸度有误差。,tūdù yǒu wùchā.,Độ lồi có sai số.
+184,压力,yālì,Áp lực / Lực ép,,,机器的压力太大。,jīqì de yālì tài dà.,Lực ép của máy lớn quá.
+185,异常,yìcháng,Bất thường,,,测到异常了。,cè dào yìcháng le.,Test ra bất thường rồi.
+186,事故,shìgù,Sự cố,,,机台发生事故了。,jītái fāshēng shìgù le.,Máy móc xảy ra sự cố rồi.
+187,问题,wèntí,Vấn đề,,,这个机器有什么问题？,zhè ge jīqì yǒu shénme wèntí?,Cái máy này có vấn đề gì?
+188,操作,cāozuò,Thao tác,,,你要按照SOP操作。,nǐ yào ànzhào SOP cāozuò.,Bạn phải thao tác theo SOP.
+189,运行,yùnxíng,Vận hành,,,他正在运行机器。,tā zhèngzài yùnxíng jīqì.,Anh ấy đang vận hành máy.
+190,安装,ānzhuāng,Lắp ráp,,,安装产品。,ānzhuāng chǎnpǐn.,Lắp ráp sản phẩm.
+191,装,zhuāng,Lắp,,,零件装上了。,língjiàn zhuāng shàng le.,Linh kiện đã được lắp lên rồi.
+192,拆,chāi,Tháo,,,请先拆机台。,qǐng xiān chāi jītái.,Vui lòng tháo máy trước.
+193,开,kāi,"Mở (máy, đèn, cửa)",,,我刚开机器。,wǒ gāng kāi jīqì.,Tôi vừa mới mở máy.
+194,关,guān,Tắt / Đóng,,,下班前要关机器。,xiàbān qián yào guān jīqì.,Trước khi tan ca phải tắt máy.
+195,停,tíng,Dừng,,,有问题可以停机。,yǒu wèntí kěyǐ tíngjī.,Có vấn đề thì được phép dừng máy.
+196,暂停,zàntíng,Tạm dừng,,,所以暂停生产。,suǒyǐ zàntíng shēngchǎn.,Nên phải tạm dừng sản xuất.
+197,生产,shēngchǎn,Sản xuất,,,所以暂停生产。,suǒyǐ zàntíng shēngchǎn.,Nên phải tạm dừng sản xuất.
+198,测试,cèshì,Test / Kiểm tra thử,,,她测试屏幕测了三分钟。,tā cèshì píngmù cè le sān fēnzhōng.,Cô ấy test màn hình 3 phút.
+199,检查,jiǎnchá,Kiểm tra,,,我去工厂检查。,wǒ qù gōngchǎng jiǎnchá.,Tôi đi nhà xưởng kiểm tra.
+200,测量,cèliáng,Đo lường,,,他正在测量参数。,tā zhèngzài cèliáng cānshù.,Anh ấy đang đo lường thông số.
+201,贴,tiē,Dán,,,贴标签。,tiē biāoqiān.,Dán tem.
+202,锁,suǒ,"Khóa, siết",,,请锁紧螺丝。,qǐng suǒ jǐn luósī.,Hãy vặn chặt con ốc.
+203,拧,níng,"Vặn, vít",,,拧螺丝时要小心。,nǐng luósī shí yào xiǎoxīn.,Khi vặn ốc vít phải cẩn thận.
+204,插,chā,Cắm,,,接口插上了。,jiēkǒu chā shàng le.,Cổng đã được cắm vào rồi.
+205,抽,chōu,Rút,,,请抽出来。,qǐng chōu chūlái.,Vui lòng rút ra.
+206,压,yā,Ép,,,用机器压平这个零件。,yòng jīqì yā píng zhège língjiàn.,Dùng máy ép phẳng linh kiện này.
+207,固定,gùdìng,Cố định,,,固定好。,gùdìng hǎo.,Cố định chắc.
+208,连接,liánjiē,Kết nối,,,他不会连接这个设备。,tā bú huì liánjiē zhè ge shèbèi.,Anh ấy không biết kết nối thiết bị này.
+209,修,xiū,Sửa chữa,,,机器快要修好了。,jīqì kuài yào xiū hǎo le.,Máy sắp sửa xong rồi.
+210,调整,tiáozhěng,Điều chỉnh,,,注意温度不能调整太高。,zhùyì wēndù bù néng tiáozhěng tài gāo.,Chú ý nhiệt độ không được điều chỉnh cao quá.
+211,改进,gǎijìn,Cải thiện / Nâng cấp,,,我会改进。,wǒ huì gǎijìn.,Tôi sẽ cải thiện.
+212,培训,péixùn,Đào tạo,,,你还没培训。,nǐ hái méi péixùn.,Bạn chưa được đào tạo.
+213,包装,bāozhuāng,Đóng gói,,,工人包装了一次产品。,gōngrén bāozhuāng le yí cì chǎnpǐn.,Công nhân đóng gói sản phẩm 1 lần.
+214,清洁,qīngjié,Vệ sinh / Làm sạch,,,他清洁了五分钟产品。,tā qīngjié le wǔ fēnzhōng chǎnpǐn.,Công nhân ấy vệ sinh sản phẩm 5 phút.
+215,充电,chōngdiàn,Sạc điện,,,我的手机正在充电。,wǒ de shǒujī zhèngzài chōngdiàn.,Điện thoại của tôi đang sạc.
+216,截屏,jiépíng,Chụp ảnh màn hình,,,遇到异常请截屏。,yùdào yìcháng qǐng jiépíng.,Gặp bất thường vui lòng chụp màn hình.
+217,拿,ná,Lấy,,,他去仓库拿物料。,tā qù cāngkù ná wùliào.,Anh ấy đi nhà kho lấy vật liệu.
+218,搬,bān,"Bê, nhấc",,,工人搬一下箱子。,gōngrén bān yíxià xiāngzi.,Công nhân nhấc thùng một chút.
+219,放,fàng,Đặt / Để,,,电池放上了。,diànchí fàng shàng le.,Pin đã được đặt vào rồi.
+220,核对,héduì,Đối chiếu,,,请核对订单数量。,qǐng héduì dìngdān shùliàng.,Xin hãy đối chiếu số lượng đơn hàng.
+221,比较,bǐjiào,So sánh,,,比较这两个产品。,bǐjiào zhè liǎng gè chǎnpǐn.,So sánh hai sản phẩm này.
+222,重复,chóngfù,Lặp lại,,,不要重复操作。,búyào chóngfù cāozuò.,Đừng lặp lại thao tác.
+223,发生,fāshēng,Xảy ra,,,机台发生事故了。,jītái fāshēng shìgù le.,Máy móc xảy ra sự cố rồi.
+224,完成,wánchéng,Hoàn thành,,,我们要完成订单。,wǒmen yào wánchéng dìngdān.,Chúng ta phải hoàn thành đơn hàng.
+225,翻译,fānyì,Phiên dịch,,,帮我翻译成中文。,bāng wǒ fānyì chéng zhōngwén.,Giúp tôi phiên dịch thành tiếng Trung.
+226,选择,xuǎnzé,Chọn lựa,,,型号选错了。,xínghào xuǎn cuò le.,Model chọn sai rồi.
+227,打卡,dǎkǎ,Quẹt thẻ,,,每天上班都要打卡。,měitiān shàngbān dōu yào dǎkǎ.,Hàng ngày đi làm đều cần quẹt thẻ.
+228,去,qù,Đi đến,,,明天我去北宁。,míngtiān wǒ qù běiníng.,Ngày mai tôi đi Bắc Ninh.
+229,来,lái,Đi tới (hướng về),,,昨天她来了。,zuótiān tā lái le.,Hôm qua cô ấy đến rồi.
+230,走,zǒu,Đi bộ,,,我们走路回家。,wǒmen zǒulù huíjiā.,Chúng ta đi bộ về nhà.
+231,进,jìn,Vào,,,请进。,qǐng jìn.,Mời vào.
+232,出发,chūfā,Xuất phát,,,我们快要出发了。,wǒmen kuài yào chūfā le.,Chúng tôi sắp xuất phát rồi.
+233,站,zhàn,Đứng,,,站起来。,zhàn qǐlái.,Đứng dậy.
+234,坐,zuò,Ngồi,,,请坐。,qǐng zuò.,Mời ngồi.
+235,看,kàn,Nhìn,,,我看了一次说明书。,wǒ kàn le yí cì shuōmíngshū.,Tôi xem sách hướng dẫn 1 lần.
+236,见,jiàn,Thấy,,,我没见他。,wǒ méi jiàn tā.,Tôi không thấy anh ấy.
+237,等,děng,Đợi / Chờ,,,你正在等谁？,nǐ zhèngzài děng shuí?,Bạn đang đợi ai thế?
+238,带,dài,Mang theo,,,请带上你的工具。,qǐng dài shàng nǐ de gōngjù.,Xin hãy mang theo dụng cụ của bạn.
+239,回答,huídá,Trả lời,,,但是你不回答。,dànshì nǐ bù huídá.,Nhưng bạn không trả lời.
+240,想,xiǎng,Muốn / Nghĩ / Nhớ,,,我想去上班。,wǒ xiǎng qù shàngbān.,Tôi muốn đi làm.
+241,要,yào,Cần / Phải / Muốn,,,每天上班都要打卡。,měitiān shàngbān dōu yào dǎkǎ.,Hàng ngày đi làm đều cần quẹt thẻ.
+242,会,huì,Biết (kỹ năng) / Sẽ,,,我会改进。,wǒ huì gǎijìn.,Tôi sẽ cải thiện.
+243,能,néng,Có thể (khả năng),,,现在不能停机。,xiànzài bù néng tíngjī.,Bây giờ không thể dừng máy.
+244,可以,kěyǐ,Có thể (được phép),,,可以按照流程做。,kěyǐ ànzhào liúchéng zuò.,Có thể làm theo quy trình.
+245,好,hǎo,Tốt / Xong,,,你做好了。,nǐ zuò hǎo le.,Bạn làm tốt rồi.
+246,对,duì,Đúng,,,操作做对了。,cāozuò zuò duì le.,Thao tác làm đúng rồi.
+247,错,cuò,Sai,,,你锁错方向了。,nǐ suǒ cuò fāngxiàng le.,Bạn vặn sai hướng rồi.
+248,正确,zhèngquè,Chính xác,,,错误改成正确了。,cuòwù gǎi chéng zhèngquè le.,Lỗi này đã sửa thành đúng rồi.
+249,紧,jǐn,Chặt,,,请锁紧螺丝。,qǐng suǒ jǐn luósī.,Hãy vặn chặt con ốc.
+250,松,sōng,Lỏng,,,这个螺丝有点松。,zhège luósī yǒudiǎn sōng.,Con ốc vít này hơi lỏng.
+251,够,gòu,Đủ,,,料不够。,liào bú gòu.,Liệu không đủ.
+252,缺,quē,Thiếu,,,仓库缺物料。,cāngkù quē wùliào.,Nhà kho thiếu vật tư.
+253,快,kuài,Nhanh,,,老板说很快。,lǎobǎn shuō hěn kuài.,Sếp nói nhanh.
+254,慢,màn,Chậm,,,请老板慢一点。,qǐng lǎobǎn màn yìdiǎn.,Xin sếp nói chậm một chút.
+255,新,xīn,Mới,,,这个机器是新的。,zhè ge jīqì shì xīn de.,Cái máy này là máy mới.
+256,旧,jiù,Cũ,,,这个设备很旧。,zhège shèbèi hěn jiù.,Thiết bị này rất cũ.
+257,难,nán,Khó,,,这个工作很难。,zhège gōngzuò hěn nán.,Công việc này rất khó.
+258,简单,jiǎndān,Đơn giản,,,我会修简单设备。,wǒ huì xiū jiǎndān shèbèi.,Tôi biết sửa thiết bị đơn giản.
+259,干净,gānjìng,Sạch sẽ,,,机器上很干净。,jīqì shàng hěn gānjìng.,Phía trên máy rất sạch.
+260,脏,zàng,Bẩn,,,机器下很脏。,jīqì xià hěn zāng.,Dưới máy rất bẩn.
+261,自由,zìyóu,Tự do,,,周末我很自由。,zhōumò wǒ hěn zìyóu.,Cuối tuần tôi rất tự do.
+262,一样,yīyàng,Giống nhau,,,机台和机台的参数一样。,jītái hé jītái de cānshù yíyàng.,Thông số của máy này và máy kia giống nhau.
+263,不同,bùtóng,Khác nhau,,,这两个型号不同。,zhè liǎng gè xínghào bùtóng.,Hai model này khác nhau.
+264,区别,qūbié,Sự phân biệt,,,这两个有什么区别？,zhè liǎng gè yǒu shénme qūbié?,Hai cái này có sự phân biệt/khác biệt gì?
+265,认真,rènzhēn,Chăm chỉ / Nghiêm túc,,,他工作很认真。,tā gōngzuò hěn rènzhēn.,Anh ấy làm việc rất chăm chỉ/nghiêm túc.
+266,个,gè,Cái / Chiếc / Người,,,一个苹果。,yí gè píngguǒ.,Một quả táo.
+267,台,tái,Cỗ / Chiếc (máy móc),,,两台机器。,liǎng tái jīqì.,Hai cái máy.
+268,把,bǎ,"Chiếc, cái (có tay cầm)",,,一把刀子。,yì bǎ dāozi.,Một con dao.
+269,件,jiàn,"Kiện / Chiếc (áo, việc)",,,一件事情。,yí jiàn shìqing.,Một việc.
+270,遍,biàn,Lượt,,,请你再说一遍。,qǐng nǐ zài shuō yí biàn.,Xin bạn nói lại 1 lượt.
+271,越南盾,yuènándùn,Việt Nam Đồng,,,这个一万越南盾。,zhè ge yí wàn yuènándùn.,Cái này 10 nghìn Việt Nam đồng.
+272,人民币,rénmínbì,Nhân dân tệ,,,这个一百人民币。,zhège yībǎi rénmínbì.,Cái này 100 Nhân dân tệ.
+273,美元,měiyuán,Đô la Mỹ,,,这个十美元。,zhège shí měiyuán.,Cái này 10 Đô la Mỹ.
+274,自己,zìjǐ,Tự mình / Bản thân,,,我自己做。,wǒ zìjǐ zuò.,Tôi tự làm.
+275,还是,háishi,Hay là (câu hỏi lựa chọn),,,你读书还是工作？,nǐ dúshū háishì gōngzuò?,Bạn đi học hay đi làm?
+276,但是,dànshì,Nhưng / Nhưng mà,,,我听到但是我听不懂。,wǒ tīng dào dànshì wǒ tīng bù dǒng.,Tôi nghe thấy nhưng nghe không hiểu.
+277,所以,suǒyǐ,Cho nên / Vì vậy,,,料不够所以暂停生产。,liào bú gòu suǒyǐ zàntíng shēngchǎn.,Liệu không đủ nên phải tạm dừng sản xuất.
+278,东西,dōngxi,Đồ vật / Thứ,,,那个东西是谁的？,nà ge dōngxi shì shuí de?,Cái đồ vật kia của ai?
+279,因为,yīnwéi,Bởi vì,,,因为零件坏了所以要换新的。,yīn wéi líng jiàn huài le suǒ yǐ yào huàn xīn de.,Vì linh kiện hỏng nên phải thay cái mới.
+280,所以,suǒyǐ,"Cho nên, nên",,,因为按钮坏了所以机器不能启动。,yīn wéi àn niǔ huài le suǒ yǐ jī qì bù néng qǐ dòng.,Vì nút bấm hỏng nên máy không thể khởi động.
+281,稳定,wěndìng,Ổn định,,,因为机器参数不稳定所以我重新调整设置。,yīn wéi jī qì cān shù bù wěn dìng suǒ yǐ wǒ chóng xīn tiáo zhěng shè zhì.,Vì thông số máy không ổn định nên tôi đã điều chỉnh lại cài đặt.
+282,重新,chóngxīn,"Lần nữa, lại lần nữa",,,因为上次的问题还没解决所以今天重新讨论一次。,yīn wéi shàng cì de wèn tí hái méi jiě jué suǒ yǐ jīn tiān chóng xīn tǎo lùn yí cì.,Vì vấn đề lần trước chưa được giải quyết nên hôm nay thảo luận lại 1 lần nữa.
+283,设置,shèzhì,Cài đặt,,,因为机器参数不稳定所以我重新调整设置。,yīn wéi jī qì cān shù bù wěn dìng suǒ yǐ wǒ chóng xīn tiáo zhěng shè zhì.,Vì thông số máy không ổn định nên tôi đã điều chỉnh lại cài đặt.
+284,解决,jiějué,Giải quyết,,,因为上次的问题还没解决所以今天重新讨论一次。,yīn wéi shàng cì de wèn tí hái méi jiě jué suǒ yǐ jīn tiān chóng xīn tǎo lùn yí cì.,Vì vấn đề lần trước chưa được giải quyết nên hôm nay thảo luận lại 1 lần nữa.
+285,上次,shàngcì,Lần trước,,,因为上次的问题还没解决所以今天重新讨论一次。,yīn wéi shàng cì de wèn tí hái méi jiě jué suǒ yǐ jīn tiān chóng xīn tǎo lùn yí cì.,Vì vấn đề lần trước chưa được giải quyết nên hôm nay thảo luận lại 1 lần nữa.
+286,下次,xiàcì,Lần sau,,,对不起，下次我不会这样。,"duì bu qǐ, xià cì wǒ bú huì zhè yàng.",Xin lỗi lần sau tôi không thế nữa.
+287,把,bǎ,Trợ từ (câu chữ 把),,,我把书放在桌子上。,wǒ bǎ shū fàng zài zhuō zi shàng.,Tôi đặt sách lên bàn.
+288,点胶,diǎnjiāo,Điểm keo,,,因为要固定零件所以要先点胶。,yīn wéi yào gù dìng líng jiàn suǒ yǐ yào xiān diǎn jiāo.,Vì cần cố định linh kiện nên cần điểm keo trước.
+289,点胶机,diǎnjiāojī,Máy điểm keo,FALSE,点胶机,这台点胶机正在运行。,zhè tái diǎnjiāojī zhèngzài yùnxíng.,Máy điểm keo này đang vận hành.
+290,下载,xiàzǎi,Tải xuống,FALSE,下载,请下载这个文件。,qǐng xiàzǎi zhè ge wénjiàn.,Hãy tải tài liệu này xuống.
+291,插,chā,Cắm,,,他把插头插在插座。,tā bǎ chā tóu chā zài chā zuò.,Anh cắm phích cắm vào ổ điện đi.
+292,抽,chōu,Rút,FALSE,抽,请把插头抽出来。,qǐng bǎ chātóu chōu chūlái.,Hãy rút phích cắm ra.
+293,椅子,yǐzi,Ghế,,,你把剪刀放在椅子上。,nǐ bǎ jiǎn dāo fàng zài yǐ zi shang.,Bạn mang cái kéo để lên ghế đi.
+294,剪刀,jiǎndāo,Kéo,,,你把剪刀放在椅子上。,nǐ bǎ jiǎn dāo fàng zài yǐ zi shang.,Bạn mang cái kéo để lên ghế đi.
+295,买,mǎi,Mua,FALSE,买,我想买一台新机器。,wǒ xiǎng mǎi yì tái xīn jīqì.,Tôi muốn mua một cái máy mới.
+296,卖,mài,Bán,,,我把这个手机卖给你了。,wǒ bǎ zhè ge shǒu jī mài gěi nǐ le.,Tôi bán cái điện thoại này cho bạn rồi.
+297,买卖,mǎimài,Buôn bán,FALSE,买卖,我们公司做电子买卖。,wǒmen gōngsī zuò diànzǐ mǎimài.,Công ty chúng tôi buôn bán đồ điện tử.
+298,部门,bùmén,Bộ phận,,,我们把原料交给生产部门了。,wǒ men bǎ yuán liào jiāo gěi shēng chǎn bù mén le.,Chúng tôi đã bàn giao nguyên liệu cho bộ phận sản xuất.
+299,生产,shēngchǎn,Sản xuất,,,我们把原料交给生产部门了。,wǒ men bǎ yuán liào jiāo gěi shēng chǎn bù mén le.,Chúng tôi đã bàn giao nguyên liệu cho bộ phận sản xuất.
+300,报价,bàojià,Báo giá,FALSE,报价,请给客户发报价。,qǐng gěi kèhù fā bàojià.,Hãy gửi báo giá cho khách hàng.
+301,询价,xúnjià,Hỏi giá,FALSE,询价,客户发来询价了。,kèhù fā lái xúnjià le.,Khách hàng gửi hỏi giá đến rồi.
+302,返回,fǎnhuí,Phản hồi,FALSE,返回,请及时返回异常情况。,qǐng jíshí fǎnhuí yìcháng qíngkuàng.,Hãy phản hồi tình huống bất thường kịp thời.
+303,群,qún,Nhóm,FALSE,群,把情况报告发到群。,bǎ qíngkuàng bàogào fā dào qún.,Hãy gửi báo cáo tình hình vào nhóm.
+304,微信群,wēixìn qún,Nhóm wechat,FALSE,微信群,老板在微信群里通知了。,lǎobǎn zài wēixìn qún lǐ tōngzhī le.,Sếp đã thông báo trong nhóm wechat rồi.
+305,翻译,fānyì,Phiên dịch,,,帮我把这句话翻译成中文。,bāng wǒ bǎ zhè ge jù huà fān yì chéng zhōng wén.,Giúp tôi dịch câu này sang tiếng trung.
+306,英文/英语,yīngwén / yīngyǔ,Tiếng Anh,FALSE,英文/英语,报告用中文写还是英文写？,bàogào yòng zhōngwén xiě háishì yīngwén xiě?,Báo cáo viết bằng tiếng Trung hay tiếng Anh?
+307,越南语,yuènányǔ,Tiếng Việt,FALSE,越南语,帮我把它翻译成越南语。,bāng wǒ bǎ tā fānyì chéng yuènányǔ.,Giúp tôi dịch nó sang tiếng Việt.
+308,链接,liànjiē,Kết nối,,,这个手机链接电脑了吗？,zhè ge shǒujī liànjiē diànnǎo le ma?,Cái điện thoại kết nối với cái máy tính chưa?
+309,电源,diànyuán,Nguồn điện,,,你插电源了吗？,nǐ chā diànyuán le ma?,Bạn đã cắm nguồn điện chưa?
+310,按,àn,Ấn,,,这个零件用手拧还是用手按？,zhè ge língjiàn yòng shǒu nǐng háishì yòng shǒu àn?,Linh kiện này dùng tay vặn hay dùng tay ấn?
+311,按钮,ànniǔ,Nút bấm,,,机器的按钮坏了。,jīqì de ànniǔ huài le.,Nút bấm của máy hỏng rồi.
+312,还是,háishì,Hay là (lựa chọn),,,这个问题是硬件问题还是软件问题？,zhè ge wèntí shì yìngjiàn wèntí háishì ruǎnjiàn wèntí?,Vấn đề này là lỗi phần cứng hay phần mềm?
+313,故障,gùzhàng,"Lỗi, trục trặc, sự cố",,,机器发生什么故障了？,jīqì fāshēng shénme gùzhàng le?,Máy gặp vấn đề (sự cố) gì?
+314,手工,shǒugōng,"Bằng tay, thủ công",,,你用手工模式还是自动模式？,nǐ yòng shǒugōng móshì háishì zìdòng móshì?,Bạn dùng chế độ tay hay chế độ tự động?
+315,自动,zìdòng,"Tự động, auto",,,你用手工模式还是自动模式？,nǐ yòng shǒugōng móshì háishì zìdòng móshì?,Bạn dùng chế độ tay hay chế độ tự động?
+316,模式,móshì,Chế độ,,,你用手工模式还是自动模式？,nǐ yòng shǒugōng móshì háishì zìdòng móshì?,Bạn dùng chế độ tay hay chế độ tự động?
+317,不良品,bùliángpǐn,Hàng lỗi / Hàng NG,,,不良品放这边还是放那边？,bùliángpǐn fàng zhèbiān háishì fàng nàbiān?,Hàng lỗi để ở đây hay để bên kia?
+318,写,xiě,Viết,,,报告用中文写还是英文写？,bàogào yòng zhōngwén xiě háishì yīngwén xiě?,Báo cáo viết bằng tiếng trung hay tiếng anh?
+319,读,dú,Đọc,FALSE,读,我看不懂，请读给我听。,"wǒ kàn bù dǒng, qǐng dú gěi wǒ tīng.","Tôi xem không hiểu, hãy đọc cho tôi nghe."
+320,谁,shuí,Ai,,,谁在修这个机器？,shuí zài xiū zhè ge jīqì?,Ai đang sửa máy này?
+321,发现,fāxiàn,Phát hiện,,,谁发现这个问题？,shuí fāxiàn zhè ge wèntí?,Ai phát hiện ra vấn đề này?
+322,保养,bǎoyǎng,Bảo dưỡng,,,设备什么时候保养？,shèbèi shénme shíhòu bǎoyǎng?,Khi nào thiết bị được bảo dưỡng?
+323,负责人,fùzérén,Người phụ trách,,,谁是这个项目的负责人？,shuí shì zhè ge xiàngmù de fùzérén?,Ai là người phụ trách dự án này?
+324,项目,xiàngmù,Dự án,,,这个项目什么时候开始？,zhè ge xiàngmù shénme shíhòu kāishǐ?,Dự án này khi nào bắt đầu?
+325,管理,guǎnlǐ,Quản lý,FALSE,管理,管理会安排工作。,guǎnlǐ huì ānpái gōngzuò.,Quản lý biết sắp xếp công việc.
+326,参加,cānjiā,Tham gia,,,谁参加今天的会议？,shuí cānjiā jīntiān de huìyì?,Ai tham gia cuộc họp hôm nay?
+327,会议,huìyì,Cuộc họp,,,谁参加今天的会议？,shuí cānjiā jīntiān de huìyì?,Ai tham gia cuộc họp hôm nay?
+328,保护膜,bǎohùmó,Màng bảo vệ,,,谁撕保护膜？,shuí sī bǎohùmó?,Ai bóc màng bảo vệ?
+329,保护,bǎohù,Bảo vệ,,,谁撕保护膜？,shuí sī bǎohùmó?,Ai bóc màng bảo vệ?
+330,撕,sī,"Bóc, xé",,,谁撕保护膜？,shuí sī bǎohùmó?,Ai bóc màng bảo vệ?
+331,封闭,fēngbì,Niêm phong,FALSE,封闭,这个箱子已经封闭了。,zhè ge xiāngzi yǐjīng fēngbì le.,Cái thùng này đã được niêm phong rồi.
+332,会议室,huìyì shì,Phòng họp,FALSE,会议室,经理在会议室里开会。,jīnglǐ zài huìyì shì lǐ kāihuì.,Giám đốc đang họp ở phòng họp.
+333,工具室,gōngjù shì,Phòng công cụ,FALSE,工具室,他去工具室拿扳手。,tā qù gōngjù shì ná bānshǒu.,Anh ấy đi phòng công cụ lấy cờ lê.
+334,状态,zhuàngtài,Trạng thái,,,机器现在是什么状态？,jīqì xiànzài shì shénme zhuàngtài?,Máy bây giờ ở trạng thái gì?
+335,讨论,tǎolùn,Thảo luận,,,今天开会讨论什么？,jīntiān kāihuì tǎolùn shénme?,Hôm nay họp thảo luận gì?
+336,文件,wénjiàn,Tài liệu,,,你在看什么文件？,nǐ zài kàn shénme wénjiàn?,Bạn đang xem tài liệu gì?
+337,要求,yāoqiú,Yêu cầu,,,客户有什么要求？,kèhù yǒu shénme yāoqiú?,Khách hàng có yêu cầu gì?
+338,什么时候,shénme shíhòu,Khi nào,,,你什么时候修这个机器？,nǐ shénme shíhòu xiū zhè ge jīqì?,Khi nào bạn sửa cái máy này?
+339,开始,kāishǐ,Bắt đầu,,,什么时候开始开会？,shénme shíhòu kāishǐ kāihuì?,Khi nào chúng ta bắt đầu họp?
+340,交,jiāo,Nộp / Giao,,,你什么时候交报告？,nǐ shénme shíhòu jiāo bàogào?,Khi nào bạn nộp báo cáo?
+341,收到,shōudào,Nhận được,,,什么时候收到客户的返回？,shénme shíhòu shōudào kèhù de fǎnhuí?,Khi nào nhận được phản hồi của khách hàng?
+342,准备,zhǔnbèi,Chuẩn bị,,,什么时候技术报告准备好？,shénme shíhòu jìshù bàogào zhǔnbèi hǎo?,Khi nào báo cáo kỹ thuật chuẩn bị xong?
+343,技术,jìshù,Kỹ thuật,,,什么时候技术报告准备好？,shénme shíhòu jìshù bàogào zhǔnbèi hǎo?,Khi nào báo cáo kỹ thuật chuẩn bị xong?
+344,故障点,gùzhàng diǎn,Điểm lỗi,,,机器的故障点在哪里？,jīqì de gùzhàng diǎn zài nǎli?,Điểm lỗi của máy ở đâu?
+345,怎么,zěnme,Thế nào / Ra sao,,,你怎么运行这个机器？,nǐ zěnme yùnxíng zhè ge jīqì?,Bạn vận hành máy này như thế nào?
+346,报警,bàojǐng,"Báo lỗi, báo động",,,机器报警了，我们怎么处理？,"jīqì bàojǐng le, wǒmen zěnme chǔlǐ?","Máy báo lỗi rồi, chúng ta xử lí thế nào?"
+347,处理,chǔlǐ,Xử lý,,,机器报警了，我们怎么处理？,"jīqì bàojǐng le, wǒmen zěnme chǔlǐ?","Máy báo lỗi rồi, chúng ta xử lí thế nào?"
+348,解释,jiěshì,Giải thích,,,这个问题怎么跟客户解释？,zhè ge wèntí zěnme gēn kèhù jiěshì?,Giải thích vấn đề này với khách hàng thế nào?
+349,系统,xìtǒng,Hệ thống,,,这个系统怎么用？,zhè ge xìtǒng zěnme yòng?,Hệ thống này dùng thế nào?
+350,启动,qǐdòng,Khởi động,,,机器不能启动。,jīqì bù néng qǐdòng.,Máy không thể khởi động.
+351,插座,chāzuò,Ổ cắm điện,,,他把插头插在插座。,tā bǎ chātóu chā zài chāzuò.,Anh cắm phích cắm vào ổ điện đi.
+352,交给,jiāogěi,"Bàn giao, giao cho",,,我们把原料交给生产部门了。,wǒmen bǎ yuánliào jiāo gěi shēngchǎn bùmén le.,Chúng tôi đã bàn giao nguyên liệu cho bộ phận sản xuất.
+353,板子,bǎnzi,"Tấm ván, tấm nhôm",,,他把板子切成两块。,tā bǎ bǎnzi qiē chéng liǎng kuài.,Anh ấy cắt tấm nhôm thành hai miếng.
+354,切,qiē,Cắt,,,他把板子切成两块。,tā bǎ bǎnzi qiē chéng liǎng kuài.,Anh ấy cắt tấm nhôm thành hai miếng.
+355,块,kuài,"Cục, khối, miếng",,,他把板子切成两块。,tā bǎ bǎnzi qiē chéng liǎng kuài.,Anh ấy cắt tấm nhôm thành hai miếng.
+356,打开,dǎkāi,Mở ra,,,请把机器打开。,qǐng bǎ jīqì dǎkāi.,Hãy bật máy lên.
+357,中文,zhōngwén,Tiếng Trung,,,帮我翻译成中文。,bāng wǒ fānyì chéng zhōngwén.,Giúp tôi dịch sang tiếng Trung.
+358,产量,chǎnliàng,Sản lượng,,,今天的产量比昨天的高。,jīntiān de chǎnliàng bǐ zuótiān de gāo.,Sản lượng hôm nay cao hơn hôm qua.
+359,量产,liàngchǎn,Sản xuất hàng loạt (MP),,,准备量产。,zhǔnbèi liàngchǎn.,Chuẩn bị sản xuất hàng loạt.
+360,速度,sùdù,Tốc độ,,,机器的速度没有那个稳定。,jīqì de sùdù méi yǒu nà gè wěndìng.,Tốc độ của máy không ổn định bằng máy kia.
+361,质量,zhìliàng,Chất lượng,,,只有质量好产品才可以通过。,zhǐyǒu zhìliàng hǎo chǎnpǐn cái kěyǐ tōngguò.,Chỉ có chất lượng tốt thì sản phẩm mới được thông qua.
+362,提高,tígāo,"Nâng cao, tăng",,,产量就可能提高。,chǎnliàng jiù kě néng tígāo.,Sản lượng có thể tăng.
+363,下降,xiàjiàng,Giảm xuống,,,速度下降。,sùdù xiàjiàng.,Tốc độ giảm xuống.
+364,方案,fāngàn,Phương án,,,客户不同意这个方案。,kèhù bù tóngyì zhè ge fāngàn.,Khách hàng không đồng ý phương án này.
+365,专案,zhuānàn,Chuyên án,,,这个专案什么时候开始？,zhè ge zhuānàn shénme shíhòu kāishǐ?,Chuyên án này khi nào bắt đầu?
+366,语法,yǔfǎ,Ngữ pháp,,,汉语语法。,hànyǔ yǔfǎ.,Ngữ pháp tiếng Hán.
+367,改变,gǎibiàn,Thay đổi,,,如果客户要求改变。,rúguǒ kèhù yāoqiú gǎibiàn.,Nếu khách hàng yêu cầu thay đổi.
+368,步骤,bùzhòu,"Bước, trình tự",,,生产有很多步骤。,shēngchǎn yǒu hěn duō bùzhòu.,Sản xuất có nhiều bước.
+369,首先,shǒuxiān,Đầu tiên,,,首先我们要检查。,shǒuxiān wǒmen yào jiǎnchá.,Đầu tiên chúng ta phải kiểm tra.
+370,最后,zuìhòu,Cuối cùng,,,最后是包装。,zuìhòu shì bāozhuāng.,Cuối cùng là đóng gói.
+371,秒表,miǎobiǎo,Đồng hồ bấm giây,,,拿秒表量工时。,ná miǎobiǎo liàng gōngshí.,Lấy đồng hồ bấm giây đo giờ làm.
+372,大概,dàgài,Khoảng chừng,,,大概七点多。,dàgài qī diǎn duō.,Khoảng 7 giờ hơn.
+373,盒子,hézi,Cái hộp,,,盒子上边有标签。,hézi shàngbiān yǒu biāoqiān.,Trên hộp có nhãn.
+374,行李箱,xínglǐxiāng,Vali,,,行李箱里面有衣服。,xínglǐxiāng lǐmiàn yǒu yīfu.,Trong vali có quần áo.
+375,妻子,qīzi,Vợ,,,这是我妻子。,zhè shì wǒ qīzi.,Đây là vợ tôi.
+376,女孩,nǚhái,"Bé gái, con gái",,,这是我女孩。,zhè shì wǒ nǚhái.,Đây là con gái tôi.
+377,主要,zhǔyào,Chủ yếu,,,我主要负责写SOP。,wǒ zhǔyào fùzé xiě SOP.,Tôi chủ yếu phụ trách viết SOP.
+378,名字,míngzì,Tên gọi,,,这个名字很好。,zhè ge míngzì hěn hǎo.,Cái tên này rất hay.
+379,感谢,gǎnxiè,Cảm ơn / Đa tạ,,,非常感谢。,fēicháng gǎnxiè.,Hết sức cảm ơn.
+380,开心,kāixīn,Vui vẻ,,,我也很开心。,wǒ yě hěn kāixīn.,Tôi cũng rất vui.
+381,事情,shìqing,Sự việc,,,这是一件事情。,zhè shì yí jiàn shìqing.,Đây là một sự việc.
+382,应该,yīnggāi,Nên,,,这是我应该做的事。,zhè shì wǒ yīnggāi zuò de shì.,Đây là việc tôi nên làm.
+383,责任,zérèn,Trách nhiệm,,,这不是我的责任。,zhè bú shì wǒ de zérèn.,Đây không phải là trách nhiệm của tôi.
+384,改善,gǎishàn,Cải thiện,,,我会改善。,wǒ huì gǎishàn.,Tôi sẽ cải thiện.
+385,懂,dǒng,Hiểu,,,老板说你听懂吗？,lǎobǎn shuō nǐ tīng dǒng ma?,Sếp nói bạn nghe hiểu không?
+386,按照,ànzhào,"Chiếu theo, dựa theo",,,按照SOP操作。,ànzhào SOP cāozuò.,Thao tác theo SOP.
+387,厉害,lìhai,"Lợi hại, giỏi",,,我没有他厉害。,wǒ méi yǒu tā lìhai.,Tôi không giỏi bằng anh ấy.
+388,数据,shùjù,Dữ liệu,,,这个数据没有昨天的准确。,zhè ge shùjù méi yǒu zuótiān de zhǔnquè.,Dữ liệu này không chính xác bằng hôm qua.
+389,动物,dòngwù,Động vật,,,这是什么动物？,zhè shì shénme dòngwù?,Đây là động vật gì?
+390,物理,wùlǐ,Vật lý,,,物理问题。,wùlǐ wèntí.,Vấn đề vật lý.
+391,意见,yìjiàn,Ý kiến,,,我的意见跟你的一样。,wǒ de yìjiàn gēn nǐ de yíyàng.,Ý kiến của tôi cũng giống bạn.
+392,凉快,liángkuài,Mát mẻ,,,今天很凉快。,jīntiān hěn liángkuài.,Hôm nay rất mát mẻ.
+393,颜色,yánsè,Màu sắc,,,颜色一样吗？,yánsè yíyàng ma?,Màu sắc có giống nhau không?
+394,红色,hóngsè,Màu đỏ,,,那些衣服是红色的。,nàxiē yīfu shì hóngsè de.,Những bộ quần áo kia màu đỏ.
+395,黑色,hēisè,Màu đen,,,黑色手机。,hēisè shǒujī.,Điện thoại màu đen.
+396,蓝色,lánsè,Màu xanh dương,,,蓝色的笔。,lánsè de bǐ.,Cái bút màu xanh dương.
+397,白色,báisè,Màu trắng,,,白色的纸。,báisè de zhǐ.,Giấy màu trắng.
+398,绿色,lǜsè,Màu xanh lá,,,绿色标签。,lǜsè biāoqiān.,Nhãn màu xanh lá.
+399,黄色,huángsè,Màu vàng,,,黄色衣服。,huángsè yīfu.,Quần áo màu vàng.
+400,过去,guòqù,Quá khứ,,,过去的事。,guòqù de shì.,Chuyện quá khứ.
+401,将来,jiānglái,Tương lai,,,将来我会去中国。,jiānglái wǒ huì qù zhōngguó.,Tương lai tôi sẽ đi Trung Quốc.
+402,重量,zhòngliàng,Trọng lượng,,,重量不一样。,zhòngliàng bù yíyàng.,Trọng lượng không giống nhau.
+403,功率,gōnglǜ,Công suất,,,这个机器的功率很大。,zhè ge jīqì de gōnglǜ hěn dà.,Công suất của máy này rất lớn.
+404,饿,è,Đói,,,我又累又饿。,wǒ yòu lèi yòu è.,Tôi vừa mệt vừa đói.
+405,累,lèi,Mệt,,,我又累又饿。,wǒ yòu lèi yòu è.,Tôi vừa mệt vừa đói.
+406,复杂,fùzá,Phức tạp,,,操作流程很复杂。,cāozuò liúchéng hěn fùzá.,Quy trình thao tác rất phức tạp.
+407,安全,ānquán,An toàn,,,这个操作很安全。,zhè ge cāozuò hěn ānquán.,Thao tác này rất an toàn.
+408,危险,wēixiǎn,Nguy hiểm,,,这个机器很危险。,zhè ge jīqì hěn wēixiǎn.,Cái máy này rất nguy hiểm.
+409,模仿,mófǎng,Mô phỏng,,,我们来模仿操作。,wǒmen lái mófǎng cāozuò.,Chúng ta hãy mô phỏng thao tác.
+410,呼吸,hūxī,"Hô hấp, hít thở",,,呼吸困难。,hūxī kùnnán.,Hô hấp khó khăn.
+411,吸引,xīyǐn,Thu hút,,,吸引力很大。,xīyǐnlì hěn dà.,Lực thu hút rất lớn.
+412,通过,tōngguò,Thông qua,,,质量好才可以通过。,zhìliàng hǎo cái kěyǐ tōngguò.,Chất lượng tốt mới có thể thông qua.
+413,批准,pīzhǔn,Phê chuẩn,,,经理还没批准。,jīnglǐ hái méi pīzhǔn.,Giám đốc vẫn chưa phê chuẩn.
+414,年休假,niánxiūjià,Phép năm,,,我想请年休假。,wǒ xiǎng qǐng niánxiūjià.,Tôi muốn xin nghỉ phép năm.
+415,错误,cuòwù,Lỗi sai,,,找到错误了。,zhǎodào cuòwù le.,Tìm thấy lỗi sai rồi.
+416,程序,chéngxù,Chương trình,,,程序才能运行。,chéngxù cái néng yùnxíng.,Chương trình mới có thể vận hành.
+417,程序员,chéngxùyuán,Lập trình viên,,,他是程序员。,tā shì chéngxùyuán.,Anh ấy là lập trình viên.
+418,决定,juédìng,Quyết định,,,我们才可以决定这个问题。,wǒmen cái kěyǐ juédìng zhè ge wèntí.,Chúng ta mới có thể quyết định vấn đề này.
+419,吹牛,chuīniú,"Chém gió, bốc phét",,,他在吹牛。,tā zài chuīniú.,Anh ấy đang chém gió.
+420,关心,guānxīn,Quan tâm,,,我都不关心。,wǒ dōu bù guānxīn.,Tôi đều không quan tâm.
+421,关注,guānzhù,Theo dõi,,,请关注这个问题。,qǐng guānzhù zhè ge wèntí.,Xin hãy theo dõi vấn đề này.
+422,观察,guānchá,Quan sát,,,仔细观察。,zǐxì guānchá.,Quan sát tỉ mỉ.
+423,开关,kāiguān,Công tắc,,,把开关打开。,bǎ kāiguān dǎkāi.,Mở công tắc lên.
+424,及时,jíshí,Kịp thời,,,都要及时报告。,dōu yào jíshí bàogào.,Đều phải báo cáo kịp thời.
+425,迟到,chídào,Đi muộn,,,不要迟到。,bú yào chídào.,Đừng đi muộn.
+426,交流,jiāoliú,Giao lưu,,,跟大家交流。,gēn dàjiā jiāoliú.,Giao lưu với mọi người.
+427,轮流,lúnliú,Lần lượt,,,轮流操作。,lúnliú cāozuò.,Lần lượt thao tác.
+428,遵守,zūnshǒu,Tuân thủ,,,都要遵守规定。,dōu yào zūnshǒu guīdìng.,Đều phải tuân thủ quy định.
+429,规定,guīdìng,Quy định,,,都要遵守规定。,dōu yào zūnshǒu guīdìng.,Đều phải tuân thủ quy định.
+430,规划,guīhuà,Quy hoạch,,,工厂规划。,gōngchǎng guīhuà.,Quy hoạch nhà máy.
+431,计划,jìhuà,Kế hoạch,,,生产计划。,shēngchǎn jìhuà.,Kế hoạch sản xuất.
+432,变色,biànsè,Biến màu,,,产品会变色。,chǎnpǐn huì biànsè.,Sản phẩm sẽ bị biến màu.
+433,要不,yàobù,Nếu không thì,,,要不产品会变色。,yào bù chǎnpǐn huì biànsè.,Nếu không sản phẩm sẽ biến màu.
+434,条,tiáo,Con (lượng từ),,,两条狗。,liǎng tiáo gǒu.,Hai con chó.
+435,本,běn,"Cuốn, quyển",,,一本书。,yì běn shū.,Một cuốn sách.
+436,词典,cídiǎn,Từ điển,,,一本词典。,yì běn cídiǎn.,Một cuốn từ điển.
+437,毛衣,máoyī,Áo len,,,两件毛衣。,liǎng jiàn máoyī.,Hai cái áo len.
+438,减,jiǎn,Trừ,,,加减。,jiā jiǎn.,Cộng trừ.
+439,乘,chéng,Nhân,,,乘除。,chéng chú.,Nhân chia.
+440,除以,chúyǐ,Chia cho,,,除以二。,chú yǐ èr.,Chia cho hai.
+441,等于,děngyú,Bằng (Toán),,,等于几？,děngyú jǐ?,Bằng mấy?
+442,台币,táibì,Đài tệ,,,一百台币。,yì bǎi táibì.,100 Đài tệ.
+443,抹布,mābù,Khăn lau,,,拿一块抹布。,ná yí kuài mā bù.,Lấy một cái khăn lau.
+444,截图,jiétú,Chụp màn hình,,,遇到异常请截图。,yù dào yìcháng qǐng jiétú.,Gặp bất thường xin chụp màn hình.
+445,爱,ài,Yêu,,,我爱上你了。,wǒ ài shàng nǐ le.,Tôi yêu em mất rồi.
+446,考,kǎo,"Thi, đỗ",,,考上大学。,kǎo shàng dàxué.,Đỗ đại học.
+447,大学,dàxué,Đại học,,,考上大学。,kǎo shàng dàxué.,Đỗ đại học.
+448,照相机,zhàoxiàngjī,Máy ảnh,,,带上照相机。,dài shàng zhàoxiàngjī.,Mang theo máy ảnh.
+449,猫,māo,Con mèo,,,她的猫。,tā de māo.,Con mèo của cô ấy.
+450,眼睛,yǎnjing,Mắt,,,大眼睛。,dà yǎnjing.,Mắt to.
+451,容易,róngyì,Dễ,,,这个操作很不准，很容易发生问题。,"zhè ge cāozuò bù zhǔn, hěn róngyì fāshēng wèntí.","Thao tác này không chuẩn, rất dễ phát sinh vấn đề."
+452,生气,shēngqì,Tức giận / Nổi nóng,,,他很容易生气。,tā hěn róngyì shēngqì.,Anh ấy rất dễ nổi nóng.
+453,经验,jīngyàn,Kinh nghiệm,,,如果没有经验这个工作就很难。,rúguǒ méiyǒu jīngyàn zhè ge gōngzuò jiù hěn nán.,Nếu không có kinh nghiệm thì công việc này sẽ rất khó.
+454,觉得,juéde,Cảm thấy / Thấy,,,他觉得这个工作太难了。,tā juéde zhè ge gōngzuò tài nán le.,Anh ấy thấy công việc này quá khó.
+455,继续,jìxù,Tiếp tục,,,如果机器继续停今天的产量就会很低。,rúguǒ jīqì jìxù tíng jīntiān de chǎnliàng jiù huì hěn dī.,Nếu máy tiếp tục dừng thì sản lượng hôm nay sẽ rất thấp.
+456,确认,quèrèn,Xác nhận,,,我们一起确认一下。,wǒmen yìqǐ quèrèn yíxià.,Chúng ta cùng xác nhận một chút.
+457,比如,bǐrú,Ví dụ (như),,,生产有很多步骤，比如组装，测试。,"shēngchǎn yǒu hěn duō bùzhòu, bǐrú zǔzhuāng, cèshì.","Sản xuất có nhiều bước ví dụ lắp ráp, test."
+458,经常,jīngcháng,Thường xuyên,,,我经常学中文。,wǒ jīngcháng xué zhōngwén.,Tôi thường xuyên học tiếng Trung.
+459,偶尔,ǒu'ěr,Thỉnh thoảng,,,我偶尔加班。,wǒ ǒu'ěr jiābān.,Tôi thỉnh thoảng tăng ca.
+460,一直,yìzhí,Luôn luôn / Suốt,,,机器一直在运行。,jīqì yìzhí zài yùnxíng.,Máy chạy liên tục.
+461,抽烟,chōuyān,Hút thuốc,,,老板不让我抽烟。,lǎobǎn bú ràng wǒ chōuyān.,Sếp không cho tôi hút thuốc.
+462,忙,máng,Bận / Bận rộn,,,工程师在忙修机。,gōngchéngshī zài máng xiū jī.,Kỹ sư đang bận sửa máy.
+463,紧张,jǐnzhāng,Căng thẳng,,,面试的时候不太紧张。,miànshì de shíhòu bú tài jǐnzhāng.,Khi phỏng vấn đừng quá căng thẳng.
+464,着急,zháojí,Sốt ruột / Lo lắng,,,机器坏掉了，我很着急。,"jīqì huài diào le, wǒ hěn zháojí.","Máy hỏng rồi, tôi rất sốt ruột."
+465,空调,kōngtiáo,Điều hòa,,,可以开风扇或者空调。,kěyǐ kāi fēngshàn huòzhě kōngtiáo.,Có thể bật quạt hoặc điều hòa.
+466,调试,tiáoshì,Vận hành thử,,,机器需要调试。,jīqì xūyào tiáoshì.,Máy móc cần điều chỉnh/chạy thử.
+467,考虑,kǎolǜ,Cân nhắc / Suy nghĩ,,,让我安静考虑一下。,ràng wǒ ānjìng kǎolǜ yíxià.,Để tôi yên tĩnh suy nghĩ một lát.
+468,细节,xìjié,Chi tiết,,,多注意产品的细节。,duō zhùyì chǎnpǐn de xìjié.,Chú ý nhiều hơn đến chi tiết sản phẩm.
+469,手套,shǒutào,Găng tay,,,他让我给他拿一个手套。,tā ràng wǒ gěi tā ná yí gè shǒutào.,Anh ấy bảo tôi mang cho anh ấy 1 đôi găng tay.
+470,领料,lǐngliào,Lĩnh liệu,,,阿强让我去仓库领料。,ā qiáng ràng wǒ qù cāngkù lǐngliào.,A Cường bảo tôi ra kho lĩnh liệu.
+471,简历,jiǎnlì,Sơ yếu lý lịch (CV),,,这是我的简历。,zhè shì wǒ de jiǎnlì.,Đây là sơ yếu lý lịch của tôi.
+472,面试,miànshì,Phỏng vấn,,,面试的时候不太紧张。,miànshì de shíhòu bú tài jǐnzhāng.,Khi phỏng vấn đừng quá căng thẳng.
+473,技能,jìnéng,Kỹ năng,,,时间管理技能。,shíjiān guǎnlǐ jìnéng.,Kỹ năng quản lý thời gian.
+474,只要,zhǐyào,Chỉ cần,,,只要按按钮机器就会开始运行。,zhǐyào àn ànniǔ jīqì jiù huì kāishǐ yùnxíng.,Chỉ cần bấm nút là máy sẽ bắt đầu chạy.
+475,只有,zhǐyǒu,Chỉ có,,,只有质量好产品才可以通过。,zhǐyǒu zhìliàng hǎo chǎnpǐn cái kěyǐ tōngguò.,Chỉ có chất lượng tốt thì sản phẩm mới được thông qua.
+476,不管,bùguǎn,Bất kể,,,不管是谁去工厂都要穿静电衣。,bùguǎn shì shuí qù gōngchǎng dōu yào chuān jìngdiànyī.,Bất kể là ai vào xưởng đều phải mặc áo tĩnh điện.
+477,换,huàn,Đổi / Thay,,,如果这个零件坏了，就要马上换新的。,"rúguǒ zhège língjiàn huài le, jiù yào mǎshàng huàn xīn de.",Nếu linh kiện hỏng thì phải thay ngay.
+478,转,zhuǎn,Chuyển / Xoay,,,请把文件转给质量部门确认。,qǐng bǎ wénjiàn zhuǎn gěi zhìliàng bùmén quèrèn.,Chuyển tài liệu cho bộ phận chất lượng xác nhận.
+479,进度,jìndù,Tiến độ,,,检查进度。,jiǎnchá jìndù.,Kiểm tra tiến độ.
+480,样品,yàngpǐn,Hàng mẫu,,,请拿样品给工程师看。,qǐng ná yàngpǐn gěi gōngchéngshī kàn.,Hãy lấy mẫu cho kỹ sư xem.
+481,图纸,túzhǐ,Bản vẽ,,,拿图纸。,ná túzhǐ.,Lấy bản vẽ.
+482,报表,bàobiǎo,Bảng báo cáo,,,拿报表。,ná bàobiǎo.,Lấy báo cáo.
+483,模具,mójù,Khuôn mẫu,,,换模具。,huàn mójù.,Thay khuôn mẫu.
+484,钥匙,yàoshi,Chìa khóa,,,拿钥匙。,ná yàoshi.,Lấy chìa khóa.
+485,电压,diànyā,Điện áp,,,测量电压一下。,cèliáng diànyā yíxià.,Đo điện áp một chút.
+486,工段,gōngduàn,Công đoạn,,,这个问题容易发生在这个工段。,zhè ge wèntí róngyì fāshēng zài zhè ge gōngduàn.,Vấn đề này dễ xảy ra ở công đoạn này.
+487,施工,shīgōng,Thi công,,,我们正在施工。,wǒmen zhèngzài shīgōng.,Chúng tôi đang thi công.
+488,自动化,zìdònghuà,Tự động hóa,,,我的专业是自动化。,wǒ de zhuānyè shì zìdònghuà.,Chuyên ngành của tôi là tự động hóa.
+489,这样,zhèyàng,Như thế này,,,下次我不会这样。,xià cì wǒ bú huì zhèyàng.,Lần sau tôi không thế nữa.
+490,消息,xiāoxi,Tin nhắn,,,发消息。,fā xiāoxi.,Gửi tin nhắn.
+491,杯子,bēizi,Cái cốc,,,这个杯子是我的。,zhè ge bēizi shì wǒ de.,Cái cốc này là của tôi.
+492,贵,guì,Đắt,,,这个材料很贵。,zhè ge cáiliào hěn guì.,Vật liệu này rất đắt.
+493,冷,lěng,Lạnh,,,今天很冷。,jīntiān hěn lěng.,Hôm nay rất lạnh.
+494,入库,rùkù,Nhập kho,,,暂停入库。,zàntíng rùkù.,Tạm dừng nhập kho.
+495,出库,chūkù,Xuất kho,,,暂停出库。,zàntíng chūkù.,Tạm dừng xuất kho.
+496,经验,jīngyàn,Kinh nghiệm,,,如果没有经验这个工作就很难。,rúguǒ méiyǒu jīngyàn zhè ge gōngzuò jiù hěn nán.,Nếu không có kinh nghiệm thì công việc này sẽ rất khó.
+497,抽烟,chōuyān,Hút thuốc,,,老板不让我抽烟。,lǎobǎn bú ràng wǒ chōuyān.,Sếp không cho tôi hút thuốc.
+498,忙,máng,Bận,,,工程师在忙修机。,gōngchéngshī zài máng xiū jī.,Kỹ sư đang bận sửa máy.
+499,着急,zháojí,"Lo lắng, sốt ruột",,,机器坏掉了，我很着急。,"jīqì huài diào le, wǒ hěn zháojí.","Máy hỏng rồi, tôi rất sốt ruột."
+500,紧张,jǐnzhāng,"Căng thẳng, hồi hộp",,,面试的时候不太紧张。,miànshì de shíhòu bú tài jǐnzhāng.,Khi phỏng vấn đừng quá căng thẳng.
+501,继续,jìxù,Tiếp tục,,,如果机器继续停今天的产量就会很低。,rúguǒ jīqì jìxù tíng jīntiān de chǎnliàng jiù huì hěn dī.,Nếu máy tiếp tục dừng thì sản lượng hôm nay sẽ rất thấp.
+502,确认,quèrèn,Xác nhận,,,如果重新测试产品，我们可以确认问题。,"rúguǒ chóngxīn cèshì chǎnpǐn, wǒmen kěyǐ quèrèn wèntí.",Nếu test lại sản phẩm thì chúng ta có thể xác nhận vấn đề.
+503,比如,bǐrú,Ví dụ,,,生产有很多步骤，比如组装，测试。,"shēngchǎn yǒu hěn duō bùzhòu, bǐrú zǔzhuāng, cèshì.","Sản xuất có nhiều bước ví dụ lắp ráp, test."
+504,满意,mǎnyì,Hài lòng,,,我的老板让我很满意。,wǒ de lǎobǎn ràng wǒ hěn mǎnyì.,Sếp của tôi làm tôi rất hài lòng.
+505,原因,yuányīn,Nguyên nhân,,,主要的原因就是不良料。,zhǔyào de yuányīn jiù shì bùliáng liào.,Nguyên nhân chủ yếu chính là nguyên liệu NG.
+506,影响,yǐngxiǎng,Ảnh hưởng,,,这个问题不但影响到生产而且影响到进度。,zhè ge wèntí búdàn yǐngxiǎng dào shēngchǎn érqiě yǐngxiǎng dào jìndù.,Vấn đề này không những ảnh hưởng đến sản xuất mà còn ảnh hưởng đến tiến độ.
+507,评价,píngjià,Đánh giá,,,客户叫我评价生产设备。,kèhù jiào wǒ píngjià shēngchǎn shèbèi.,Khách hàng bảo tôi đánh giá thiết bị sản xuất.
+508,自动化,zìdònghuà,Tự động hóa,,,我的专业是自动化。,wǒ de zhuānyè shì zìdònghuà.,Chuyên ngành của tôi là tự động hóa.
+509,工段,gōngduàn,Công đoạn,,,这个问题容易发生在这个工段。,zhè ge wèntí róngyì fāshēng zài zhè ge gōngduàn.,Vấn đề này dễ xảy ra ở công đoạn này.
+510,一直,yìzhí,Luôn luôn / Suốt,,,机器一直在运行。,jīqì yìzhí zài yùnxíng.,Máy chạy liên tục.
+511,模具,mójù,Khuôn mẫu,,,换模具。,huàn mójù.,Thay khuôn.
+512,技能,jìnéng,Kỹ năng,,,时间管理技能。,shíjiān guǎnlǐ jìnéng.,Kỹ năng quản lý thời gian.
+513,空调,kōngtiáo,Điều hòa,,,如果太热的话，可以开风扇或者空调。,"rúguǒ tài rè de huà, kěyǐ kāi fēngshàn huòzhě kōngtiáo.",Nếu nóng thì có thể bật quạt hoặc điều hòa.
+514,容易,róngyì,Dễ,,,这个操作很不准，很容易发生问题。,"zhè ge cāozuò bù zhǔn, hěn róngyì fāshēng wèntí.","Thao tác này không chuẩn, rất dễ phát sinh vấn đề."
+515,生气,shēngqì,Tức giận / Nổi nóng,,,他很容易生气。,tā hěn róngyì shēngqì.,Anh ấy rất dễ nổi nóng.
+516,专业,zhuānyè,Chuyên ngành,,,我的专业是电子。,wǒ de zhuānyè shì diànzǐ.,Chuyên ngành của tôi là điện tử.
+517,服务,fúwù,Phục vụ / Dịch vụ,,,你对我们的服务满意吗？,nǐ duì wǒmen de fúwù mǎnyì ma?,Bạn có hài lòng với dịch vụ của chúng tôi không?
+518,细节,xìjié,Chi tiết,,,老板让大家多注意产品的细节。,lǎobǎn ràng dàjiā duō zhùyì chǎnpǐn de xìjié.,Sếp bảo mọi người chú ý nhiều hơn đến chi tiết sản phẩm.
+519,手套,shǒutào,Găng tay,,,他让我给他拿一个手套。,tā ràng wǒ gěi tā ná yí gè shǒutào.,Anh ấy bảo tôi mang cho anh ấy một đôi găng tay.
+520,电压,diànyā,Điện áp,,,他让我测量电压一下。,tā ràng wǒ cèliáng diànyā yíxià.,Anh ấy bảo tôi đo điện áp một chút.
+521,警示,jǐngshì,Cảnh báo,FALSE,警示,黄色警示的灯亮，设备要检查。,"huángsè jǐngshì de dēng liàng, shèbèi yào jiǎnchá.","Đèn cảnh báo vàng sáng, máy cần kiểm tra."
+522,亮,liàng,Sáng,FALSE,亮,黄色警示的灯亮，设备要检查。,"huángsè jǐngshì de dēng liàng, shèbèi yào jiǎnchá.","Đèn cảnh báo vàng sáng, máy cần kiểm tra."
+523,标识,biāozhì,Ký hiệu,FALSE,标识,看到黄色的标识要停操作。,kàndào huángsè de biāozhì yào tíng cāozuò.,Thấy kí hiệu màu vàng thì phải dừng thao tác.
+524,变化,biànhuà,Biến hóa / Thay đổi,FALSE,变化,颜色会有变化。,yánsè huì yǒu biànhuà.,Màu sắc sẽ có sự thay đổi.
+525,用来,yònglái,Dùng để,FALSE,用来,黄色的袋子用来装产品。,huángsè de dàizi yònglái zhuāng chǎnpǐn.,Túi màu vàng dùng để đựng sản phẩm.
+526,袋子,dàizi,Túi,FALSE,袋子,黄色的袋子用来装产品。,huángsè de dàizi yònglái zhuāng chǎnpǐn.,Túi màu vàng dùng để đựng sản phẩm.
+527,包膜,bāomó,Màng bọc,FALSE,包膜,拿包膜用来包装。,ná bāomó yònglái bāozhuāng.,Lấy màng bọc dùng để đóng gói.
+528,盘点,pándiǎn,Kiểm kê,FALSE,盘点,月底我们要盘点。,yuèdǐ wǒmen yào pándiǎn.,Cuối tháng chúng ta phải kiểm kê.
+529,医院,yīyuàn,Bệnh viện,FALSE,医院,明天我请假去医院。,míngtiān wǒ qǐngjià qù yīyuàn.,Ngày mai tôi xin nghỉ đi bệnh viện.
+530,生病,shēngbìng,"Bệnh, ốm",FALSE,生病,我生病了。,wǒ shēngbìng le.,Tôi bị ốm rồi.
+531,病假,bìngjià,Nghỉ ốm,FALSE,病假,我身体不好，想请病假。,"wǒ shēntǐ bù hǎo, xiǎng qǐng bìngjià.","Tôi không khoẻ, muốn xin nghỉ ốm."
+532,事假,shìjià,Nghỉ việc riêng,FALSE,事假,我家有事，想请事假。,"wǒ jiā yǒu shì, xiǎng qǐng shìjià.","Nhà tôi có việc, muốn xin nghỉ việc riêng."
+533,年假,niánjià,Nghỉ phép năm,FALSE,年假,我还有五天年假还没用。,wǒ hái yǒu wǔ tiān niánjià hái méi yòng.,Tôi vẫn còn 5 ngày phép năm vẫn chưa dùng.
+534,身体,shēntǐ,Sức khỏe / Cơ thể,FALSE,身体,我身体不好，想请病假。,"wǒ shēntǐ bù hǎo, xiǎng qǐng bìngjià.","Tôi không khoẻ, muốn xin nghỉ ốm."
+535,锻炼,duànliàn,Rèn luyện,FALSE,锻炼,每天要锻炼身体。,měitiān yào duànliàn shēntǐ.,Mỗi ngày phải rèn luyện sức khoẻ.
+536,练习,liànxí,Luyện tập,FALSE,练习,每天我都练习中文。,měitiān wǒ dōu liànxí zhōngwén.,Mỗi ngày tôi đều luyện tập tiếng Trung.
+537,决心,juéxīn,Quyết tâm,FALSE,决心,我们要下决心。,wǒmen yào xià juéxīn.,Chúng ta phải hạ quyết tâm.
+538,修改,xiūgǎi,Sửa chữa / Chỉnh sửa,FALSE,修改,这个问题要马上修改。,zhè ge wèntí yào mǎshàng xiūgǎi.,Vấn đề này cần chỉnh sửa ngay.
+539,调整器,tiáozhěngqì,Bộ điều chỉnh,FALSE,调整器,调整器在哪里？,tiáozhěngqì zài nǎlǐ?,Bộ điều chỉnh ở đâu?
+540,调整阀,tiáozhěngfá,Van điều chỉnh,FALSE,调整阀,检查调整阀。,jiǎnchá tiáozhěngfá.,Kiểm tra van điều chỉnh.
+541,电磁阀,diàncífá,Van điện từ,FALSE,电磁阀,电磁阀坏了。,diàncífá huài le.,Van điện từ hỏng rồi.
+542,网线,wǎngxiàn,Dây mạng,FALSE,网线,插上网线。,chā shàng wǎngxiàn.,Cắm dây mạng vào.
+543,警察,jǐngchá,Cảnh sát,FALSE,警察,遇到危险要叫警察。,yùdào wēixiǎn yào jiào jǐngchá.,Gặp nguy hiểm phải gọi cảnh sát.
+544,警告,jǐnggào,Cảnh cáo,FALSE,警告,这是警告标志。,zhè shì jǐnggào biāozhì.,Đây là biển cảnh cáo.
+545,漂亮,piàoliang,Xinh đẹp,FALSE,漂亮,这个颜色很漂亮。,zhè ge yánsè hěn piàoliang.,Màu sắc này rất đẹp.
+546,月亮,yuèliang,Mặt trăng,FALSE,月亮,晚上的月亮很亮。,wǎnshang de yuèliang hěn liàng.,Mặt trăng buổi tối rất sáng.
+547,热,rè,Nóng,FALSE,热,今天很热。,jīntiān hěn rè.,Hôm nay rất nóng.
+548,冷,lěng,Lạnh,FALSE,冷,里面很冷。,lǐmiàn hěn lěng.,Bên trong rất lạnh.
+549,出色,chūsè,Xuất sắc,FALSE,出色,他的工作很出色。,tā de gōngzuò hěn chūsè.,Công việc của anh ấy rất xuất sắc.
+550,出口,chūkǒu,Xuất khẩu / Lối ra,FALSE,出口,这是出口产品。,zhè shì chūkǒu chǎnpǐn.,Đây là sản phẩm xuất khẩu.
+551,不但...而且...,búdàn... érqiě...,Không những... mà còn...,FALSE,不但...而且...,这个机器不但快而且稳定。,zhè ge jīqì búdàn kuài érqiě wěndìng.,Máy này không những nhanh mà còn ổn định.
+552,只要...就...,zhǐyào... jiù...,Chỉ cần... thì...,FALSE,只要...就...,只要按按钮机器就会开始运行。,zhǐyào àn ànniǔ jīqì jiù huì kāishǐ yùnxíng.,Chỉ cần bấm nút là máy sẽ bắt đầu chạy.
+553,只有...才...,zhǐyǒu... cái...,Chỉ có... mới...,FALSE,只有...才...,只有穿静电衣你才进来工厂。,zhǐyǒu chuān jìngdiànyī nǐ cái jìnlái gōngchǎng.,Chỉ có mặc áo tĩnh điện thì bạn mới được vào xưởng.
+554,不管...都...,bùguǎn... dōu...,Bất kể... đều...,FALSE,不管...都...,不管是谁去工厂都要穿静电衣。,bùguǎn shì shuí qù gōngchǎng dōu yào chuān jìngdiànyī.,Bất kể là ai vào xưởng đều phải mặc áo tĩnh điện.
+555,又...又...,yòu... yòu...,Vừa... vừa...,FALSE,又...又...,这个机器又稳定又快。,zhè ge jīqì yòu wěndìng yòu kuài.,Máy này vừa ổn định vừa nhanh.
+556,补充,bǔchōng,Bổ sung,FALSE,补充,包装的材料不够，要补充。,"bāozhuāng de cáiliào bú gòu, yào bǔchōng.","Vật liệu đóng gói không đủ, cần bổ sung."
+557,优化,yōuhuà,Tối ưu hóa,FALSE,优化,请优化包装的流程。,qǐng yōuhuà bāozhuāng de liúchéng.,Hãy tối ưu hoá quy trình đóng gói.
+558,更新,gēngxīn,Cập nhật,FALSE,更新,出货以后要更新系统。,chūhuò yǐhòu yào gēngxīn xìtǒng.,Sau khi xuất hàng cần cập nhật hệ thống.
+559,捆包机,kǔnbāojī,Máy đóng đai,FALSE,捆包机,捆包机正在运行。,kǔnbāojī zhèngzài yùnxíng.,Máy đóng đai đang hoạt động.
+560,卡,kǎ,"Kẹt, đơ, lag",FALSE,卡,捆包机卡带子。,kǔnbāojī kǎ dàizi.,Máy đóng đai bị kẹt dây đai.
+561,扫码,sǎomǎ,Quét mã,FALSE,扫码,入货的时候要扫码。,rùhuò de shíhou yào sǎomǎ.,Khi nhập hàng cần quét mã.
+562,二维码,èrwéimǎ,Mã QR,FALSE,二维码,这是二维码。,zhè shì èrwéimǎ.,Đây là mã QR.
+563,密码,mìmǎ,Mật khẩu (Password),FALSE,密码,你的密码是什么？,nǐ de mìmǎ shì shénme?,Mật khẩu của bạn là gì?
+564,刮伤,guāshāng,Trầy xước,FALSE,刮伤,表面有刮伤。,biǎomiàn yǒu guāshāng.,Bề mặt có vết trầy xước.
+565,避免,bìmiǎn,"Tránh, ngăn ngừa",FALSE,避免,避免浪费时间。,bìmiǎn làngfèi shíjiān.,Tránh lãng phí thời gian.
+566,浪费,làngfèi,Lãng phí,FALSE,浪费,避免浪费时间。,bìmiǎn làngfèi shíjiān.,Tránh lãng phí thời gian.
+567,熬夜,áoyè,Thức khuya,FALSE,熬夜,避免熬夜。,bìmiǎn áoyè.,Tránh thức khuya.
+568,减少,jiǎnshǎo,Giảm thiểu,FALSE,减少,调整机器可以减少刮伤。,tiáozhěng jīqì kěyǐ jiǎnshǎo guāshāng.,Điều chỉnh máy có thể giảm trầy xước.
+569,增加,zēngjiā,Tăng thêm,FALSE,增加,增加产量。,zēngjiā chǎnliàng.,Tăng thêm sản lượng.
+570,推进,tuījìn,Thúc đẩy,FALSE,推进,推进出货的进度。,tuījìn chūhuò de jìndù.,Đẩy tiến độ xuất hàng.
+571,评价,píngjià,Đánh giá,FALSE,评价,客户叫我评价生产设备。,kèhù jiào wǒ píngjià shēngchǎn shèbèi.,Khách hàng bảo tôi đánh giá thiết bị sản xuất.
+572,确认,quèrèn,Xác nhận,FALSE,确认,请确认出货的时间。,qǐng quèrèn chūhuò de shíjiān.,Hãy xác nhận thời gian xuất hàng.
+573,满意,mǎnyì,"Thỏa mãn, hài lòng",FALSE,满意,你对我们的服务满意吗？,nǐ duì wǒmen de fúwù mǎnyì ma?,Bạn có hài lòng với dịch vụ của chúng tôi không?
+574,表面,biǎomiàn,Bề mặt,FALSE,表面,产品表面有刮伤。,chǎnpǐn biǎomiàn yǒu guāshāng.,Bề mặt sản phẩm có vết trầy xước.
+575,态度,tàidù,Thái độ,FALSE,态度,态度很好。,tàidù hěn hǎo.,Thái độ rất tốt.
+576,了解,liǎojiě,Tìm hiểu / Hiểu rõ,FALSE,了解,你对我们公司了解了什么？,nǐ duì wǒmen gōngsī liǎojiě le shénme?,Bạn đã tìm hiểu gì về công ty chúng tôi?
+577,离开,líkāi,Rời khỏi / Nghỉ việc,FALSE,离开,你为什么离开上一家公司？,nǐ wèishéme líkāi shàng yī jiā gōngsī?,Tại sao bạn lại nghỉ việc ở công ty cũ?
+578,福利,fúlì,Phúc lợi,FALSE,福利,公司的福利制度很好。,gōngsī de fúlì zhìdù hěn hǎo.,Chế độ phúc lợi của công ty rất tốt.
+579,制度,zhìdù,Chế độ / Cơ chế,FALSE,制度,公司的福利制度很好。,gōngsī de fúlì zhìdù hěn hǎo.,Chế độ phúc lợi của công ty rất tốt.
+580,出差,chūchāi,Đi công tác,FALSE,出差,我可以加班和出差。,wǒ kěyǐ jiābān hé chūchāi.,Tôi có thể tăng ca và đi công tác.
+581,团队,tuánduì,Đội nhóm (Team),FALSE,团队,我有团队精神。,wǒ yǒu tuánduì jīngshén.,Tôi có tinh thần làm việc nhóm.
+582,适应,shìyìng,Thích nghi,FALSE,适应,我能快速适应新环境。,wǒ néng kuàisù shìyìng xīn huánjìng.,Tôi có thể thích nghi nhanh với môi trường mới.
+583,目标,mùbiāo,Mục tiêu,FALSE,目标,你的工作目标是什么？,nǐ de gōngzuò mùbiāo shì shénme?,Mục tiêu công việc của bạn là gì?
+584,加薪,jiāxīn,Tăng lương,FALSE,加薪,希望能经常给我加薪。,xīwàng néng jīngcháng gěi wǒ jiāxīn.,Hy vọng có thể thường xuyên tăng lương cho tôi.
+585,结果,jiéguǒ,Kết quả,FALSE,结果,什么时候可以收到面试结果？,shénme shíhòu kěyǐ shōudào miànshì jiéguǒ?,Khi nào có thể nhận được kết quả phỏng vấn?
+586,进行,jìnxíng,Tiến hành,FALSE,进行,关电源再进行维修。,guān diànyuán zài jìnxíng wéixiū.,Tắt nguồn rồi mới tiến hành sửa chữa.
+587,方法,fāngfǎ,Phương pháp / Cách,FALSE,方法,改进的方法是什么？,gǎijìn de fāngfǎ shì shénme?,Phương pháp cải tiến là gì?
+588,漏气,lòuqì,Rò rỉ khí,FALSE,漏气,空压机漏气所以压力不够。,kōngyājī lòuqì suǒyǐ yālì bú gòu.,Máy nén khí rò khí nên áp suất không đủ.
+589,电磁阀,diàncífá,Van điện từ,FALSE,电磁阀,电磁阀坏了。,diàncífá huài le.,Van điện từ hỏng rồi.
+590,空压机,kōngyājī,Máy nén khí,FALSE,空压机,检查空压机的压力。,jiǎnchá kōngyājī de yālì.,Kiểm tra áp suất máy nén khí.
+591,确定,quèdìng,Xác định / Chắc chắn,FALSE,确定,确定参数没有问题。,quèdìng cānshù méiyǒu wèntí.,Xác định thông số không có vấn đề.
+592,扳手,bānshǒu,Cờ lê,FALSE,扳手,用扳手来拧螺丝。,yòng bānshǒu lái nǐng luósī.,Dùng mỏ lết/cờ lê để vặn ốc.
+593,活动扳手,huódòng bānshǒu,Mỏ lết,FALSE,活动扳手,活动扳手可以调整尺寸。,huódòng bānshǒu kěyǐ tiáozhěng chǐcùn.,Mỏ lết có thể điều chỉnh kích thước.
+594,扭力,niǔlì,Lực siết,FALSE,扭力,请按照标准的扭力锁螺丝。,qǐng ànzhào biāozhǔn de niǔlì suǒ luósī.,Hãy siết ốc theo lực tiêu chuẩn.
+595,校准,xiàozhǔn,Hiệu chuẩn,FALSE,校准,要重新校准扭力。,yào chóngxīn xiàozhǔn niǔlì.,Cần hiệu chuẩn lại lực siết.
+596,滑牙,huáyá,Toét ren,FALSE,滑牙,扭力太大容易滑牙。,niǔlì tài dà róngyì huáyá.,Lực siết quá lớn dễ gây toét ren.
+597,摸,mō,"Sờ, chạm",FALSE,摸,可以用手摸来检查温度。,kěyǐ yòng shǒu mō lái jiǎnchá wēndù.,Có thể dùng tay sờ vào để kiểm tra nhiệt độ.
+598,戴,dài,Đeo,FALSE,戴,摸产品的时候要戴手套。,mō chǎnpǐn de shíhou yào dài shǒutào.,Khi chạm vào sản phẩm phải đeo găng tay.
+599,加油,jiāyóu,Tra dầu / Đổ xăng / Cố lên,FALSE,加油,请给设备加油。,qǐng gěi shèbèi jiāyóu.,Hãy tra dầu cho thiết bị.
+600,定期,dìngqī,Định kì,FALSE,定期,定期加油可以减少磨损。,dìngqī jiāyóu kěyǐ jiǎnshǎo mósǔn.,Tra dầu định kì có thể giảm mài mòn.
+601,磨损,mósǔn,Mài mòn,FALSE,磨损,定期加油可以减少磨损。,dìngqī jiāyóu kěyǐ jiǎnshǎo mósǔn.,Tra dầu định kì có thể giảm mài mòn.
+602,气缸,qìgāng,Xy lanh khí,FALSE,气缸,请检查气缸的位置。,qǐng jiǎnchá qìgāng de wèizhì.,Hãy kiểm tra vị trí xi lanh.
+603,顺畅,shùnchàng,Trơn tru,FALSE,顺畅,气缸运行不顺畅。,qìgāng yùnxíng bú shùnchàng.,Xy lanh hoạt động không trơn tru.
+604,保证,bǎozhèng,Đảm bảo,FALSE,保证,调整气缸的位置来保证对位准确。,tiáozhěng qìgāng de wèizhì lái bǎozhèng duìwèi zhǔnquè.,Điều chỉnh vị trí xy lanh để đảm bảo căn chỉnh chính xác.
+605,吸嘴,xīzuǐ,Đầu hút,FALSE,吸嘴,吸嘴堵住了，要清理。,"xīzuǐ dǔzhù le, yào qīnglǐ.","Đầu hút bị tắc rồi, cần vệ sinh."
+606,偏,piān,Lệch,FALSE,偏,吸嘴的位置偏了，要调整。,"xīzuǐ de wèizhì piān le, yào tiáozhěng.","Vị trí của đầu hút bị lệch, cần điều chỉnh."
+607,伸出,shēnchū,Thò ra / Đưa ra,FALSE,伸出,气缸伸出以后就夹产品。,qìgāng shēnchū yǐhòu jiù jiā chǎnpǐn.,Sau khi xi lanh thò ra thì kẹp sản phẩm.
+608,碰到,pèngdào,Va vào,FALSE,碰到,伸出太长会碰到治具。,shēnchū tài cháng huì pèngdào zhìjù.,Thò ra quá dài thì sẽ va vào jig.
+609,夹,jiā,Kẹp,FALSE,夹,气缸伸出以后就夹产品。,qìgāng shēnchū yǐhòu jiù jiā chǎnpǐn.,Sau khi xi lanh thò ra thì kẹp sản phẩm.
+610,夹子,jiāzi,Cái kẹp,FALSE,夹子,拿夹子。,ná jiāzi.,Lấy cái kẹp.
+611,正常,zhèngcháng,Bình thường,FALSE,正常,调整参数让气缸正常伸出。,tiáozhěng cānshù ràng qìgāng zhèngcháng shēnchū.,Điều chỉnh tham số để làm cho xi lanh thò ra bình thường.
+612,缩回,suōhuí,Rút vào / Thu lại,FALSE,缩回,气缸不缩回。,qìgāng bù suōhuí.,Xi lanh không rút vào.
+613,完全,wánquán,Hoàn toàn,FALSE,完全,请确认气缸是不是完全缩回。,qǐng quèrèn qìgāng shì bú shì wánquán suōhuí.,Hãy xác nhận xy lanh đã rút hoàn toàn chưa.
+614,堵,dǔ,"Tắc, kẹt",FALSE,堵,吸嘴堵住了。,xīzuǐ dǔzhù le.,Đầu hút bị tắc rồi.
+615,阀门,fámén,Van,FALSE,阀门,检查阀门有没有正常打开。,jiǎnchá fámén yǒu méi yǒu zhèngcháng dǎkāi.,Kiểm tra xem van có mở bình thường không.
+616,关闭,guānbì,Đóng / Tắt,FALSE,关闭,修理以前请关闭阀门。,xiūlǐ yǐqián qǐng guānbì fámén.,Hãy đóng van trước khi sửa chữa.
+617,控制,kòngzhì,"Kiểm soát, khống chế",FALSE,控制,调整阀门可以控制气流。,tiáozhěng fámén kěyǐ kòngzhì qìliú.,Điều chỉnh van có thể kiểm soát luồng khí.
+618,气流,qìliú,Luồng khí,FALSE,气流,调整阀门可以控制气流。,tiáozhěng fámén kěyǐ kòngzhì qìliú.,Điều chỉnh van có thể kiểm soát luồng khí.
+619,传送带,chuánsòngdài,Băng chuyền / Băng tải,FALSE,传送带,传送带的速度太快了。,chuánsòngdài de sùdù tài kuài le.,Tốc độ băng chuyền quá nhanh.
+620,偏向,piānxiàng,Lệch hướng,FALSE,偏向,传送带偏向了。,chuánsòngdài piānxiàng le.,Băng chuyền lệch hướng rồi.
+621,损坏,sǔnhuài,Hư hại,FALSE,损坏,传送带表面损坏了。,chuánsòngdài biǎomiàn sǔnhuài le.,Bề mặt băng chuyền bị hư hại.
+622,破坏,pòhuài,"Rách, phá hoại",FALSE,破坏,传送带的表面破坏了。,chuánsòngdài de biǎomiàn pòhuài le.,Bề mặt băng tải bị rách rồi.
+623,指令,zhǐlìng,Lệnh / Lệnh PLC,FALSE,指令,这个指令写错了，要修改。,"zhè ge zhǐlìng xiě cuò le, yào xiūgǎi.","Lệnh này viết sai, cần sửa."
+624,正确,zhèngquè,Chính xác,FALSE,正确,请确认指令有没有正确。,qǐng quèrèn zhǐlìng yǒu méi yǒu zhèngquè.,Hãy xác nhận lệnh có chính xác không.
+625,新建,xīnjiàn,Tạo mới / Create,FALSE,新建,请新建一个程序。,qǐng xīnjiàn yí gè chéngxù.,Hãy tạo mới một chương trình.
+626,输入,shūrù,Nhập (dữ liệu),FALSE,输入,新建文件以后请输入正确的数据。,xīnjiàn wénjiàn yǐhòu qǐng shūrù zhèngquè de shùjù.,Sau khi tạo file mới hãy nhập dữ liệu chính xác.
+627,账号,zhànghào,Tài khoản,FALSE,账号,要新建账号才能运行系统。,yào xīnjiàn zhànghào cái néng yùnxíng xìtǒng.,Cần tạo tài khoản mới thì mới vận hành hệ thống được.
+628,保存,bǎocún,Lưu / Save,FALSE,保存,修改参数以后请保存。,xiūgǎi cānshù yǐhòu qǐng bǎocún.,Sau khi sửa tham số hãy lưu lại.
+629,丢,diū,Mất,FALSE,丢,数据没有保存会丢。,shùjù méi yǒu bǎocún huì diū.,Dữ liệu không lưu sẽ bị mất.
+630,成功,chénggōng,Thành công,FALSE,成功,请确认程序保存成功了。,qǐng quèrèn chéngxù bǎocún chénggōng le.,Hãy xác nhận chương trình đã lưu thành công.
+631,失败,shībài,Thất bại,FALSE,失败,修改参数失败了。,xiūgǎi cānshù shībài le.,Sửa tham số thất bại rồi.
+632,称重,chēngzhòng,Cân trọng lượng,FALSE,称重,请先称重胶然后进行点胶。,qǐng xiān chēngzhòng jiāo ránhòu jìnxíng diǎnjiāo.,Hãy cân keo trước rồi mới tiến hành điểm keo.
+633,重要,zhòngyào,Quan trọng,FALSE,重要,称重参数很重要。,chēngzhòng cānshù hěn zhòngyào.,Thông số cân trọng lượng rất quan trọng.
+634,确保,quèbǎo,Đảm bảo,FALSE,确保,每次点胶以前要称胶来确保胶量准确。,měi cì diǎnjiāo yǐqián yào chēng jiāo lái quèbǎo jiāoliàng zhǔnquè.,Trước mỗi lần điểm keo phải cân keo để đảm bảo lượng keo chính xác.
+635,超过,chāoguò,Vượt quá,FALSE,超过,如果称重结果超过误差，要重新校准。,"rúguǒ chēngzhòng jiéguǒ chāoguò wùchā, yào chóngxīn xiàozhǔn.","Nếu kết quả cân vượt quá sai số, cần hiệu chuẩn lại."
+636,结果,jiéguǒ,Kết quả,FALSE,结果,请确认测试结果。,qǐng quèrèn cèshì jiéguǒ.,Hãy xác nhận kết quả test.
+637,效果,xiàoguǒ,Hiệu quả,FALSE,效果,调整参数的效果很好。,tiáozhěng cānshù de xiàoguǒ hěn hǎo.,Hiệu quả của việc điều chỉnh tham số rất tốt.
+638,结束,jiéshù,Kết thúc,FALSE,结束,工作结束了。,gōngzuò jiéshù le.,Công việc kết thúc rồi.
+639,结构,jiégòu,Kết cấu,FALSE,结构,机器的结构很复杂。,jīqì de jiégòu hěn fùzá.,Kết cấu của máy rất phức tạp.
+640,结论,jiélùn,Kết luận,FALSE,结论,质量部门的结论是什么？,zhìliàng bùmén de jiélùn shì shénme?,Kết luận của bộ phận chất lượng là gì?
+641,急,jí,Gấp / Khẩn cấp,FALSE,急,客户的要求很急，要马上处理。,"kèhù de yāoqiú hěn jí, yào mǎshàng chǔlǐ.","Yêu cầu của khách hàng rất gấp, cần xử lí ngay."
+642,急单,jídān,Đơn gấp,FALSE,急单,请先处理急单。,qǐng xiān chǔlǐ jídān.,Hãy xử lí đơn gấp này trước.
+643,发料,fāliào,Phát liệu,FALSE,发料,发料的数量要正确。,fāliào de shùliàng yào zhèngquè.,Số lượng phát liệu phải chính xác.
+644,补料,bǔliào,Bổ sung liệu / Bù liệu,FALSE,补料,料不够，要补料。,"liào bú gòu, yào bǔliào.","Liệu không đủ, cần bổ sung liệu."
+645,收料,shōuliào,Thu liệu,FALSE,收料,仓库收料了。,cāngkù shōuliào le.,Kho đã thu liệu rồi.
+646,来料,láiliào,Liệu đến,FALSE,来料,料还没来。,liào hái méi lái.,Liệu vẫn chưa đến.
+647,缺料,quēliào,Thiếu liệu,FALSE,缺料,生产线缺料了。,shēngchǎnxiàn quēliào le.,Dây chuyền sản xuất thiếu liệu rồi.
+648,停线,tíngxiàn,Dừng line / Dừng chuyền,FALSE,停线,发料不及时导致停线。,fāliào bù jíshí dǎozhì tíngxiàn.,Phát liệu không kịp thời dẫn đến dừng line.
+649,生产线,shēngchǎnxiàn,Dây chuyền sản xuất,FALSE,生产线,生产线缺料了。,shēngchǎnxiàn quēliào le.,Dây chuyền sản xuất thiếu liệu rồi.
+650,必须,bìxū,Bắt buộc phải,FALSE,必须,今天必须出货。,jīntiān bìxū chūhuò.,Hôm nay bắt buộc phải xuất hàng.
+651,所有,suǒyǒu,Tất cả,FALSE,所有,所有产品都要检查。,suǒyǒu chǎnpǐn dōu yào jiǎnchá.,Tất cả sản phẩm đều phải kiểm tra.
+652,记下来,jì xiàlái,Ghi lại,FALSE,记下来,所有数据都记下来。,suǒyǒu shùjù dōu jì xiàlái.,Tất cả các dữ liệu đều phải ghi lại.
+653,规格,guīgé,Quy cách,FALSE,规格,产品的规格不对。,chǎnpǐn de guīgé bú duì.,Quy cách sản phẩm không đạt yêu cầu.
+654,合格,hégé,Đạt yêu cầu / Pass,FALSE,合格,产品不合格。,chǎnpǐn bù hégé.,Sản phẩm không đạt yêu cầu.
+655,取消,qǔxiāo,Huỷ / Cancel,FALSE,取消,这个功能可以取消。,zhè ge gōngnéng kěyǐ qǔxiāo.,Chức năng này có thể huỷ.
+656,点击,diǎnjī,Nhấn (chuột / nút),FALSE,点击,请点击保存按钮。,qǐng diǎnjī bǎocún ànniǔ.,Hãy nhấn nút lưu.
+657,删除,shānchú,Xoá / Delete,FALSE,删除,这个文件可以删除。,zhè ge wénjiàn kěyǐ shānchú.,File này có thể xoá.
+658,恢复,huīfù,Khôi phục,FALSE,恢复,删除了以后不能恢复。,shānchú le yǐhòu bù néng huīfù.,Xoá rồi thì không thể khôi phục.
+659,锁机,suǒjī,Khoá máy,FALSE,锁机,系统自动锁机。,xìtǒng zìdòng suǒjī.,Hệ thống tự động khoá máy lại.
+660,角,jiǎo,Góc,FALSE,角,删除按钮在右上角。,shānchú ànniǔ zài yòushàng jiǎo.,Nút xoá ở góc trên bên phải.
+661,遇到,yùdào,Gặp / Gặp phải,FALSE,遇到,如果遇到异常情况，都及时跟我报告。,"rúguǒ yùdào yìcháng qíngkuàng, dōu jíshí gēn wǒ bàogào.","Nếu gặp tình huống bất thường, đều phải báo cáo với tôi."
+662,情况,qíngkuàng,Tình huống / Tình hình,FALSE,情况,请及时返回异常情况。,qǐng jíshí fǎnhuí yìcháng qíngkuàng.,Hãy phản hồi tình huống bất thường kịp thời.
+663,手续,shǒuxù,Thủ tục,FALSE,手续,办手续。,bàn shǒuxù.,Làm thủ tục.
+664,其实,qíshí,Thực ra / Thật ra,FALSE,其实,其实问题不是机器而是人。,qíshí wèntí bú shì jīqì ér shì rén.,Thực ra vấn đề không phải do máy mà là do con người.
+665,原因,yuányīn,Nguyên nhân,FALSE,原因,其实原因找到了。,qíshí yuányīn zhǎodào le.,Thực ra nguyên nhân đã tìm ra rồi.
+666,铁盖,tiěgài,Nắp sắt,FALSE,铁盖,测量铁盖的高度。,cèliáng tiěgài de gāodù.,Đo chiều cao nắp sắt.
+667,克,kè,Gam (g),FALSE,克,这个产品大概五克。,zhè ge chǎnpǐn dàgài wǔ kè.,Sản phẩm này khoảng 5 gam.
+668,公里,gōnglǐ,Kilômét (km),FALSE,公里,从我家到公司大概五公里。,cóng wǒ jiā dào gōngsī dàgài wǔ gōnglǐ.,Từ nhà tôi đến công ty khoảng 5 km.
+669,公斤,gōngjīn,Kilôgam (kg),FALSE,公斤,一公斤等于两个斤。,yì gōngjīn děngyú liǎng gè jīn.,Một kg bằng 2 cân (Trung Quốc).
+670,斤,jīn,Cân (bằng 0.5 kg),FALSE,斤,一斤等于半公斤。,yì jīn děngyú bàn gōngjīn.,Một cân (TQ) bằng nửa kg.
+671,米,mǐ,Mét (m),FALSE,米,这条电线长十米。,zhè tiáo diànxiàn cháng shí mǐ.,Dây điện này dài 10 mét.
+672,厘米,límǐ,Centimét (cm),FALSE,厘米,误差是两厘米。,wùchā shì liǎng límǐ.,Sai số là 2 cm.
+673,任务,rènwu,Nhiệm vụ / Task,FALSE,任务,今天一定要完成任务。,jīntiān yídìng yào wánchéng rènwu.,Hôm nay nhất định phải hoàn thành nhiệm vụ.
+674,数量,shùliàng,Số lượng,FALSE,数量,请确认订单的数量。,qǐng quèrèn dìngdān de shùliàng.,Hãy xác nhận số lượng đơn hàng.
+675,能量,néngliàng,Năng lượng,FALSE,能量,节约能量。,jiéyuē néngliàng.,Tiết kiệm năng lượng.
+676,容量,róngliàng,"Dung lượng, dung tích",FALSE,容量,这个胶桶的容量是多少？,zhè ge jiāotǒng de róngliàng shì duōshao?,Dung tích bình keo này là bao nhiêu?
+677,热量,rèliàng,Nhiệt lượng,FALSE,热量,机器产生很多热量。,jīqì chǎnshēng hěn duō rèliàng.,Máy móc tạo ra rất nhiều nhiệt lượng.
+678,酒量,jiǔliàng,Tửu lượng,FALSE,酒量,他的酒量很好。,tā de jiǔliàng hěn hǎo.,Tửu lượng của anh ấy rất tốt.
+679,有关,yǒuguān,Liên quan đến,FALSE,有关,这个问题有关设备。,zhè ge wèntí yǒuguān shèbèi.,Vấn đề này liên quan đến thiết bị.
+680,因素,yīnsù,Nhân tố / Yếu tố,FALSE,因素,主要影响的因素是温度。,zhǔyào yǐngxiǎng de yīnsù shì wēndù.,Yếu tố ảnh hưởng chính là nhiệt độ.
+681,虽然... 但是...,suīrán... dànshì...,Mặc dù... nhưng...,FALSE,虽然... 但是...,虽然问题不大但是要及时处理。,suīrán wèntí bú dà dànshì yào jíshí chǔlǐ.,Mặc dù vấn đề không lớn nhưng cần xử lí kịp thời.
+682,严重,yánzhòng,Nghiêm trọng,FALSE,严重,这个问题比以前严重。,zhè ge wèntí bǐ yǐqián yánzhòng.,Lỗi này nghiêm trọng hơn trước.
+683,越来越...,yuè lái yuè...,Càng ngày càng...,FALSE,越来越...,产量越来越高。,chǎnliàng yuè lái yuè gāo.,Sản lượng ngày càng cao.
+684,试产,shìchǎn,Sản xuất thử (NPI),FALSE,试产,我们准备试产。,wǒmen zhǔnbèi shìchǎn.,Chúng tôi chuẩn bị sản xuất thử.
+685,进度,jìndù,Tiến độ,FALSE,进度,进度越来越快。,jìndù yuè lái yuè kuài.,Tiến độ ngày càng nhanh.
+686,反应,fǎnyìng,Phản ứng,FALSE,反应,设备反应越来越慢。,shèbèi fǎnyìng yuè lái yuè màn.,Máy phản hồi (phản ứng) ngày càng chậm.
+687,反馈,fǎnkuì,Phản hồi,FALSE,反馈,请等待客户的反馈。,qǐng děngdài kèhù de fǎnkuì.,Hãy đợi phản hồi của khách hàng.
+688,反映,fǎnyìng,Phản ánh,FALSE,反映,他反映了一个问题。,tā fǎnyìng le yí gè wèntí.,Anh ấy phản ánh một vấn đề.
+689,效应,xiàoyìng,Hiệu ứng,FALSE,效应,这个效应很重要。,zhè ge xiàoyìng hěn zhòngyào.,Hiệu ứng này rất quan trọng.
+690,效率,xiàolǜ,Hiệu suất,FALSE,效率,现在的效率比以前高。,xiànzài de xiàolǜ bǐ yǐqián gāo.,Hiệu suất bây giờ cao hơn trước đây.
+691,率,lǜ,Tỉ lệ / Suất,FALSE,率,检查合格率。,jiǎnchá hégélǜ.,Kiểm tra tỷ lệ đạt.
+692,不良率,bùliánglǜ,Tỉ lệ lỗi (NG),FALSE,不良率,不良率越来越低。,bùliánglǜ yuè lái yuè dī.,Tỉ lệ lỗi ngày càng thấp.
+693,最,zuì,Nhất,FALSE,最,这个操作是最简单。,zhè ge cāozuò shì zuì jiǎndān.,Thao tác này là đơn giản nhất.
+694,如果...就...,rúguǒ... jiù...,Nếu... thì...,FALSE,如果...就...,如果料来到就可以生产。,rúguǒ liào lái dào jiù kěyǐ shēngchǎn.,Nếu liệu đến thì có thể sản xuất.
+695,双方,shuāngfāng,Song phương / 2 bên,FALSE,双方,双方同意这个方案。,shuāngfāng tóngyì zhè ge fāng'àn.,Cả hai bên (song phương) đồng ý phương án này.
+696,开单,kāidān,Mở đơn,FALSE,开单,业务部门正在开单。,yèwù bùmén zhèngzài kāidān.,Bộ phận nghiệp vụ đang mở đơn.
+697,单,dān,Đơn,FALSE,单,这是一个单。,zhè shì yí gè dān.,Đây là một đơn hàng.
+698,出,chū,Ra / Xuất,FALSE,出,如果压力不够就胶出很少。,rúguǒ yālì bú gòu jiù jiāo chū hěn shǎo.,Nếu áp suất không đủ thì sẽ ra ít keo.
+699,出去,chūqù,Đi ra ngoài,FALSE,出去,工作时间不要随便出去。,gōngzuò shíjiān bú yào suíbiàn chūqù.,Trong giờ làm đừng tùy tiện đi ra ngoài.
+700,出口,chūkǒu,Xuất khẩu,FALSE,出口,我们的产品出口到外国。,wǒmen de chǎnpǐn chūkǒu dào wàiguó.,Sản phẩm của chúng ta xuất khẩu ra nước ngoài.
+701,出现,chūxiàn,Xuất hiện,FALSE,出现,出现问题马上处理。,chūxiàn wèntí mǎshàng chǔlǐ.,Xuất hiện vấn đề phải xử lý ngay.
+702,出门,chūmén,Ra khỏi cửa,FALSE,出门,刚出门就下雨了。,gāng chūmén jiù xià yǔ le.,Vừa ra khỏi cửa thì trời mưa.
+703,复位,fùwèi,Reset / Trở về vị trí cũ,FALSE,复位,发生异常请复位。,fāshēng yìcháng qǐng fùwèi.,Xảy ra bất thường hãy reset lại.
+704,复位钮,fùwèiniǔ,Nút reset,FALSE,复位钮,按一下复位钮。,àn yíxià fùwèiniǔ.,Nhấn nút reset một chút.
+705,传感器,chuángǎnqì,Cảm biến,FALSE,传感器,如果传感器坏就要换。,rúguǒ chuángǎnqì huài jiù yào huàn.,Nếu cảm biến hỏng thì cần thay.
+706,分析,fēnxī,Phân tích,FALSE,分析,客户让我们分析原因。,kèhù ràng wǒmen fēnxī yuányīn.,Khách hàng yêu cầu chúng tôi phân tích nguyên nhân.
