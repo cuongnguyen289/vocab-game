@@ -885,12 +885,12 @@ p {
 
 .radical-analysis {
     display: flex;
-    gap: 1.5rem;
+    gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
     opacity: 0;
     transform: translateY(20px);
-    transition: all 0.5s ease 0.3s;
+    transition: all 0.5s ease 0.4s; /* Increased delay to show after char pops */
 }
 
 .character-overlay.active .radical-analysis {
@@ -899,15 +899,15 @@ p {
 }
 
 .radical-item {
-    background: white;
-    padding: 1rem 1.5rem;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    background: #f8fafc; /* Slight off-white */
+    padding: 0.8rem 1.2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 1px solid rgba(99, 102, 241, 0.1);
-    min-width: 100px;
+    border: 2px solid var(--primary-color); /* Stronger border */
+    min-width: 90px;
 }
 
 .radical-char {

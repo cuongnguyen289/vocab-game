@@ -1979,7 +1979,27 @@ const RADICAL_DICTIONARY = {
     '夫': { name: 'Phu', meaning: 'Chồng/Người đàn ông' },
     '见': { name: 'Kiến', meaning: 'Nhìn thấy' },
     '斤': { name: 'Cân', meaning: 'Cái búa/Rìu' },
-    '方': { name: 'Phương', meaning: 'Hình vuông/Hướng' }
+    '方': { name: 'Phương', meaning: 'Hình vuông/Hướng' },
+    '尔': { name: 'Nhĩ', meaning: 'Mày/Ngươi' },
+    '戈': { name: 'Qua', meaning: 'Cây mác' },
+    '也': { name: 'Dã', meaning: 'Cũng' },
+    '疋': { name: 'Sơ', meaning: 'Cái chân' },
+    '𠂇': { name: 'Tả', meaning: 'Tay trái' },
+    '殳': { name: 'Thù', meaning: 'Binh khí dài' },
+    '禾': { name: 'Hòa', meaning: 'Cây lúa' },
+    '夕': { name: 'Tịch', meaning: 'Buổi tối' },
+    '彳': { name: 'Xích', meaning: 'Bước chân trái' },
+    '艮': { name: 'Cấn', meaning: 'Bền cứng/Quẻ Cấn' },
+    '乚': { name: 'Ẩn', meaning: 'Nét cong' },
+    '文': { name: 'Văn', meaning: 'Văn chương/Chữ' },
+    '彐': { name: 'Ký', meaning: 'Đầu con heo' },
+    '豕': { name: 'Thệ', meaning: 'Con heo' },
+    '广': { name: 'Quảng', meaning: 'Mái nhà rộng' },
+    '五': { name: 'Ngũ', meaning: 'Số 5' },
+    '厶': { name: 'Khứ/Tư', meaning: 'Riêng tư' },
+    '召': { name: 'Triệu', meaning: 'Triệu tập' },
+    '头': { name: 'Đầu', meaning: 'Cái đầu' },
+    '反': { name: 'Phản', meaning: 'Ngược lại' }
 };
 
 const CHAR_DECOMPOSITION = {
@@ -2051,10 +2071,34 @@ const CHAR_DECOMPOSITION = {
     '冒': ['曰', '目'],
     '发': ['癶', '乂'],
     '烧': ['火', '尧'],
-    '药': ['艹', '约']
+    '药': ['艹', '约'],
+    '你': ['亻', '尔'],
+    '我': ['丿', '手', '戈'],
+    '他': ['亻', '也'],
+    '她': ['女', '也'],
+    '们': ['亻', '门'],
+    '好': ['女', '子'],
+    '吗': ['口', '马'],
+    '不': ['一', '撇', '竖', '点'],
+    '是': ['日', '疋'],
+    '有': ['𠂇', '月'],
+    '没': ['氵', '殳'],
+    '在': ['𠂇', '土'],
+    '和': ['禾', '口'],
+    '大': ['大'],
+    '小': ['小'],
+    '多': ['夕', '夕'],
+    '少': ['小', '丿'],
+    '太': ['大', '丶'],
+    '很': ['彳', '艮'],
+    '真': ['十', '目', '乚'],
+    '这': ['辶', '文'],
+    '那': ['彐', '阝'],
+    '哪': ['口', '那']
 };
 
 function showFullscreenReveal(char, callback) {
+    console.log("Showing fullscreen reveal for:", char); // Debug log
     const overlay = document.getElementById('character-reveal-overlay');
     const display = document.getElementById('large-char-display');
     const analysis = document.getElementById('radical-analysis');
