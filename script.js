@@ -2110,23 +2110,28 @@ function showFullscreenReveal(char, callback) {
     // Radical Analysis Logic
     if (analysis) {
         analysis.innerHTML = '';
-        const components = CHAR_DECOMPOSITION[char] || [char];
+        // Split multi-character words (e.g., '工人' -> ['工', '人'])
+        const characters = char.split('');
         
-        components.forEach(comp => {
-            const data = RADICAL_DICTIONARY[comp];
-            const item = document.createElement('div');
-            item.className = 'radical-item';
+        characters.forEach(singleChar => {
+            const components = CHAR_DECOMPOSITION[singleChar] || [singleChar];
             
-            if (data) {
-                item.innerHTML = `
-                    <span class="radical-char">${comp}</span>
-                    <span class="radical-name">${data.name}</span>
-                    <span class="radical-meaning">${data.meaning}</span>
-                `;
-            } else {
-                item.innerHTML = `<span class="radical-char">${comp}</span><span class="radical-name">Hán tự</span>`;
-            }
-            analysis.appendChild(item);
+            components.forEach(comp => {
+                const data = RADICAL_DICTIONARY[comp];
+                const item = document.createElement('div');
+                item.className = 'radical-item';
+                
+                if (data) {
+                    item.innerHTML = `
+                        <span class="radical-char">${comp}</span>
+                        <span class="radical-name">${data.name}</span>
+                        <span class="radical-meaning">${data.meaning}</span>
+                    `;
+                } else {
+                    item.innerHTML = `<span class="radical-char">${comp}</span><span class="radical-name">Hán tự</span>`;
+                }
+                analysis.appendChild(item);
+            });
         });
     }
 
