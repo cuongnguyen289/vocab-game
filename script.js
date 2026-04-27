@@ -88,6 +88,12 @@ const playExAudioBtn = document.getElementById('play-ex-audio-btn');
 // Nguồn âm thanh Google Dịch và Dự phòng bằng trình duyệt
 window.playAudio = function(text, lang) {
     if (!text) return;
+    console.log(`[Audio] Playing: "${text}" (${lang})`);
+
+    // Cancel any ongoing speech to prevent repeats/overlaps
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
 
     // Kích hoạt load giọng đọc trước (đối với một số trình duyệt)
     if ('speechSynthesis' in window && window.speechSynthesis.getVoices().length === 0) {
@@ -949,7 +955,7 @@ function loadQuestion() {
     if (questionTextMain) {
         let isVietnamese = (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-viet-trung' || currentQuestionMode === 'sentence-target');
         
-        if (isVietnamese) {
+        if (isVietnamese || gameMode === 'type-pinyin' || gameMode === 'type-hanzi' || gameMode === 'sentence-cloze') {
             playAudioBtn.classList.add('hidden');
         } else {
             playAudioBtn.classList.remove('hidden');
@@ -2179,15 +2185,17 @@ const CHAR_DECOMPOSITION = {
     '对': ['又', '寸']
 };
 
-function showFullscreenReveal(char, callback) {
-    console.log("Showing fullscreen reveal for:", char); // Debug log
+function showFullscreenReveal(char, pinyin, callback) {
+    console.log("Showing fullscreen reveal for:", char, pinyin); // Debug log
     const overlay = document.getElementById('character-reveal-overlay');
     const display = document.getElementById('large-char-display');
+    const pinyinDisplay = document.getElementById('large-pinyin-display');
     const analysis = document.getElementById('radical-analysis');
     
     if (!overlay || !display) return callback ? callback() : null;
 
     display.textContent = char;
+    if (pinyinDisplay) pinyinDisplay.textContent = pinyin || "";
     
     // Radical Analysis Logic
     if (analysis) {
@@ -2311,6 +2319,9 @@ function checkTypingAnswer() {
             }
             exampleContainer.classList.remove('hidden');
         }
+        
+        // Show Fullscreen Reveal
+        showFullscreenReveal(qData.hanTu, qData.pinyin);
     } else {
         inputEl.style.backgroundColor = '#fee2e2';
         inputEl.style.borderColor = '#ef4444';
@@ -2381,23 +2392,6 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
-// Track extra activity for typing practice
-let typingAudioTimeout = null;
-const typingInputEl = document.getElementById('pinyin-input');
-if (typingInputEl) {
-    typingInputEl.addEventListener('input', () => {
-        if (gameMode === 'type-pinyin' || gameMode === 'type-hanzi') {
-            const qData = currentQuestions[currentQuestionIndex];
-            if (qData && qData.hanTu) {
-                if (typingAudioTimeout) clearTimeout(typingAudioTimeout);
-                typingAudioTimeout = setTimeout(() => {
-                    playAudio(qData.hanTu, 'zh-CN');
-                }, 400);
-            }
-        }
-    });
-}
-
 // Event listener for Example Cloze Input
 const exampleClozeInputEl = document.getElementById('example-cloze-input');
 if (exampleClozeInputEl) {
@@ -2417,7 +2411,7 @@ if (exampleClozeInputEl) {
             activityHistory[today] = (activityHistory[today] || 0) + 1;
             saveActivityData();
 
-            showFullscreenReveal(qData.hanTu, () => {
+            showFullscreenReveal(qData.hanTu, qData.pinyin, () => {
                 const exampleSentence = document.getElementById('example-sentence');
                 const examplePinyin = document.getElementById('example-pinyin');
                 
