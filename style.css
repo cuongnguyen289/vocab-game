@@ -843,3 +843,115 @@ p {
     position: relative;
     z-index: 2;
 }
+
+/* Full-screen Character Reveal */
+.character-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    visibility: hidden;
+}
+
+.character-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.large-char {
+    font-size: 18rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    transform: scale(0.3);
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    text-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);
+}
+
+.character-overlay.active .large-char {
+    transform: scale(1);
+}
+
+.character-overlay.shrinking {
+    background: rgba(255, 255, 255, 0);
+    pointer-events: none;
+}
+
+.character-overlay.shrinking .large-char {
+    transform: scale(0);
+    opacity: 0;
+}
+
+/* Completed Word Styling */
+.completed-word {
+    color: var(--secondary-color) !important;
+    font-weight: 800 !important;
+    padding: 0 0.2rem;
+    display: inline-block;
+    transform: scale(1.15);
+    transition: all 0.3s ease;
+}
+
+/* Quiz UI Adjustments */
+.quiz-header {
+    margin-bottom: 1rem;
+}
+
+.example-box {
+    margin-top: 1rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+
+.next-btn {
+    width: 100%;
+    max-width: 400px;
+    margin: 1.5rem auto 0;
+    padding: 1.2rem;
+    font-size: 1.2rem;
+    background: var(--primary-color);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
+}
+
+.next-btn:not(.hidden) {
+    display: flex !important;
+}
+
+/* Screen Specific Adjustments */
+@media (max-width: 600px) {
+    .large-char {
+        font-size: 12rem;
+    }
+    .next-btn {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 3rem);
+        z-index: 100;
+    }
+    #quiz-screen {
+        padding-bottom: 6rem; /* Space for fixed button */
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        max-width: 950px;
+        padding: 3.5rem;
+    }
+    #question-text {
+        font-size: 4rem !important;
+    }
+    .large-char {
+        font-size: 22rem;
+    }
+}
+

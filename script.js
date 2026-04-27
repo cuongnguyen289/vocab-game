@@ -1906,6 +1906,30 @@ function skipSpeechQuestion() {
     };
 }
 
+function showFullscreenReveal(char, callback) {
+    const overlay = document.getElementById('character-reveal-overlay');
+    const display = document.getElementById('large-char-display');
+    if (!overlay || !display) return callback ? callback() : null;
+
+    display.textContent = char;
+    overlay.classList.remove('shrinking');
+    overlay.classList.add('active');
+    
+    // Play audio immediately
+    playAudio(char, 'zh-CN');
+
+    // After 5 seconds, start shrinking
+    setTimeout(() => {
+        overlay.classList.add('shrinking');
+        
+        // Final cleanup after shrink transition
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            if (callback) callback();
+        }, 600);
+    }, 5000);
+}
+
 function stripPinyinTones(pinyin) {
     if (!pinyin) return "";
     return pinyin.normalize("NFD")
@@ -2053,7 +2077,7 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
-
+// Track extra activity for typing practice
 let typingAudioTimeout = null;
 const typingInputEl = document.getElementById('pinyin-input');
 if (typingInputEl) {
@@ -2085,23 +2109,32 @@ if (exampleClozeInputEl) {
             this.style.backgroundColor = '#dcfce7';
             this.style.borderColor = '#10b981';
             
-            // Reveal full sentence and pinyin
-            const exampleSentence = document.getElementById('example-sentence');
-            const examplePinyin = document.getElementById('example-pinyin');
-            if (exampleSentence) exampleSentence.textContent = qData.cau;
-            if (examplePinyin) {
-                examplePinyin.textContent = qData.cauPinyin !== '-' ? qData.cauPinyin : "";
-                examplePinyin.style.display = (qData.cauPinyin !== '-') ? 'block' : 'none';
-            }
-            
-            // Track extra activity for typing practice
             const today = getTodayDate();
             activityHistory[today] = (activityHistory[today] || 0) + 1;
             saveActivityData();
-            
-            // Show Next Button
-            const nextBtn = document.getElementById('next-btn');
-            if (nextBtn) nextBtn.classList.remove('hidden');
+
+            showFullscreenReveal(qData.hanTu, () => {
+                const exampleSentence = document.getElementById('example-sentence');
+                const examplePinyin = document.getElementById('example-pinyin');
+                
+                if (exampleSentence) {
+                    const highlighted = qData.cau.replace(qData.hanTu, `<span class="completed-word">${qData.hanTu}</span>`);
+                    exampleSentence.innerHTML = highlighted;
+                }
+                
+                if (examplePinyin) {
+                    examplePinyin.textContent = qData.cauPinyin !== '-' ? qData.cauPinyin : "";
+                    examplePinyin.style.display = (qData.cauPinyin !== '-') ? 'block' : 'none';
+                }
+
+                const nextBtn = document.getElementById('next-btn');
+                if (nextBtn) {
+                    nextBtn.classList.remove('hidden');
+                    if (window.innerWidth < 600) {
+                        nextBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            });
         }
     });
 }
