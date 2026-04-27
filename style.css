@@ -1019,3 +1019,12 @@ p {
     }
 }
 
+.app-version {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    opacity: 0.6;
+    margin-top: 1rem;
+    font-weight: 500;
+}
+
