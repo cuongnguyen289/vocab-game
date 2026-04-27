@@ -1462,7 +1462,7 @@ function checkSentenceAnswer() {
         saveActivityData();
 
         sentenceAnswerZone.classList.add('correct');
-        score += 20;
+        score += 40;
         scoreEl.textContent = score;
         
         if (gameMode === 'sentence-target') {
@@ -1501,7 +1501,7 @@ function checkAnswer(selected, correct, selectedBtn) {
         saveActivityData();
 
         selectedBtn.classList.add('correct');
-        score += (gameMode === 'time-attack') ? Math.round(timeRemaining * 5) : 10;
+        score += (gameMode === 'time-attack') ? (50 + Math.round(timeRemaining * 5)) : 10;
         scoreEl.textContent = score;
 
         if (currentQuestionMode === 'viet-han') {
@@ -2304,7 +2304,7 @@ function checkTypingAnswer() {
 
         inputEl.style.backgroundColor = '#dcfce7';
         inputEl.style.borderColor = '#10b981';
-        score += 15;
+        score += 30;
         scoreEl.textContent = score;
         
         // Progress update (similar to normal learning)
