@@ -369,6 +369,60 @@ function saveSRSData() {
     saveProgressToCloud();
 }
 
+/**
+ * Unified SRS (Spaced Repetition System) Update Logic
+ */
+function updateSRSProgress(hanTu, isCorrect, mode = "") {
+    if (!hanTu) return;
+    
+    if (!wordStats[hanTu]) {
+        wordStats[hanTu] = {
+            level: 1,
+            lastReview: Date.now(),
+            nextReview: Date.now() + (1 * 60 * 60 * 1000),
+            interval: 1,
+            repCount: 0
+        };
+    }
+    
+    const stats = wordStats[hanTu];
+    const now = Date.now();
+    
+    if (isCorrect) {
+        if (stats.level <= 2) {
+            const boost = (mode === 'time-attack') ? 0.3 : 1.0;
+            stats.repCount = (stats.repCount || 0) + boost;
+            
+            if (stats.repCount >= 3) {
+                stats.level = 3;
+                stats.interval = 1;
+                stats.repCount = 0;
+                stats.nextReview = now + (1 * 24 * 60 * 60 * 1000);
+            } else {
+                stats.nextReview = now + (4 * 60 * 60 * 1000);
+            }
+        } else {
+            if (mode === 'time-attack') {
+                stats.level = Math.min(stats.level + 0.1, 5);
+            } else {
+                stats.level = Math.min(stats.level + 1, 5);
+                stats.interval = (stats.interval || 1) * 2;
+                stats.nextReview = now + (stats.interval * 24 * 60 * 60 * 1000);
+            }
+        }
+    } else {
+        stats.level = 1;
+        stats.repCount = 0;
+        stats.interval = 1;
+        stats.nextReview = now;
+    }
+    
+    stats.lastReview = now;
+    wordStats[hanTu] = stats;
+    saveSRSData();
+    updateProgressUI();
+}
+
 // Initialize
 window.addEventListener('DOMContentLoaded', () => {
     fetchVocabulary();
@@ -1466,53 +1520,16 @@ function checkAnswer(selected, correct, selectedBtn) {
             }
         }
         
+        // Correct Answer
         if (gameMode === 'review') {
-            // SRS Update for Correct answer
-            const stats = wordStats[qData.hanTu] || { level: 1, interval: 1, repCount: 0 };
-            
-            if (stats.level <= 2) {
-                // Use repCount for level 1-2
-                stats.repCount = (stats.repCount || 0) + 1;
-                if (stats.repCount >= 5) {
-                    stats.level = 3;
-                    stats.interval = 1;
-                    stats.nextReview = Date.now() + (1 * 24 * 60 * 60 * 1000);
-                } else {
-                    // Level stays 1-2, review again soon
-                    stats.nextReview = Date.now() + (1 * 60 * 60 * 1000); // 1 hour for rep logic or just immediate? 
-                    // Let's keep it in "Ôn ngay" (Lvl 1-2 always in reviewReady)
-                }
-            } else {
-                // Classic SRS for level 3-5
-                stats.level = Math.min(stats.level + 1, 5);
-                stats.interval = (stats.interval || 1) * 2;
-                stats.lastReview = Date.now();
-                stats.nextReview = Date.now() + (stats.interval * 24 * 60 * 60 * 1000);
-            }
-            
-            wordStats[qData.hanTu] = stats;
-            saveSRSData();
+            updateSRSProgress(qData.hanTu, true);
         } else if (gameMode === 'time-attack') {
-            // Time attack correct: smaller level boost or no boost?
-            // Let's give a small boost to level if it's below 5
-            const stats = wordStats[qData.hanTu] || { level: 3, interval: 7 };
-            if (stats.level < 5) stats.level += 0.2; // slow progress in time attack
-            wordStats[qData.hanTu] = stats;
-            saveSRSData();
+            updateSRSProgress(qData.hanTu, true, 'time-attack');
         } else if (gameMode.includes('sentence')) {
             // No progress change for sentence mcq
         } else {
-            // New word (Level 0) learned for the first time
-            if (!wordStats[qData.hanTu]) {
-                wordStats[qData.hanTu] = {
-                    level: 1,
-                    lastReview: Date.now(),
-                    nextReview: Date.now() + (1 * 60 * 60 * 1000), // First review in 1 hour
-                    interval: 1,
-                    repCount: 1 // First correct count
-                };
-                saveSRSData();
-            }
+            // Normal mode correct (Level 0 -> 1)
+            updateSRSProgress(qData.hanTu, true);
         }
         
         if(qData.cau && qData.cau !== '-' && !gameMode.includes('sentence')) {
@@ -1562,25 +1579,14 @@ function checkAnswer(selected, correct, selectedBtn) {
             correctStreak = 0;
             // Penalty: reduce time and level
             timeRemaining = Math.max(timeRemaining - 2, 0);
-            const stats = wordStats[qData.hanTu] || { level: 3 };
-            stats.level = Math.max(stats.level - 1, 1); 
-            wordStats[qData.hanTu] = stats;
-            saveSRSData();
+            updateSRSProgress(qData.hanTu, false, 'time-attack');
             
             if (timeRemaining <= 0) {
                 handleTimeOut();
                 return;
             }
         } else if (!gameMode.includes('sentence')) {
-            // SRS Update for Wrong answer in Review/Normal mode
-            const stats = wordStats[qData.hanTu] || { level: 1, interval: 1, repCount: 0 };
-            stats.level = 1;
-            stats.repCount = 0; // Reset repetition count
-            stats.interval = 1;
-            stats.lastReview = Date.now();
-            stats.nextReview = Date.now(); 
-            wordStats[qData.hanTu] = stats;
-            saveSRSData();
+            updateSRSProgress(qData.hanTu, false);
             
             // Loop wrong words in review mode until correctly answered
             if (gameMode === 'review') {
