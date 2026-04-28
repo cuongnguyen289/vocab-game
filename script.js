@@ -60,7 +60,8 @@ let vocabHistory = {}; // Daily Level Stats: { "YYYY-MM-DD": { 1, 2, 3, 4, 5 } }
 let activityHistory = {}; // Daily Correct Count: { "YYYY-MM-DD": count }
 let recognition; // SpeechRecognition instance
 let isRecording = false;
-let currentAudio = null; // Global reference to currently playing Audio object
+let currentAudio = new Audio(); // Persistent audio object to avoid autoplay blocks
+currentAudio.crossOrigin = "anonymous";
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
@@ -90,41 +91,43 @@ const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
 
 // Nguồn âm thanh Google Dịch và Dự phòng bằng trình duyệt
 window.playAudio = function(text, lang, rate = 1.0) {
-    if (!text || lang !== 'zh-CN') return; // Chỉ đọc tiếng Trung
-    console.log(`[Audio] Playing (Youdao): "${text}" at rate ${rate}`);
+    if (!text || text === '-' || lang !== 'zh-CN') return; // Chỉ đọc tiếng Trung và bỏ qua dữ liệu rác
+    
+    const cleanText = text.replace(/[\(\)（）\-\_]/g, '').trim();
+    if (!cleanText) return;
 
-    // 1. Dừng giọng đọc hệ thống (Speech Synthesis)
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-    }
+    console.log(`[Audio] Playing: "${cleanText}" at rate ${rate}`);
 
-    // 2. Dừng đối tượng Audio đang phát (nếu có)
+    // 1. Dừng mọi âm thanh đang phát
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     if (currentAudio) {
         currentAudio.pause();
         currentAudio.currentTime = 0;
-        currentAudio = null;
     }
 
-    // URL Youdao hỗ trợ cả từ và câu dài (NetEase)
-    const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=zh`;
-    
-    currentAudio = new Audio(url);
+    // 2. Cấu hình nguồn phát (Ưu tiên Youdao, sau đó là Google TTS dự phòng)
+    const youdaoUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
+    const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob`;
+
+    currentAudio.src = youdaoUrl;
     currentAudio.playbackRate = rate; 
     
     currentAudio.play().catch(e => {
-        console.warn("Lỗi tải Audio Youdao, chuyển sang fallback trình duyệt:", e);
-        if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'zh-CN';
-            utterance.rate = rate;
-            
-            // Tìm giọng đọc Trung Quốc trong máy
-            const voices = window.speechSynthesis.getVoices();
-            let targetVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
-            if (targetVoice) utterance.voice = targetVoice;
-            
-            window.speechSynthesis.speak(utterance);
-        }
+        console.warn("Youdao failed, trying Google TTS:", e);
+        currentAudio.src = googleUrl;
+        currentAudio.play().catch(e2 => {
+            console.warn("Google TTS failed, falling back to System Speech:", e2);
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'zh-CN';
+                utterance.rate = rate;
+                
+                const voices = window.speechSynthesis.getVoices();
+                let targetVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
+                if (targetVoice) utterance.voice = targetVoice;
+                window.speechSynthesis.speak(utterance);
+            }
+        });
     });
 };
 const counterEl = document.getElementById('question-counter');
