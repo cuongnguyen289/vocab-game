@@ -283,6 +283,16 @@ p {
 
 .audio-btn:hover { background: #e2e8f0; }
 
+.audio-btn.slow {
+    background: #ecfdf5;
+    border: 1px solid #10b981;
+    margin-left: 2px;
+}
+
+.audio-btn.slow:hover {
+    background: #d1fae5;
+}
+
 /* Options */
 .mode-buttons {
     display: grid;

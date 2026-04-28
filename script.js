@@ -60,6 +60,7 @@ let vocabHistory = {}; // Daily Level Stats: { "YYYY-MM-DD": { 1, 2, 3, 4, 5 } }
 let activityHistory = {}; // Daily Correct Count: { "YYYY-MM-DD": count }
 let recognition; // SpeechRecognition instance
 let isRecording = false;
+let currentAudio = null; // Global reference to currently playing Audio object
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
@@ -83,51 +84,43 @@ const examplePinyin = document.getElementById('example-pinyin');
 const exampleMeaning = document.getElementById('example-meaning');
 const scoreEl = document.getElementById('score-display');
 const playAudioBtn = document.getElementById('play-audio-btn');
+const playAudioSlowBtn = document.getElementById('play-audio-slow-btn');
 const playExAudioBtn = document.getElementById('play-ex-audio-btn');
+const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
 
 // Nguồn âm thanh Google Dịch và Dự phòng bằng trình duyệt
-window.playAudio = function(text, lang) {
-    if (!text) return;
-    console.log(`[Audio] Playing: "${text}" (${lang})`);
+window.playAudio = function(text, lang, rate = 1.0) {
+    if (!text || lang !== 'zh-CN') return; // Chỉ đọc tiếng Trung
+    console.log(`[Audio] Playing (Youdao): "${text}" at rate ${rate}`);
 
-    // Cancel any ongoing speech to prevent repeats/overlaps
+    // 1. Dừng giọng đọc hệ thống (Speech Synthesis)
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
     }
 
-    // Kích hoạt load giọng đọc trước (đối với một số trình duyệt)
-    if ('speechSynthesis' in window && window.speechSynthesis.getVoices().length === 0) {
-        window.speechSynthesis.getVoices();
+    // 2. Dừng đối tượng Audio đang phát (nếu có)
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        currentAudio = null;
     }
 
-    // Tiếng Trung: Ưu tiên API của từ điển Youdao cực kỳ nhanh và không bị CORS block trên điện thoại
-    // Tiếng Việt: Giữ nguyên truy xuất qua Google Translate
-    let url = "";
-    if (lang === 'zh-CN') {
-        url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=zh`;
-    } else {
-        url = `https://translate.googleapis.com/translate_tts?client=dict-chrome-ex&ie=UTF-8&tl=vi&q=${encodeURIComponent(text)}`;
-    }
+    // URL Youdao hỗ trợ cả từ và câu dài (NetEase)
+    const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=zh`;
     
-    const audio = new Audio(url);
+    currentAudio = new Audio(url);
+    currentAudio.playbackRate = rate; 
     
-    // Thử phát qua URL, nếu lỗi mạng/CORS/Block thì tự động dùng giọng của trình duyệt
-    audio.play().catch(e => {
-        console.warn("Lỗi tải Audio, tự động chuyển sang giọng mặc định của máy:", e);
+    currentAudio.play().catch(e => {
+        console.warn("Lỗi tải Audio Youdao, chuyển sang fallback trình duyệt:", e);
         if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); // Hủy các âm trước đó chưa đọc xong
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = lang;
-            utterance.rate = 0.9;
+            utterance.lang = 'zh-CN';
+            utterance.rate = rate;
             
-            // Tìm giọng đọc sát nhất với ngôn ngữ
+            // Tìm giọng đọc Trung Quốc trong máy
             const voices = window.speechSynthesis.getVoices();
-            let targetVoice = voices.find(v => v.lang === lang || v.lang.replace('_', '-') === lang);
-            if (!targetVoice && lang === 'zh-CN') {
-                targetVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
-            } else if (!targetVoice && lang === 'vi') {
-                targetVoice = voices.find(v => v.lang.toLowerCase().includes('vi'));
-            }
+            let targetVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
             if (targetVoice) utterance.voice = targetVoice;
             
             window.speechSynthesis.speak(utterance);
@@ -1030,15 +1023,20 @@ function loadQuestion() {
         
         if (isVietnamese || gameMode === 'type-pinyin' || gameMode === 'type-hanzi' || gameMode === 'sentence-cloze') {
             playAudioBtn.classList.add('hidden');
+            playAudioSlowBtn.classList.add('hidden');
         } else {
             playAudioBtn.classList.remove('hidden');
+            playAudioSlowBtn.classList.remove('hidden');
             let langCode = 'zh-CN';
             const triggerAudio = () => playAudio(questionTextMain, langCode);
+            const triggerAudioSlow = () => playAudio(questionTextMain, langCode, 0.65);
             playAudioBtn.onclick = triggerAudio;
+            playAudioSlowBtn.onclick = triggerAudioSlow;
             setTimeout(triggerAudio, 300);
         }
     } else {
         playAudioBtn.classList.add('hidden');
+        playAudioSlowBtn.classList.add('hidden');
     }
 
     if (gameMode === 'speech-challenge') {
@@ -1526,7 +1524,9 @@ function checkAnswer(selected, correct, selectedBtn) {
         if (currentQuestionMode === 'viet-han') {
             playAudio(qData.hanTu, 'zh-CN');
             playAudioBtn.classList.remove('hidden');
+            playAudioSlowBtn.classList.remove('hidden');
             playAudioBtn.onclick = () => playAudio(qData.hanTu, 'zh-CN');
+            playAudioSlowBtn.onclick = () => playAudio(qData.hanTu, 'zh-CN', 0.65);
         }
 
         if (gameMode === 'time-attack') {
@@ -1585,6 +1585,10 @@ function checkAnswer(selected, correct, selectedBtn) {
             if (playExAudioBtn) {
                 playExAudioBtn.onclick = () => playAudio(qData.cau, 'zh-CN');
                 playExAudioBtn.classList.remove('hidden');
+                if (playExAudioSlowBtn) {
+                    playExAudioSlowBtn.onclick = () => playAudio(qData.cau, 'zh-CN', 0.65);
+                    playExAudioSlowBtn.classList.remove('hidden');
+                }
             }
             exampleContainer.classList.remove('hidden');
         } else {
@@ -2351,9 +2355,14 @@ function checkTypingAnswer() {
             examplePinyin.style.display = (qData.cauPinyin !== '-') ? 'block' : 'none';
             exampleMeaning.style.display = (qData.cauNghia !== '-') ? 'block' : 'none';
             const playExAudioBtn = document.getElementById('play-ex-audio-btn');
+            const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
             if (playExAudioBtn) {
                 playExAudioBtn.onclick = () => playAudio(qData.cau, 'zh-CN');
                 playExAudioBtn.classList.remove('hidden');
+                if (playExAudioSlowBtn) {
+                    playExAudioSlowBtn.onclick = () => playAudio(qData.cau, 'zh-CN', 0.65);
+                    playExAudioSlowBtn.classList.remove('hidden');
+                }
             }
             exampleContainer.classList.remove('hidden');
         }
@@ -2454,8 +2463,13 @@ if (exampleClozeInputEl) {
                 const examplePinyin = document.getElementById('example-pinyin');
                 
                 if (exampleSentence) {
-                    const highlighted = qData.cau.replace(qData.hanTu, `<span class="completed-word">${qData.hanTu}</span>`);
+                    const highlighted = qData.cau.replace(qData.hanTu, `<span class="completed-word" style="color: var(--secondary-color); font-weight: 800;">${qData.hanTu}</span>`);
                     exampleSentence.innerHTML = highlighted;
+                    
+                    // Phát âm toàn bộ câu sau khi đã hoàn thiện
+                    setTimeout(() => {
+                        playAudio(qData.cau, 'zh-CN');
+                    }, 300);
                 }
                 
                 if (examplePinyin) {
