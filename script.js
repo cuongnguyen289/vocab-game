@@ -92,16 +92,32 @@ const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
 window.playAudio = function(text, lang, rate = 1.0) {
     if (!text || text === '-' || lang !== 'zh-CN') return;
     
-    // Dừng âm thanh đang phát để không bị chồng chéo
+    // Clean text: remove placeholders like (___), ___, or brackets that might confuse the API
+    let cleanText = text.replace(/（___）/g, '')
+                        .replace(/（/g, '(')
+                        .replace(/）/g, ')')
+                        .replace(/___/g, '')
+                        .replace(/\(.*?\)/g, '') // Remove (pinyin) or other bracketed info
+                        .replace(/['"]/g, '')
+                        .trim();
+
+    if (!cleanText || cleanText.length === 0) {
+        console.warn("Skipping audio: clean text is empty.");
+        return;
+    }
+    
+    // Stop overlapping sounds
     if (globalAudio) {
         globalAudio.pause();
         globalAudio = null;
     }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
-    console.log("Playing:", text);
+    console.log("Playing (Original):", text);
+    console.log("Playing (Clean):", cleanText);
 
-    const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=zh`;
+    // Using Youdao as primary source
+    const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
     const audio = new Audio(url);
     audio.playbackRate = rate;
     globalAudio = audio;
@@ -109,12 +125,15 @@ window.playAudio = function(text, lang, rate = 1.0) {
     const playPromise = audio.play();
     if (playPromise !== undefined) {
         playPromise.catch(error => {
-            console.warn("Youdao failed, trying SpeechSynthesis fallback.");
+            console.error("Audio Play Error:", error);
+            console.warn("Trying SpeechSynthesis fallback...");
+            
             if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
+                const utterance = new SpeechSynthesisUtterance(cleanText);
                 utterance.lang = 'zh-CN';
                 utterance.rate = rate;
-                window.speechSynthesis.speak(utterance);
+                // Add a small delay for fallback
+                setTimeout(() => window.speechSynthesis.speak(utterance), 100);
             }
         });
     }
@@ -1537,7 +1556,10 @@ function checkAnswer(selected, correct, selectedBtn) {
         } else if (gameMode === 'time-attack') {
             updateSRSProgress(qData.hanTu, true, 'time-attack');
         } else if (gameMode.includes('sentence')) {
-            // No progress change for sentence mcq
+            // Auto-play the sentence audio when answered correctly in sentence modes
+            if (qData.cau) {
+                playAudio(qData.cau, 'zh-CN');
+            }
         } else {
             // Normal mode correct (Level 0 -> 1)
             updateSRSProgress(qData.hanTu, true);
@@ -1583,6 +1605,11 @@ function checkAnswer(selected, correct, selectedBtn) {
                 }
             }
             exampleContainer.classList.remove('hidden');
+            
+            // Auto-play example sentence immediately when it appears
+            setTimeout(() => {
+                playAudio(qData.cau, 'zh-CN');
+            }, 600); // Small delay to allow the word audio to be heard first
         } else {
             const clozeContainer = document.getElementById('example-cloze-container');
             if (clozeContainer) clozeContainer.classList.add('hidden');
