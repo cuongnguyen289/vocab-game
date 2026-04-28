@@ -2273,7 +2273,7 @@ function showFullscreenReveal(char, pinyin, callback) {
     // Play audio immediately
     playAudio(char, 'zh-CN');
 
-    // After 5 seconds, start shrinking
+    // After 2 seconds, start shrinking (Faster response)
     setTimeout(() => {
         overlay.classList.add('shrinking');
         
@@ -2281,8 +2281,8 @@ function showFullscreenReveal(char, pinyin, callback) {
         setTimeout(() => {
             overlay.classList.remove('active');
             if (callback) callback();
-        }, 600);
-    }, 5000);
+        }, 500); // Match CSS transition duration
+    }, 2000);
 }
 function stripPinyinTones(pinyin) {
     if (!pinyin) return "";
@@ -2467,9 +2467,7 @@ if (exampleClozeInputEl) {
                     exampleSentence.innerHTML = highlighted;
                     
                     // Phát âm toàn bộ câu sau khi đã hoàn thiện
-                    setTimeout(() => {
-                        playAudio(qData.cau, 'zh-CN');
-                    }, 300);
+                    playAudio(qData.cau, 'zh-CN');
                 }
                 
                 if (examplePinyin) {
