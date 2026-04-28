@@ -60,7 +60,7 @@ let vocabHistory = {}; // Daily Level Stats: { "YYYY-MM-DD": { 1, 2, 3, 4, 5 } }
 let activityHistory = {}; // Daily Correct Count: { "YYYY-MM-DD": count }
 let recognition; // SpeechRecognition instance
 let isRecording = false;
-let currentAudio = null; // Global reference to the current audio object
+let globalAudio = null; // To manage and stop overlapping sounds
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
@@ -90,52 +90,34 @@ const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
 
 // Nguồn âm thanh Google Dịch và Dự phòng bằng trình duyệt
 window.playAudio = function(text, lang, rate = 1.0) {
-    if (!text || text === '-' || lang !== 'zh-CN') return; 
+    if (!text || text === '-' || lang !== 'zh-CN') return;
     
-    const cleanText = text.replace(/[\(\)（）\-\_]/g, '').trim();
-    if (!cleanText) return;
-
-    console.log(`[Audio] Request: "${cleanText}" at rate ${rate}`);
-
-    // 1. Dừng mọi âm thanh đang phát
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.src = ""; // Clear source to stop download
+    // Dừng âm thanh đang phát để không bị chồng chéo
+    if (globalAudio) {
+        globalAudio.pause();
+        globalAudio = null;
     }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
-    // 2. Cấu hình nguồn phát
-    const youdaoUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
-    const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob`;
+    console.log("Playing:", text);
 
-    const playWithFallback = (url, nextFallback) => {
-        const audio = new Audio(url);
-        audio.playbackRate = rate;
-        currentAudio = audio;
+    const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(text)}&le=zh`;
+    const audio = new Audio(url);
+    audio.playbackRate = rate;
+    globalAudio = audio;
 
-        audio.play().catch(e => {
-            console.warn(`Audio source failed: ${url}`, e);
-            if (nextFallback) {
-                nextFallback();
-            } else {
-                // Cuối cùng là dùng giọng đọc hệ thống
-                if ('speechSynthesis' in window) {
-                    const utterance = new SpeechSynthesisUtterance(cleanText);
-                    utterance.lang = 'zh-CN';
-                    utterance.rate = rate;
-                    const voices = window.speechSynthesis.getVoices();
-                    let targetVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
-                    if (targetVoice) utterance.voice = targetVoice;
-                    window.speechSynthesis.speak(utterance);
-                }
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+        playPromise.catch(error => {
+            console.warn("Youdao failed, trying SpeechSynthesis fallback.");
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = rate;
+                window.speechSynthesis.speak(utterance);
             }
         });
-    };
-
-    // Bắt đầu chuỗi fallback
-    playWithFallback(youdaoUrl, () => {
-        playWithFallback(googleUrl, null);
-    });
+    }
 };
 const counterEl = document.getElementById('question-counter');
 const nextBtn = document.getElementById('next-btn');
