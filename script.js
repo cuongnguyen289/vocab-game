@@ -61,6 +61,7 @@ let activityHistory = {}; // Daily Correct Count: { "YYYY-MM-DD": count }
 let recognition; // SpeechRecognition instance
 let isRecording = false;
 let globalAudio = null; // To manage and stop overlapping sounds
+let audioTimeout = null; // To manage automatic playback timers
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
@@ -88,7 +89,7 @@ const playAudioSlowBtn = document.getElementById('play-audio-slow-btn');
 const playExAudioBtn = document.getElementById('play-ex-audio-btn');
 const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
 
-// Nguồn âm thanh Google Dịch và Dự phòng bằng trình duyệt
+// Nguồn âm thanh TTS với đa dạng dự phòng (Youdao -> Google -> Web Speech API)
 window.playAudio = function(text, lang, rate = 1.0) {
     if (!text || text === '-' || lang !== 'zh-CN') return;
     
@@ -106,38 +107,65 @@ window.playAudio = function(text, lang, rate = 1.0) {
         return;
     }
     
-    // Stop overlapping sounds
+    // Stop overlapping sounds and clear pending timers
+    if (audioTimeout) {
+        clearTimeout(audioTimeout);
+        audioTimeout = null;
+    }
     if (globalAudio) {
         globalAudio.pause();
         globalAudio = null;
     }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
-    console.log("Playing (Original):", text);
-    console.log("Playing (Clean):", cleanText);
+    console.groupCollapsed(`🔊 Audio: "${cleanText.substring(0, 20)}${cleanText.length > 20 ? '...' : ''}"`);
+    console.log("Original Text:", text);
+    console.log("Language:", lang);
+    console.log("Rate:", rate);
 
-    // Using Youdao as primary source
+    const tryWebSpeech = () => {
+        if (!('speechSynthesis' in window)) return;
+        console.log("Using Web Speech API fallback...");
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'zh-CN';
+        utterance.rate = rate;
+        
+        // Find a Chinese voice
+        const voices = window.speechSynthesis.getVoices();
+        const zhVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
+        if (zhVoice) utterance.voice = zhVoice;
+        
+        window.speechSynthesis.speak(utterance);
+    };
+
+    const tryGoogleTranslate = () => {
+        console.log("Using Google Translate TTS fallback...");
+        const gUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=${rate < 1 ? 0.5 : 1}`;
+        const gAudio = new Audio(gUrl);
+        gAudio.playbackRate = 1.0; // Google API speed is controlled via param
+        globalAudio = gAudio;
+        gAudio.play().catch(e => {
+            console.error("Google TTS failed:", e);
+            tryWebSpeech();
+        });
+    };
+
+    // Primary: Youdao
     const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
     const audio = new Audio(url);
     audio.playbackRate = rate;
     globalAudio = audio;
 
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-        playPromise.catch(error => {
-            console.error("Audio Play Error:", error);
-            console.warn("Trying SpeechSynthesis fallback...");
-            
-            if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(cleanText);
-                utterance.lang = 'zh-CN';
-                utterance.rate = rate;
-                // Add a small delay for fallback
-                setTimeout(() => window.speechSynthesis.speak(utterance), 100);
-            }
-        });
-    }
+    audio.play().then(() => {
+        console.log("Played via Youdao API");
+        console.groupEnd();
+    }).catch(error => {
+        console.warn("Youdao API failed:", error.message);
+        tryGoogleTranslate();
+        console.groupEnd();
+    });
 };
+
 const counterEl = document.getElementById('question-counter');
 const nextBtn = document.getElementById('next-btn');
 
@@ -909,6 +937,10 @@ function setupQuiz() {
 }
 
 function loadQuestion() {
+    if (audioTimeout) {
+        clearTimeout(audioTimeout);
+        audioTimeout = null;
+    }
     nextBtn.classList.add('hidden');
     explanationContainer.classList.add('hidden');
     exampleContainer.classList.add('hidden');
@@ -1043,7 +1075,7 @@ function loadQuestion() {
             const triggerAudioSlow = () => playAudio(questionTextMain, langCode, 0.65);
             playAudioBtn.onclick = triggerAudio;
             playAudioSlowBtn.onclick = triggerAudioSlow;
-            setTimeout(triggerAudio, 300);
+            audioTimeout = setTimeout(triggerAudio, 100);
         }
     } else {
         playAudioBtn.classList.add('hidden');
@@ -1533,11 +1565,14 @@ function checkAnswer(selected, correct, selectedBtn) {
         scoreEl.textContent = score;
 
         if (currentQuestionMode === 'viet-han') {
-            playAudio(qData.hanTu, 'zh-CN');
-            playAudioBtn.classList.remove('hidden');
-            playAudioSlowBtn.classList.remove('hidden');
-            playAudioBtn.onclick = () => playAudio(qData.hanTu, 'zh-CN');
-            playAudioSlowBtn.onclick = () => playAudio(qData.hanTu, 'zh-CN', 0.65);
+            const audioText = qData.hanTu || qData.cau;
+            if (audioText) {
+                playAudio(audioText, 'zh-CN');
+                playAudioBtn.classList.remove('hidden');
+                playAudioSlowBtn.classList.remove('hidden');
+                playAudioBtn.onclick = () => playAudio(audioText, 'zh-CN');
+                playAudioSlowBtn.onclick = () => playAudio(audioText, 'zh-CN', 0.65);
+            }
         }
 
         if (gameMode === 'time-attack') {
@@ -1598,18 +1633,27 @@ function checkAnswer(selected, correct, selectedBtn) {
             
             if (playExAudioBtn) {
                 playExAudioBtn.onclick = () => playAudio(qData.cau, 'zh-CN');
-                playExAudioBtn.classList.remove('hidden');
-                if (playExAudioSlowBtn) {
-                    playExAudioSlowBtn.onclick = () => playAudio(qData.cau, 'zh-CN', 0.65);
-                    playExAudioSlowBtn.classList.remove('hidden');
+                if (requireCloze) {
+                    playExAudioBtn.classList.add('hidden');
+                    if (playExAudioSlowBtn) playExAudioSlowBtn.classList.add('hidden');
+                } else {
+                    playExAudioBtn.classList.remove('hidden');
+                    if (playExAudioSlowBtn) {
+                        playExAudioSlowBtn.onclick = () => playAudio(qData.cau, 'zh-CN', 0.65);
+                        playExAudioSlowBtn.classList.remove('hidden');
+                    }
                 }
             }
             exampleContainer.classList.remove('hidden');
             
-            // Auto-play example sentence immediately when it appears
-            setTimeout(() => {
-                playAudio(qData.cau, 'zh-CN');
-            }, 600); // Small delay to allow the word audio to be heard first
+            // Auto-play example sentence immediately when it appears (only if no cloze is required)
+            if (!requireCloze) {
+                if (audioTimeout) clearTimeout(audioTimeout);
+                audioTimeout = setTimeout(() => {
+                    playAudio(qData.cau, 'zh-CN');
+                    audioTimeout = null;
+                }, 600); // Small delay to allow the word audio to be heard first
+            }
         } else {
             const clozeContainer = document.getElementById('example-cloze-container');
             if (clozeContainer) clozeContainer.classList.add('hidden');
@@ -2485,6 +2529,12 @@ if (exampleClozeInputEl) {
                     const highlighted = qData.cau.replace(qData.hanTu, `<span class="completed-word" style="color: var(--secondary-color); font-weight: 800;">${qData.hanTu}</span>`);
                     exampleSentence.innerHTML = highlighted;
                     
+                    // Hiện nút loa sau khi đã hoàn thành
+                    const playExAudioBtn = document.getElementById('play-ex-audio-btn');
+                    const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
+                    if (playExAudioBtn) playExAudioBtn.classList.remove('hidden');
+                    if (playExAudioSlowBtn) playExAudioSlowBtn.classList.remove('hidden');
+
                     // Phát âm toàn bộ câu sau khi đã hoàn thiện
                     playAudio(qData.cau, 'zh-CN');
                 }
