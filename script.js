@@ -62,6 +62,7 @@ let recognition; // SpeechRecognition instance
 let isRecording = false;
 let globalAudio = null; // To manage and stop overlapping sounds
 let audioTimeout = null; // To manage automatic playback timers
+let currentAudioId = 0; // To track the latest audio request and prevent race conditions
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
@@ -93,6 +94,8 @@ const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
 window.playAudio = function(text, lang, rate = 1.0) {
     if (!text || text === '-' || lang !== 'zh-CN') return;
     
+    const requestId = ++currentAudioId;
+
     // Clean text: remove placeholders like (___), ___, or brackets that might confuse the API
     let cleanText = text.replace(/（___）/g, '')
                         .replace(/（/g, '(')
@@ -118,13 +121,15 @@ window.playAudio = function(text, lang, rate = 1.0) {
     }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
-    console.groupCollapsed(`🔊 Audio: "${cleanText.substring(0, 20)}${cleanText.length > 20 ? '...' : ''}"`);
+    console.groupCollapsed(`🔊 Audio [${requestId}]: "${cleanText.substring(0, 20)}${cleanText.length > 20 ? '...' : ''}"`);
     console.log("Original Text:", text);
     console.log("Language:", lang);
     console.log("Rate:", rate);
 
     const tryWebSpeech = () => {
+        if (requestId !== currentAudioId) return; // Obsolete request
         if (!('speechSynthesis' in window)) return;
+        
         console.log("Using Web Speech API fallback...");
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'zh-CN';
@@ -139,14 +144,18 @@ window.playAudio = function(text, lang, rate = 1.0) {
     };
 
     const tryGoogleTranslate = () => {
+        if (requestId !== currentAudioId) return; // Obsolete request
+        
         console.log("Using Google Translate TTS fallback...");
         const gUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=${rate < 1 ? 0.5 : 1}`;
         const gAudio = new Audio(gUrl);
-        gAudio.playbackRate = 1.0; // Google API speed is controlled via param
+        gAudio.playbackRate = 1.0; 
         globalAudio = gAudio;
         gAudio.play().catch(e => {
-            console.error("Google TTS failed:", e);
-            tryWebSpeech();
+            if (requestId === currentAudioId) {
+                console.error("Google TTS failed:", e);
+                tryWebSpeech();
+            }
         });
     };
 
@@ -157,11 +166,18 @@ window.playAudio = function(text, lang, rate = 1.0) {
     globalAudio = audio;
 
     audio.play().then(() => {
-        console.log("Played via Youdao API");
+        if (requestId === currentAudioId) {
+            console.log("Played via Youdao API");
+        }
         console.groupEnd();
     }).catch(error => {
-        console.warn("Youdao API failed:", error.message);
-        tryGoogleTranslate();
+        if (requestId === currentAudioId) {
+            console.warn("Youdao API failed:", error.message);
+            tryGoogleTranslate();
+        } else {
+            // This is likely an AbortError from a newer request calling .pause()
+            console.log("Youdao request aborted by newer request.");
+        }
         console.groupEnd();
     });
 };
@@ -1529,6 +1545,17 @@ function checkSentenceAnswer() {
             pinyinEl.textContent = qData.cauPinyin || "";
             pinyinEl.style.display = qData.cauPinyin ? 'block' : 'none';
         }
+        
+        // Unhide and update audio buttons for replay
+        if (playAudioBtn) {
+            playAudioBtn.classList.remove('hidden');
+            playAudioBtn.onclick = () => playAudio(qData.cau, 'zh-CN');
+        }
+        if (playAudioSlowBtn) {
+            playAudioSlowBtn.classList.remove('hidden');
+            playAudioSlowBtn.onclick = () => playAudio(qData.cau, 'zh-CN', 0.65);
+        }
+        
         playAudio(qData.cau, 'zh-CN');
 
         checkSentenceBtn.disabled = true;
@@ -1591,8 +1618,16 @@ function checkAnswer(selected, correct, selectedBtn) {
         } else if (gameMode === 'time-attack') {
             updateSRSProgress(qData.hanTu, true, 'time-attack');
         } else if (gameMode.includes('sentence')) {
-            // Auto-play the sentence audio when answered correctly in sentence modes
+            // Auto-play and show buttons for replay in sentence modes
             if (qData.cau) {
+                if (playAudioBtn) {
+                    playAudioBtn.classList.remove('hidden');
+                    playAudioBtn.onclick = () => playAudio(qData.cau, 'zh-CN');
+                }
+                if (playAudioSlowBtn) {
+                    playAudioSlowBtn.classList.remove('hidden');
+                    playAudioSlowBtn.onclick = () => playAudio(qData.cau, 'zh-CN', 0.65);
+                }
                 playAudio(qData.cau, 'zh-CN');
             }
         } else {
@@ -2334,18 +2369,21 @@ function showFullscreenReveal(char, pinyin, callback) {
     overlay.classList.add('active');
     
     // Play audio immediately
-    playAudio(char, 'zh-CN');
+    // Play audio immediately (unless we're about to play a sentence in the callback)
+    if (!callback) {
+        playAudio(char, 'zh-CN');
+    }
 
-    // After 2 seconds, start shrinking (Faster response)
+    // Sau 1.2 giây, bắt đầu thu nhỏ và gọi callback ngay để phát âm thanh câu (tránh bị trình duyệt chặn)
     setTimeout(() => {
         overlay.classList.add('shrinking');
+        if (callback) callback();
         
-        // Final cleanup after shrink transition
+        // Dọn dẹp sau khi hoạt ảnh kết thúc
         setTimeout(() => {
             overlay.classList.remove('active');
-            if (callback) callback();
-        }, 500); // Match CSS transition duration
-    }, 2000);
+        }, 400); 
+    }, 1200);
 }
 function stripPinyinTones(pinyin) {
     if (!pinyin) return "";
@@ -2529,13 +2567,20 @@ if (exampleClozeInputEl) {
                     const highlighted = qData.cau.replace(qData.hanTu, `<span class="completed-word" style="color: var(--secondary-color); font-weight: 800;">${qData.hanTu}</span>`);
                     exampleSentence.innerHTML = highlighted;
                     
-                    // Hiện nút loa sau khi đã hoàn thành
+                    // Hiện nút loa sau khi đã hoàn thành và gán sự kiện
                     const playExAudioBtn = document.getElementById('play-ex-audio-btn');
                     const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
-                    if (playExAudioBtn) playExAudioBtn.classList.remove('hidden');
-                    if (playExAudioSlowBtn) playExAudioSlowBtn.classList.remove('hidden');
-
+                    if (playExAudioBtn) {
+                        playExAudioBtn.classList.remove('hidden');
+                        playExAudioBtn.onclick = () => playAudio(qData.cau, 'zh-CN');
+                    }
+                    if (playExAudioSlowBtn) {
+                        playExAudioSlowBtn.classList.remove('hidden');
+                        playExAudioSlowBtn.onclick = () => playAudio(qData.cau, 'zh-CN', 0.65);
+                    }
+                    
                     // Phát âm toàn bộ câu sau khi đã hoàn thiện
+                    console.log("Auto-playing example sentence after cloze completion...");
                     playAudio(qData.cau, 'zh-CN');
                 }
                 
