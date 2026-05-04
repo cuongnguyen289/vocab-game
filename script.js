@@ -83,6 +83,7 @@ const exampleMeaning = document.getElementById('example-meaning');
 const scoreEl = document.getElementById('score-display');
 const playAudioBtn = document.getElementById('play-audio-btn');
 const playAudioSlowBtn = document.getElementById('play-audio-slow-btn');
+const downloadAudioBtn = document.getElementById('download-audio-btn');
 const playExAudioBtn = document.getElementById('play-ex-audio-btn');
 const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
 
@@ -98,7 +99,10 @@ window.playAudio = function(text, lang, rate = 1.0) {
                         .replace(/）/g, ')')
                         .replace(/___/g, '')
                         .replace(/\(.*?\)/g, '') // Remove (pinyin) or other bracketed info
+                        .replace(/\[.*?\]/g, '') // Remove [info]
+                        .replace(/<.*?>/g, '') // Remove HTML tags
                         .replace(/['"]/g, '')
+                        .replace(/[/\\|]/g, ' ') // Replace slashes with space
                         .trim();
 
     if (!cleanText || cleanText.length === 0) {
@@ -131,12 +135,19 @@ window.playAudio = function(text, lang, rate = 1.0) {
         utterance.lang = 'zh-CN';
         utterance.rate = rate;
         
-        // Find a Chinese voice
-        const voices = window.speechSynthesis.getVoices();
-        const zhVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
-        if (zhVoice) utterance.voice = zhVoice;
-        
-        window.speechSynthesis.speak(utterance);
+        const setVoiceAndSpeak = () => {
+            const voices = window.speechSynthesis.getVoices();
+            const zhVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
+            if (zhVoice) utterance.voice = zhVoice;
+            window.speechSynthesis.speak(utterance);
+        };
+
+        if (window.speechSynthesis.getVoices().length === 0) {
+            window.speechSynthesis.onvoiceschanged = setVoiceAndSpeak;
+            setTimeout(setVoiceAndSpeak, 1000); // safety fallback
+        } else {
+            setVoiceAndSpeak();
+        }
     };
 
     const tryGoogleTranslate = () => {
@@ -155,27 +166,67 @@ window.playAudio = function(text, lang, rate = 1.0) {
         });
     };
 
-    // Primary: Youdao
-    const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
-    const audio = new Audio(url);
-    audio.playbackRate = rate;
-    globalAudio = audio;
+    // Youdao fails frequently with 500 errors on sentences or texts with punctuation
+    const isLongOrSentence = cleanText.length > 15 || /[，。！？,.!?]/.test(cleanText);
 
-    audio.play().then(() => {
-        if (requestId === currentAudioId) {
-            console.log("Played via Youdao API");
-        }
-        console.groupEnd();
-    }).catch(error => {
-        if (requestId === currentAudioId) {
-            console.warn("Youdao API failed:", error.message);
-            tryGoogleTranslate();
-        } else {
-            // This is likely an AbortError from a newer request calling .pause()
-            console.log("Youdao request aborted by newer request.");
-        }
-        console.groupEnd();
-    });
+    if (isLongOrSentence) {
+        tryGoogleTranslate();
+    } else {
+        // Primary: Youdao
+        const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
+        const audio = new Audio(url);
+        audio.playbackRate = rate;
+        globalAudio = audio;
+
+        audio.play().then(() => {
+            if (requestId === currentAudioId) {
+                console.log("Played via Youdao API");
+            }
+            console.groupEnd();
+        }).catch(error => {
+            if (requestId === currentAudioId) {
+                console.warn("Youdao API failed:", error.message);
+                tryGoogleTranslate();
+            } else {
+                console.log("Youdao request aborted by newer request.");
+            }
+            console.groupEnd();
+        });
+    }
+};
+
+window.downloadAudioFile = function(text, lang) {
+    if (!text || text === '-' || lang !== 'zh-CN') return;
+    
+    let cleanText = text.replace(/（___）/g, '')
+                        .replace(/（/g, '(')
+                        .replace(/）/g, ')')
+                        .replace(/___/g, '')
+                        .replace(/\(.*?\)/g, '')
+                        .replace(/\[.*?\]/g, '')
+                        .replace(/<.*?>/g, '')
+                        .replace(/['"]/g, '')
+                        .replace(/[/\\|]/g, ' ')
+                        .trim();
+
+    if (!cleanText || cleanText.length === 0) return;
+
+    const isLongOrSentence = cleanText.length > 15 || /[，。！？,.!?]/.test(cleanText);
+
+    let url = '';
+    if (isLongOrSentence) {
+        url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=1`;
+    } else {
+        url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
+    }
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = "_blank";
+    a.download = `${cleanText.replace(/[\\/:*?"<>|]/g, "")}.mp3`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 };
 
 const counterEl = document.getElementById('question-counter');
@@ -990,19 +1041,23 @@ function loadQuestion() {
         if (isVietnamese || gameMode === 'type-pinyin' || gameMode === 'type-hanzi' || gameMode === 'sentence-cloze') {
             playAudioBtn.classList.add('hidden');
             playAudioSlowBtn.classList.add('hidden');
+            if(downloadAudioBtn) downloadAudioBtn.classList.add('hidden');
         } else {
             playAudioBtn.classList.remove('hidden');
             playAudioSlowBtn.classList.remove('hidden');
+            if(downloadAudioBtn) downloadAudioBtn.classList.remove('hidden');
             let langCode = 'zh-CN';
             const triggerAudio = () => playAudio(questionTextMain, langCode);
             const triggerAudioSlow = () => playAudio(questionTextMain, langCode, 0.65);
             playAudioBtn.onclick = triggerAudio;
             playAudioSlowBtn.onclick = triggerAudioSlow;
+            if(downloadAudioBtn) downloadAudioBtn.onclick = () => downloadAudioFile(questionTextMain, langCode);
             audioTimeout = setTimeout(triggerAudio, 100);
         }
     } else {
         playAudioBtn.classList.add('hidden');
         playAudioSlowBtn.classList.add('hidden');
+        if(downloadAudioBtn) downloadAudioBtn.classList.add('hidden');
     }
 
     if (gameMode === 'speech-challenge') {
