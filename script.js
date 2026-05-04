@@ -88,6 +88,8 @@ const playExAudioBtn = document.getElementById('play-ex-audio-btn');
 const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
 
 let currentLevelFilter = null;
+let lives = 3;
+let survivalScore = 0;
 
 // Nguồn âm thanh TTS với đa dạng dự phòng (Youdao -> Google -> Web Speech API)
 window.playAudio = function(text, lang, rate = 1.0) {
@@ -570,6 +572,10 @@ function renderDynamicButtons(stats) {
         spBtn.style.backgroundColor = stats[5] > 0 ? '#8b5cf6' : '';
         container.appendChild(spBtn);
 
+        const svBtn = createBtn('primary-btn', '🔥', 'Sinh Tồn (Hệ Máu)', () => startGame('survival'), !dataLoaded);
+        svBtn.style.background = 'linear-gradient(135deg, #ef4444, #b91c1c)';
+        container.appendChild(svBtn);
+
     } else if (currentSetupMode === 'sentence') {
         container.appendChild(createBtn('primary-btn', '🇨🇳', 'Trung ➡️ Việt', () => startGame('sentence-trung-viet'), !sentenceLoaded));
     } else if (currentSetupMode === 'builder') {
@@ -894,6 +900,14 @@ function setupQuiz() {
             showScreen('vocab');
             return;
         }
+    } else if (gameMode === 'survival') {
+        // Survival mode uses studied words primarily, or all if not many studied
+        availableWords = vocabulary; 
+        lives = 3;
+        survivalScore = 0;
+        maxTimeLimit = 8; // Start with 8s
+        document.getElementById('hearts-container').classList.remove('hidden');
+        updateHeartsUI();
     } else {
         // Normal Learning Mode (Hán->Việt, Việt->Hán)
         // If currentLevelFilter is set, use it. Otherwise default to Level 0 (New words)
@@ -1270,12 +1284,23 @@ function handleTimeOut() {
     
     buttons.forEach(btn => btn.disabled = true);
     
-    if (gameMode === 'time-attack') {
+    if (gameMode === 'time-attack' || gameMode === 'survival') {
         correctStreak = 0;
-        // penalty: reset streak, reduce level
-        const stats = wordStats[qData.hanTu] || { level: 3 };
-        stats.level = Math.max(stats.level - 1, 1);
-        saveSRSData();
+        if (gameMode === 'survival') {
+            lives--;
+            updateHeartsUI();
+            document.body.classList.add('shake');
+            setTimeout(() => document.body.classList.remove('shake'), 500);
+            if (lives <= 0) {
+                alert("Hết thời gian và hết mạng! Trò chơi kết thúc.");
+                endGame();
+                return;
+            }
+        } else {
+            const stats = wordStats[qData.hanTu] || { level: 3 };
+            stats.level = Math.max(stats.level - 1, 1);
+            saveSRSData();
+        }
     } else if (!gameMode.includes('sentence')) {
         updateSRSProgress(qData.hanTu, false, gameMode);
     }
@@ -1572,6 +1597,17 @@ function checkAnswer(selected, correct, selectedBtn) {
         score += (gameMode === 'time-attack') ? (50 + Math.round(timeRemaining * 5)) : 10;
         scoreEl.textContent = score;
 
+        if (gameMode === 'time-attack' || gameMode === 'survival') {
+            correctStreak++;
+            // Reward: add time
+            let bonus = gameMode === 'survival' ? 1.0 : 1.5;
+            timeRemaining = Math.min(timeRemaining + bonus, maxTimeLimit);
+            
+            if (correctStreak % 5 === 0) {
+                maxTimeLimit = Math.max(maxTimeLimit - 0.4, 1.5);
+            }
+        }
+
         if (currentQuestionMode === 'viet-han') {
             const audioText = qData.hanTu || qData.cau;
             if (audioText) {
@@ -1586,14 +1622,6 @@ function checkAnswer(selected, correct, selectedBtn) {
             }
         }
 
-        if (gameMode === 'time-attack') {
-            correctStreak++;
-            timeRemaining = Math.min(timeRemaining + 1.5, maxTimeLimit);
-            if (correctStreak % 5 === 0) {
-                maxTimeLimit = Math.max(maxTimeLimit - 0.5, 1.5);
-            }
-        }
-        
         // Progress Tracking
         if (!gameMode.includes('sentence')) {
             updateSRSProgress(qData.hanTu, true, gameMode);
@@ -1714,6 +1742,16 @@ function checkAnswer(selected, correct, selectedBtn) {
     
     // Always show next button
     nextBtn.classList.remove('hidden');
+}
+
+function updateHeartsUI() {
+    const container = document.getElementById('hearts-container');
+    if (!container) return;
+    let heartHtml = '';
+    for (let i = 0; i < 3; i++) {
+        heartHtml += i < lives ? '❤️' : '🖤';
+    }
+    container.innerHTML = heartHtml;
 }
 
 nextBtn.onclick = () => {
