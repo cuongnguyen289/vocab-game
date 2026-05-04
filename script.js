@@ -87,6 +87,8 @@ const downloadAudioBtn = document.getElementById('download-audio-btn');
 const playExAudioBtn = document.getElementById('play-ex-audio-btn');
 const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
 
+let currentLevelFilter = null;
+
 // Nguồn âm thanh TTS với đa dạng dự phòng (Youdao -> Google -> Web Speech API)
 window.playAudio = function(text, lang, rate = 1.0) {
     if (!text || text === '-' || lang !== 'zh-CN') return;
@@ -539,6 +541,16 @@ function renderDynamicButtons(stats) {
         const rBtn = createBtn('warning-btn', reviewReady.length === 0 ? '⏳' : '🔥', reviewReady.length === 0 ? 'Đã ôn hết' : `Ôn Ngay (${reviewReady.length})`, () => startGame('review'), !dataLoaded || reviewReady.length === 0);
         container.appendChild(rBtn);
 
+        // Nút luyện tập theo từng Level (1-5)
+        for (let l = 1; l <= 5; l++) {
+            if (stats[l] > 0) {
+                const lBtn = createBtn('secondary-btn', '📚', `Level ${l} (${stats[l]})`, () => startGame('review', l), !dataLoaded);
+                lBtn.style.border = '1px solid var(--primary-color)';
+                lBtn.style.backgroundColor = '#f0f9ff';
+                container.appendChild(lBtn);
+            }
+        }
+
         const level3Plus = (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
         const tpBtn = createBtn('warning-btn', level3Plus > 0 ? '⌨️' : '🔒', level3Plus > 0 ? `Gõ Pinyin (${level3Plus})` : 'Gõ Pinyin (Cần Lvl 3)', () => startGame('type-pinyin'), !dataLoaded || level3Plus === 0);
         tpBtn.style.backgroundColor = level3Plus > 0 ? '#0ea5e9' : '';
@@ -784,8 +796,9 @@ function parseCSV(csvText) {
     }
 }
 
-async function startGame(mode) {
+async function startGame(mode, levelFilter = null) {
     gameMode = mode;
+    currentLevelFilter = levelFilter;
     
     if (vocabulary.length >= 4) {
         setupQuiz();
@@ -804,21 +817,28 @@ function setupQuiz() {
         const now = Date.now();
         availableWords = vocabulary.filter(v => {
             const s = wordStats[v.hanTu];
+            if (currentLevelFilter !== null) {
+                const lvl = s ? Math.floor(s.level) : 0;
+                return lvl === currentLevelFilter;
+            }
             // Mode Ôn ngay: ONLY words that have been studied (lvl > 0) AND are due
             return s && s.level > 0 && s.nextReview <= now;
         });
         
-        // Sort: Lvl 1-2 first, then others by proximity to review time
-        availableWords.sort((a, b) => {
-            const sa = wordStats[a.hanTu];
-            const sb = wordStats[b.hanTu];
-            if (sa.level <= 2 && sb.level > 2) return -1;
-            if (sb.level <= 2 && sa.level > 2) return 1;
-            return sa.nextReview - sb.nextReview;
-        });
+        if (currentLevelFilter === null) {
+            // Sort: Lvl 1-2 first, then others by proximity to review time
+            availableWords.sort((a, b) => {
+                const sa = wordStats[a.hanTu];
+                const sb = wordStats[b.hanTu];
+                if (sa.level <= 2 && sb.level > 2) return -1;
+                if (sb.level <= 2 && sa.level > 2) return 1;
+                return sa.nextReview - sb.nextReview;
+            });
+        }
 
         if (availableWords.length === 0) {
-            alert("Tuyệt vời! Bạn không có từ vựng nào cần ôn tập hôm nay. Quay lại học bài mới nhé!");
+            const msg = currentLevelFilter !== null ? `Bạn chưa có từ nào ở Level ${currentLevelFilter}!` : "Tuyệt vời! Bạn không có từ vựng nào cần ôn tập hôm nay. Quay lại học bài mới nhé!";
+            alert(msg);
             showScreen('vocab');
             return;
         }
@@ -875,8 +895,18 @@ function setupQuiz() {
             return;
         }
     } else {
-        // Normal Learning Mode (Hán->Việt, Việt->Hán) ONLY covers Level 0 (New Words)
-        availableWords = vocabulary.filter(v => !wordStats[v.hanTu]);
+        // Normal Learning Mode (Hán->Việt, Việt->Hán)
+        // If currentLevelFilter is set, use it. Otherwise default to Level 0 (New words)
+        if (currentLevelFilter !== null) {
+            availableWords = vocabulary.filter(v => {
+                const s = wordStats[v.hanTu];
+                const lvl = s ? Math.floor(s.level) : 0;
+                return lvl === currentLevelFilter;
+            });
+        } else {
+            availableWords = vocabulary.filter(v => !wordStats[v.hanTu]);
+        }
+
         if (availableWords.length === 0) {
             alert("Tuyệt vời! Bạn đã vượt qua đợt 1 (làm quen) với tất cả từ vựng trong danh sách hiện tại. Hãy chuyển sang chế độ [Ôn Ngay] để củng cố trí nhớ nhé!");
             showScreen('vocab');
@@ -1548,44 +1578,28 @@ function checkAnswer(selected, correct, selectedBtn) {
                 playAudio(audioText, 'zh-CN');
                 playAudioBtn.classList.remove('hidden');
                 playAudioSlowBtn.classList.remove('hidden');
+                if(downloadAudioBtn) downloadAudioBtn.classList.remove('hidden');
+                
                 playAudioBtn.onclick = () => playAudio(audioText, 'zh-CN');
                 playAudioSlowBtn.onclick = () => playAudio(audioText, 'zh-CN', 0.65);
+                if(downloadAudioBtn) downloadAudioBtn.onclick = () => downloadAudioFile(audioText, 'zh-CN');
             }
         }
 
         if (gameMode === 'time-attack') {
             correctStreak++;
-            // Reward: add time (cap at initial max)
             timeRemaining = Math.min(timeRemaining + 1.5, maxTimeLimit);
-            // Higher difficulty: Every 5 correct, reduce max time by 0.5s (min 1.5s)
             if (correctStreak % 5 === 0) {
                 maxTimeLimit = Math.max(maxTimeLimit - 0.5, 1.5);
             }
         }
         
-        // Correct Answer
-        if (gameMode === 'review') {
-            updateSRSProgress(qData.hanTu, true);
-        } else if (gameMode === 'time-attack') {
-            updateSRSProgress(qData.hanTu, true, 'time-attack');
-        } else if (gameMode.includes('sentence')) {
-            // Auto-play and show buttons for replay in sentence modes
-            if (qData.cau) {
-                if (playAudioBtn) {
-                    playAudioBtn.classList.remove('hidden');
-                    playAudioBtn.onclick = () => playAudio(qData.cau, 'zh-CN');
-                }
-                if (playAudioSlowBtn) {
-                    playAudioSlowBtn.classList.remove('hidden');
-                    playAudioSlowBtn.onclick = () => playAudio(qData.cau, 'zh-CN', 0.65);
-                }
-                playAudio(qData.cau, 'zh-CN');
-            }
-        } else {
-            // Normal mode correct (Level 0 -> 1)
-            updateSRSProgress(qData.hanTu, true);
+        // Progress Tracking
+        if (!gameMode.includes('sentence')) {
+            updateSRSProgress(qData.hanTu, true, gameMode);
         }
-        
+
+        // Show Example Sentence if available
         if(qData.cau && qData.cau !== '-' && !gameMode.includes('sentence')) {
             const hasWord = qData.cau.includes(qData.hanTu);
             const clozeContainer = document.getElementById('example-cloze-container');
@@ -1593,7 +1607,7 @@ function checkAnswer(selected, correct, selectedBtn) {
             if (hasWord) {
                 requireCloze = true;
                 exampleSentence.innerHTML = qData.cau.replace(qData.hanTu, "（___）");
-                examplePinyin.style.display = 'none'; // Hide pinyin until solved
+                examplePinyin.style.display = 'none'; 
                 exampleMeaning.textContent = qData.cauNghia !== '-' ? qData.cauNghia : "";
                 exampleMeaning.style.display = (qData.cauNghia !== '-') ? 'block' : 'none';
                 
@@ -1632,35 +1646,27 @@ function checkAnswer(selected, correct, selectedBtn) {
             }
             exampleContainer.classList.remove('hidden');
             
-            // Auto-play example sentence immediately when it appears (only if no cloze is required)
             if (!requireCloze) {
                 if (audioTimeout) clearTimeout(audioTimeout);
                 audioTimeout = setTimeout(() => {
                     playAudio(qData.cau, 'zh-CN');
                     audioTimeout = null;
-                }, 600); // Small delay to allow the word audio to be heard first
+                }, 600); 
             }
-        } else {
-            const clozeContainer = document.getElementById('example-cloze-container');
-            if (clozeContainer) clozeContainer.classList.add('hidden');
         }
     } else {
         selectedBtn.classList.add('wrong');
         
         if (gameMode === 'time-attack') {
             correctStreak = 0;
-            // Penalty: reduce time and level
             timeRemaining = Math.max(timeRemaining - 2, 0);
             updateSRSProgress(qData.hanTu, false, 'time-attack');
-            
             if (timeRemaining <= 0) {
                 handleTimeOut();
                 return;
             }
         } else if (!gameMode.includes('sentence')) {
-            updateSRSProgress(qData.hanTu, false);
-            
-            // Loop wrong words in review mode until correctly answered
+            updateSRSProgress(qData.hanTu, false, gameMode);
             if (gameMode === 'review') {
                 currentQuestions.push(qData);
             }
@@ -1706,9 +1712,8 @@ function checkAnswer(selected, correct, selectedBtn) {
         });
     }
     
-    if (!requireCloze) {
-        nextBtn.classList.remove('hidden');
-    }
+    // Always show next button
+    nextBtn.classList.remove('hidden');
 }
 
 nextBtn.onclick = () => {
