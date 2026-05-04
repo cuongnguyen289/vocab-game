@@ -53,8 +53,6 @@ let correctStreak = 0;
 // User variables
 let currentUser = "guest";
 let wordStats = {}; // SRS Data: { "hanTu": { level, lastReview, nextReview, interval } }
-let learnedWords = []; // For backward compatibility / display
-let wrongWords = [];   // For backward compatibility / display
 let globalCharMap = {}; // Map of { "char": "pinyin" } for fallbacks
 let vocabHistory = {}; // Daily Level Stats: { "YYYY-MM-DD": { 1, 2, 3, 4, 5 } }
 let activityHistory = {}; // Daily Correct Count: { "YYYY-MM-DD": count }
@@ -66,9 +64,7 @@ let currentAudioId = 0; // To track the latest audio request and prevent race co
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
-    vocabStart: document.getElementById('vocab-start-screen'),
-    sentenceStart: document.getElementById('sentence-start-screen'),
-    builderStart: document.getElementById('builder-start-screen'),
+    gameSetup: document.getElementById('game-setup-screen'),
     loading: document.getElementById('loading-screen'),
     quiz: document.getElementById('quiz-screen'),
     history: document.getElementById('history-screen'),
@@ -223,118 +219,8 @@ function updateProgressUI() {
         if (topEls[l]) topEls[l].textContent = stats[l];
     }
     
-    // Disable Review button if no words need review, otherwise wait for vocabulary load
-    const now = Date.now();
-    const reviewReady = Object.keys(wordStats).filter(hanTu => {
-        const s = wordStats[hanTu];
-        // Now: ONLY words with Level > 0 that are due for review
-        return s.level > 0 && s.nextReview <= now;
-    });
-
-    if (reviewBtn && vocabulary.length > 0) {
-        if (reviewReady.length === 0) {
-            reviewBtn.disabled = true;
-            reviewBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⏳</span><span>Đã ôn hết</span></div>';
-        } else {
-            reviewBtn.disabled = false;
-            reviewBtn.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔥</span><span>Ôn Ngay (' + reviewReady.length + ')</span></div>';
-        }
-    }
-
-    // Update Sentence Stats
-    const sentenceTotalEl = document.getElementById('sentence-total-count');
-    if (sentenceTotalEl) {
-        sentenceTotalEl.textContent = sentencePool.length;
-    }
-    
-    // Update Builder Stats
-    const builderTotalEl = document.getElementById('builder-total-count');
-    if (builderTotalEl) {
-        builderTotalEl.textContent = sentencePool.length;
-    }
-
-    // Update Level Stats Container (the bottom one)
-    const levelStatsContainer = document.getElementById('level-stats-container');
-    if (levelStatsContainer && Object.keys(wordStats).length >= 0) {
-        levelStatsContainer.style.display = 'block';
-        // Update the sub-stats (L0, L1-2, L3-4, L5)
-        const lvl0 = stats[0];
-        const lvl12 = stats[1] + stats[2];
-        const lvl34 = stats[3] + stats[4];
-        const lvl5 = stats[5];
-
-        const lvl0El = document.getElementById('lvl-0-count');
-        const lvl12El = document.getElementById('lvl-1-2-count');
-        const lvl34El = document.getElementById('lvl-3-4-count');
-        const lvl5El = document.getElementById('lvl-5-count');
-
-        if (lvl0El) lvl0El.textContent = lvl0;
-        if (lvl12El) lvl12El.textContent = lvl12;
-        if (lvl34El) lvl34El.textContent = lvl34;
-        if (lvl5El) lvl5El.textContent = lvl5;
-
-        // Show/Hide Level 5 suggestions
-        const lvl5Sugg = document.getElementById('level-5-suggestions');
-        if (lvl5Sugg) {
-            lvl5Sugg.style.display = (lvl5 > 0) ? 'block' : 'none';
-        }
-
-        // Update Time Attack Button State & Text
-        const timeAttackBtn = document.getElementById('time-attack-btn');
-        const reqMsg = document.getElementById('time-attack-req-msg');
-        const level3PlusCount = stats['3-4'] + stats['5'];
-        if (timeAttackBtn) {
-            if (level3PlusCount < 5) {
-                timeAttackBtn.disabled = true;
-                timeAttackBtn.title = "Cần ít nhất 5 từ đã qua 5 lần ôn tập (Level 3+)";
-                timeAttackBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Phản xạ (${level3PlusCount}/5)</span></div>`;
-                if (reqMsg) {
-                    reqMsg.innerHTML = `<i>Bạn cần hoàn thành ít nhất 5 từ Level 1-2 (mỗi từ đúng 5 lần) để mở khóa Phản xạ nhanh. Hiện tại: ${level3PlusCount}/5</i>`;
-                    reqMsg.style.display = 'block';
-                }
-            } else {
-                timeAttackBtn.disabled = false;
-                timeAttackBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⚡</span><span>Phản Xạ Nhanh</span></div>`;
-                if (reqMsg) reqMsg.style.display = 'none';
-            }
-        }
-
-        // Update Speech Challenge Button
-        const speechBtn = document.getElementById('speech-challenge-btn');
-        if (speechBtn) {
-            if (stats[5] > 0) {
-                speechBtn.disabled = false;
-                speechBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🎙️</span><span>Luyện Phát Âm (${stats[5]})</span></div>`;
-            } else {
-                speechBtn.disabled = true;
-                speechBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Luyện Phát Âm (Cần Lvl 5)</span></div>`;
-            }
-        }
-
-        const typePinyinBtn = document.getElementById('type-pinyin-btn');
-        if (typePinyinBtn) {
-            const level3Plus = (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
-            if (level3Plus > 0) {
-                typePinyinBtn.disabled = false;
-                typePinyinBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">⌨️</span><span>Gõ Pinyin (${level3Plus})</span></div>`;
-            } else {
-                typePinyinBtn.disabled = true;
-                typePinyinBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Gõ Pinyin (Cần Lvl 3)</span></div>`;
-            }
-        }
-
-        const typeHanziBtn = document.getElementById('type-hanzi-btn');
-        if (typeHanziBtn) {
-            const level4Plus = (stats[4] || 0) + (stats[5] || 0);
-            if (level4Plus > 0) {
-                typeHanziBtn.disabled = false;
-                typeHanziBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">✍️</span><span>Gõ Mặt Chữ (${level4Plus})</span></div>`;
-            } else {
-                typeHanziBtn.disabled = true;
-                typeHanziBtn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🔒</span><span>Gõ Mặt Chữ (Cần Lvl 4)</span></div>`;
-            }
-        }
-    }
+    // Render các nút chức năng động
+    renderDynamicButtons(stats);
 
     // Update Grammar Topics Dropdown in Builder Screen
     const topicSelect = document.getElementById('grammar-topic-select');
@@ -361,59 +247,37 @@ function updateProgressUI() {
 
 function resetProgress() {
     if(confirm(`Bạn có chắc chắn muốn xóa tiến độ để học lại từ đầu không?`)) {
-        learnedWords = [];
-        wrongWords = [];
         wordStats = {};
+        localStorage.removeItem(`${currentUser}_vocab_stats`);
         localStorage.removeItem(`${currentUser}_vocab_learned`);
         localStorage.removeItem(`${currentUser}_vocab_wrong`);
-        localStorage.removeItem(`${currentUser}_vocab_stats`);
         updateProgressUI();
     }
 }
 
-function migrateToSRS() {
-    // Migrate from old learnedWords to SRS
+function migrateToSRS(legacyLearned, legacyWrong) {
     let modified = false;
-    learnedWords.forEach(hanTu => {
-        if (!wordStats[hanTu]) {
-            wordStats[hanTu] = {
-                level: 3, 
-                lastReview: Date.now(),
-                nextReview: Date.now() + (3 * 24 * 60 * 60 * 1000), // Default 3 days
-                interval: 3,
-                repCount: 5 // Mastery
-            };
-            modified = true;
-        }
-    });
-    // Migrate from wrongWords
-    wrongWords.forEach(hanTu => {
-        if (!wordStats[hanTu]) {
-            wordStats[hanTu] = {
-                level: 1,
-                lastReview: Date.now(),
-                nextReview: Date.now(), // Review now
-                interval: 1,
-                repCount: 0
-            };
-            modified = true;
-        }
-    });
-
-    if (modified) {
-        saveSRSData();
+    if (legacyLearned) {
+        legacyLearned.forEach(hanTu => {
+            if (!wordStats[hanTu]) {
+                wordStats[hanTu] = { level: 3, lastReview: Date.now(), nextReview: Date.now() + (3 * 24 * 60 * 60 * 1000), interval: 3, repCount: 5 };
+                modified = true;
+            }
+        });
     }
+    if (legacyWrong) {
+        legacyWrong.forEach(hanTu => {
+            if (!wordStats[hanTu]) {
+                wordStats[hanTu] = { level: 1, lastReview: Date.now(), nextReview: Date.now(), interval: 1, repCount: 0 };
+                modified = true;
+            }
+        });
+    }
+    if (modified) saveSRSData();
 }
 
 function saveSRSData() {
     localStorage.setItem(`${currentUser}_vocab_stats`, JSON.stringify(wordStats));
-    // Also update legacy arrays for UI consistency
-    learnedWords = Object.keys(wordStats).filter(k => wordStats[k].level >= 3);
-    localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
-    const now = Date.now();
-    wrongWords = Object.keys(wordStats).filter(k => wordStats[k].level > 0 && wordStats[k].nextReview <= now);
-    localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
-    
     saveProgressToCloud();
 }
 
@@ -523,43 +387,146 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function loadProgressFromLocal() {
     try {
-        learnedWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_learned`)) || [];
-        wrongWords = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`)) || [];
+        let legacyLearned = JSON.parse(localStorage.getItem(`${currentUser}_vocab_learned`));
+        let legacyWrong = JSON.parse(localStorage.getItem(`${currentUser}_vocab_wrong`));
         wordStats = JSON.parse(localStorage.getItem(`${currentUser}_vocab_stats`)) || {};
         vocabHistory = JSON.parse(localStorage.getItem(`${currentUser}_vocab_history`)) || {};
         activityHistory = JSON.parse(localStorage.getItem(`${currentUser}_activity_history`)) || {};
-        migrateToSRS();
+        migrateToSRS(legacyLearned, legacyWrong);
+        
+        if (legacyLearned || legacyWrong) {
+            localStorage.removeItem(`${currentUser}_vocab_learned`);
+            localStorage.removeItem(`${currentUser}_vocab_wrong`);
+        }
         updateProgressUI();
     } catch(e) {
         console.warn("Error loading progress", e);
     }
 }
 
+let currentSetupMode = 'vocab';
+
 function showScreen(screenName) {
-    if(screenName === 'vocabStart' || screenName === 'sentenceStart' || screenName === 'main-menu') {
+    if(screenName === 'gameSetup' || screenName === 'main-menu') {
         updateProgressUI();
     }
     Object.values(screens).forEach(s => {
         if(s) s.classList.remove('active');
     });
     
-    // Handle specific screen logic mapping to IDs
     if(screenName === 'main-menu') screens.mainMenu.classList.add('active');
-    else if(screenName === 'vocab') screens.vocabStart.classList.add('active');
-    else if(screenName === 'sentence') screens.sentenceStart.classList.add('active');
-    else if(screenName === 'builder') screens.builderStart.classList.add('active');
+    else if(screenName === 'gameSetup') screens.gameSetup.classList.add('active');
     else if(screenName === 'history-screen') screens.history.classList.add('active');
     else if(screens[screenName]) screens[screenName].classList.add('active');
 }
 
 function goToStartScreen(mode) {
+    currentSetupMode = mode;
+    const headerIcon = document.getElementById('setup-header-icon');
+    const headerTitle = document.getElementById('setup-header-title');
+    const headerDesc = document.getElementById('setup-header-desc');
+    const levelStats = document.getElementById('level-stats-container');
+    const sentenceStats = document.getElementById('sentence-stats-container');
+    const grammarGroup = document.getElementById('grammar-selection-group');
+    
     if(mode === 'vocab') {
-        showScreen('vocab');
+        headerIcon.textContent = '🐼';
+        headerTitle.textContent = 'Học Từ Vựng';
+        headerDesc.textContent = 'Nâng cao vốn từ vựng mỗi ngày!';
+        levelStats.style.display = 'block';
+        sentenceStats.style.display = 'none';
+        grammarGroup.classList.add('hidden');
     } else if (mode === 'sentence') {
-        showScreen('sentence');
+        headerIcon.textContent = '🗣️';
+        headerTitle.textContent = 'Luyện Câu';
+        headerDesc.textContent = 'Luyện phản xạ giao tiếp!';
+        levelStats.style.display = 'none';
+        sentenceStats.style.display = 'block';
+        grammarGroup.classList.add('hidden');
     } else if (mode === 'builder') {
-        showScreen('builder');
+        headerIcon.textContent = '🧩';
+        headerTitle.textContent = 'Ghép Câu';
+        headerDesc.textContent = 'Luyện ngữ pháp và cấu trúc câu!';
+        levelStats.style.display = 'none';
+        sentenceStats.style.display = 'block';
+        grammarGroup.classList.remove('hidden');
     }
+    
+    renderDynamicButtons();
+    showScreen('gameSetup');
+}
+
+function renderDynamicButtons(stats) {
+    const container = document.getElementById('dynamic-mode-buttons');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (!stats) {
+        stats = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        Object.values(wordStats).forEach(s => {
+            let lvl = Math.floor(s.level || 0);
+            if (lvl < 0) lvl = 0; if (lvl > 5) lvl = 5;
+            stats[lvl]++;
+        });
+        const studiedCount = Object.keys(wordStats).length;
+        stats[0] += Math.max(0, vocabulary.length - studiedCount);
+    }
+
+    const now = Date.now();
+    const reviewReady = Object.keys(wordStats).filter(hanTu => {
+        const s = wordStats[hanTu];
+        return s.level > 0 && s.nextReview <= now;
+    });
+
+    const dataLoaded = vocabulary.length >= 4;
+    const sentenceLoaded = sentencePool.length >= 2;
+
+    if (currentSetupMode === 'vocab') {
+        container.appendChild(createBtn('primary-btn', '🇨🇳', 'Hán ➡️ Việt', () => startGame('han-viet'), !dataLoaded));
+        container.appendChild(createBtn('secondary-btn', '🇻🇳', 'Việt ➡️ Hán', () => startGame('viet-han'), !dataLoaded));
+        
+        const rBtn = createBtn('warning-btn', reviewReady.length === 0 ? '⏳' : '🔥', reviewReady.length === 0 ? 'Đã ôn hết' : `Ôn Ngay (${reviewReady.length})`, () => startGame('review'), !dataLoaded || reviewReady.length === 0);
+        container.appendChild(rBtn);
+
+        const level3Plus = (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
+        const tpBtn = createBtn('warning-btn', level3Plus > 0 ? '⌨️' : '🔒', level3Plus > 0 ? `Gõ Pinyin (${level3Plus})` : 'Gõ Pinyin (Cần Lvl 3)', () => startGame('type-pinyin'), !dataLoaded || level3Plus === 0);
+        tpBtn.style.backgroundColor = level3Plus > 0 ? '#0ea5e9' : '';
+        container.appendChild(tpBtn);
+
+        const level4Plus = (stats[4] || 0) + (stats[5] || 0);
+        const thBtn = createBtn('warning-btn', level4Plus > 0 ? '✍️' : '🔒', level4Plus > 0 ? `Gõ Mặt Chữ (${level4Plus})` : 'Gõ Mặt Chữ (Cần Lvl 4)', () => startGame('type-hanzi'), !dataLoaded || level4Plus === 0);
+        thBtn.style.backgroundColor = level4Plus > 0 ? '#14b8a6' : '';
+        container.appendChild(thBtn);
+
+        const level3PlusCount = (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
+        const taBtn = createBtn('secondary-btn', level3PlusCount >= 5 ? '⚡' : '🔒', level3PlusCount >= 5 ? 'Phản Xạ Nhanh' : `Phản xạ (${level3PlusCount}/5)`, () => startGame('time-attack'), !dataLoaded || level3PlusCount < 5);
+        taBtn.style.backgroundColor = level3PlusCount >= 5 ? '#f43f5e' : '';
+        container.appendChild(taBtn);
+
+        const spBtn = createBtn('primary-btn', stats[5] > 0 ? '🎙️' : '🔒', stats[5] > 0 ? `Luyện Phát Âm (${stats[5]})` : 'Phát âm (Cần Lvl 5)', () => startGame('speech-challenge'), !dataLoaded || stats[5] === 0);
+        spBtn.style.backgroundColor = stats[5] > 0 ? '#8b5cf6' : '';
+        container.appendChild(spBtn);
+
+    } else if (currentSetupMode === 'sentence') {
+        container.appendChild(createBtn('primary-btn', '🇨🇳', 'Trung ➡️ Việt', () => startGame('sentence-trung-viet'), !sentenceLoaded));
+    } else if (currentSetupMode === 'builder') {
+        const b1 = createBtn('primary-btn', '🧩', 'Ghép câu (➡️ Ngoại ngữ)', () => startGame('sentence-target'), !sentenceLoaded);
+        b1.style.backgroundColor = '#6366f1';
+        container.appendChild(b1);
+        
+        const b2 = createBtn('primary-btn', '📝', 'Điền khuyết (Cloze)', () => startGame('sentence-cloze'), !sentenceLoaded);
+        b2.style.backgroundColor = '#f59e0b';
+        container.appendChild(b2);
+    }
+}
+
+function createBtn(className, icon, text, onClick, disabled) {
+    const btn = document.createElement('button');
+    btn.className = `btn ${className}`;
+    btn.disabled = disabled;
+    btn.onclick = onClick;
+    btn.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">${icon}</span><span>${text}</span></div>`;
+    return btn;
 }
 
 async function fetchVocabulary() {
@@ -762,61 +729,7 @@ function parseCSV(csvText) {
         alert("Danh sách từ vựng quá ngắn (cần ít nhất 4 từ có đủ Hán Tự và Nghĩa để tạo 4 đáp án).");
         showScreen('main-menu');
     } else {
-        // Enable buttons
-        const modeButtons = document.getElementById('main-mode-buttons');
-        if(modeButtons) {
-            const btns = modeButtons.querySelectorAll('button');
-            btns[0].disabled = false;
-            btns[0].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇨🇳</span><span>Hán ➡️ Việt</span></div>';
-            
-            btns[1].disabled = false;
-            btns[1].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇻🇳</span><span>Việt ➡️ Hán</span></div>';
-            
-            const timeAttackBtn = document.getElementById('time-attack-btn');
-            if (timeAttackBtn) {
-                // Initial update based on loaded stats
-                updateProgressUI();
-            }
-
-            // Type typing buttons are handled dynamically by updateProgressUI
-        }
-
-        const sentenceButtons = document.getElementById('sentence-mode-buttons');
-        if(sentenceButtons) {
-            const btns = sentenceButtons.querySelectorAll('button');
-            if(sentencePool.length >= 4) {
-                btns[0].disabled = false;
-                btns[0].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇨🇳</span><span>Trung ➡️ Việt</span></div>';
-                
-                btns[1].disabled = false;
-                btns[1].innerHTML = '<div style="display: flex; flex-direction: column; align-items: center;"><span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">🇻🇳</span><span>Việt ➡️ Trung</span></div>';
-            } else {
-                btns[0].innerHTML = '<span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">❌</span><span>Không có DL</span>';
-                btns[1].innerHTML = '<span class="btn-icon" style="font-size: 1.5rem; margin-bottom: 0.2rem;">❌</span><span>Không có DL</span>';
-            }
-        }
-        
-        const builderButtons = document.getElementById('builder-mode-buttons');
-        if(builderButtons) {
-            const btns = builderButtons.querySelectorAll('button');
-            if(sentencePool.length >= 2) {
-                btns[0].disabled = false;
-                btns[0].innerHTML = '<span class="btn-icon">🧩</span> Ghép câu (➡️ Ngoại ngữ)';
-                btns[1].disabled = false;
-                btns[1].innerHTML = '<span class="btn-icon">🧩</span> Ghép câu (➡️ Tiếng Việt)';
-                
-                const clozeBtn = document.getElementById('cloze-btn');
-                if(clozeBtn) {
-                    clozeBtn.disabled = false;
-                    clozeBtn.innerHTML = '<span class="btn-icon">📝</span> Điền khuyết (Cloze)';
-                }
-            } else {
-                btns[0].innerHTML = '<span class="btn-icon">❌</span> Không đủ câu ví dụ';
-                btns[1].innerHTML = '<span class="btn-icon">❌</span> Không đủ câu ví dụ';
-                const clozeBtn = document.getElementById('cloze-btn');
-                if(clozeBtn) clozeBtn.innerHTML = '<span class="btn-icon">❌</span> Không đủ câu ví dụ';
-            }
-        }
+        renderDynamicButtons();
     }
 }
 
@@ -858,11 +771,11 @@ function setupQuiz() {
             showScreen('vocab');
             return;
         }
-    } else if (gameMode === 'sentence-trung-viet' || gameMode === 'sentence-viet-trung') {
+    } else if (gameMode === 'sentence-trung-viet') {
         availableWords = sentencePool;
         if (availableWords.length < 4) {
              alert("Danh sách của bạn cần ít nhất 4 câu ví dụ để chơi chế độ này!");
-             showScreen('sentence');
+             showScreen('gameSetup');
              return;
         }
     } else if (gameMode === 'sentence-cloze') {
@@ -936,9 +849,7 @@ function setupQuiz() {
     
     let shuffled = [...availableWords].sort(() => 0.5 - Math.random());
     
-    let inputId = 'num-questions';
-    if (gameMode.includes('sentence-trung') || gameMode.includes('sentence-viet-trung')) inputId = 'sentence-num-questions';
-    else if (gameMode.includes('sentence-target') || gameMode.includes('sentence-viet') || gameMode === 'sentence-cloze' || gameMode === 'time-attack') inputId = 'builder-num-questions';
+    let inputId = 'game-num-questions';
     
     const inputQ = document.getElementById(inputId);
     let desiredCount = inputQ ? parseInt(inputQ.value) : 30;
@@ -1006,11 +917,7 @@ function loadQuestion() {
         questionTextSub = qData.cauPinyin;
         correctAnswerText = qData.cauNghia;
         questionEl.style.fontSize = '2rem'; 
-    } else if (currentQuestionMode === 'sentence-viet-trung') {
-        questionTextMain = qData.cauNghia;
-        questionTextSub = "";
-        correctAnswerText = `${qData.cau} (${qData.cauPinyin})`;
-        questionEl.style.fontSize = '1.5rem'; 
+
     } else if (currentQuestionMode === 'sentence-cloze') {
         const blank = "（___）";
         questionTextMain = qData.cau.replace(qData.hanTu, blank);
@@ -1078,7 +985,7 @@ function loadQuestion() {
     }
     
     if (questionTextMain) {
-        let isVietnamese = (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-viet-trung' || currentQuestionMode === 'sentence-target');
+        let isVietnamese = (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-target');
         
         if (isVietnamese || gameMode === 'type-pinyin' || gameMode === 'type-hanzi' || gameMode === 'sentence-cloze') {
             playAudioBtn.classList.add('hidden');
@@ -1135,9 +1042,7 @@ function loadQuestion() {
                 return (item.hanTu && item.pinyin) ? `${item.hanTu} (${item.pinyin})` : null;
             }
             if (currentQuestionMode === 'sentence-trung-viet') return item.cauNghia;
-            if (currentQuestionMode === 'sentence-viet-trung') {
-                return (item.cau && item.cauPinyin) ? `${item.cau} (${item.cauPinyin})` : null;
-            }
+
             return null;
         };
 
@@ -1287,15 +1192,7 @@ function handleTimeOut() {
         stats.level = Math.max(stats.level - 1, 1);
         saveSRSData();
     } else if (!gameMode.includes('sentence')) {
-        const index = learnedWords.indexOf(qData.hanTu);
-        if(index > -1) {
-            learnedWords.splice(index, 1);
-            localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
-        }
-        if (!wrongWords.includes(qData.hanTu)) {
-            wrongWords.push(qData.hanTu);
-            localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
-        }
+        updateSRSProgress(qData.hanTu, false, gameMode);
     }
     nextBtn.classList.remove('hidden');
 }
@@ -1561,9 +1458,8 @@ function checkSentenceAnswer() {
         checkSentenceBtn.disabled = true;
         nextBtn.classList.remove('hidden');
         
-        if (qData.hanTu && !learnedWords.includes(qData.hanTu)) {
-            learnedWords.push(qData.hanTu);
-            localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
+        if (qData.hanTu) {
+            updateSRSProgress(qData.hanTu, true, gameMode);
         }
     } else {
         sentenceAnswerZone.classList.add('wrong', 'shake');
@@ -2483,15 +2379,7 @@ function checkTypingAnswer() {
         wordStats[qData.hanTu] = stats;
         saveSRSData();
         
-        const index = learnedWords.indexOf(qData.hanTu);
-        if(index > -1) {
-            learnedWords.splice(index, 1);
-            localStorage.setItem(`${currentUser}_vocab_learned`, JSON.stringify(learnedWords));
-        }
-        if (!wrongWords.includes(qData.hanTu)) {
-            wrongWords.push(qData.hanTu);
-            localStorage.setItem(`${currentUser}_vocab_wrong`, JSON.stringify(wrongWords));
-        }
+        updateSRSProgress(qData.hanTu, false, gameMode);
         
         if (gameMode === 'type-pinyin') {
             explanationText.innerHTML = `❌ <b>Sai rồi!</b><br>Từ <b>${qData.hanTu}</b> có Pinyin là: <b>${qData.pinyin}</b><br>Bạn nhập: <b>${userInput}</b>`;
@@ -2701,17 +2589,10 @@ function loadProgressFromCloud(uid) {
             if (data.vocabHistory) vocabHistory = data.vocabHistory;
             if (data.activityHistory) activityHistory = data.activityHistory;
             
-            // Rebuild legacy arrays
-            learnedWords = Object.keys(wordStats).filter(k => wordStats[k].level >= 3);
-            const now = Date.now();
-            wrongWords = Object.keys(wordStats).filter(k => wordStats[k].level > 0 && wordStats[k].nextReview <= now);
-            
             // Backup to local
             localStorage.setItem(`${uid}_vocab_stats`, JSON.stringify(wordStats));
             localStorage.setItem(`${uid}_vocab_history`, JSON.stringify(vocabHistory));
             localStorage.setItem(`${uid}_activity_history`, JSON.stringify(activityHistory));
-            localStorage.setItem(`${uid}_vocab_learned`, JSON.stringify(learnedWords));
-            localStorage.setItem(`${uid}_vocab_wrong`, JSON.stringify(wrongWords));
             
             updateProgressUI();
             console.log("Đã tải dữ liệu từ Cloud.");
