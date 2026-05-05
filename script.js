@@ -97,23 +97,27 @@ window.playAudio = function(text, lang, rate = 1.0) {
             globalAudio.play().catch(tryGoogleTranslate);
         };
 
-        // Lớp 0: Kiểm tra file ghi âm sẵn trong thư mục local (audio/[text].mp3)
-        // Nếu bạn có file ghi âm sẵn, hãy bỏ vào thư mục audio/ với tên file là từ đó
-        const localUrl = `audio/${encodeURIComponent(cleanText)}.mp3`;
-        const testAudio = new Audio(localUrl);
-        testAudio.oncanplaythrough = () => {
-            if (requestId !== currentAudioId) return resolve();
-            globalAudio.src = localUrl;
-            globalAudio.onended = finish;
-            globalAudio.onerror = tryYoudao;
-            globalAudio.play().catch(tryYoudao);
-        };
-        testAudio.onerror = () => {
-            // Không có file local, dùng TTS
-            const isLong = cleanText.length > 20 || /[，。！？,.!?]/.test(cleanText);
-            if (isLong) tryGoogleTranslate();
-            else tryYoudao();
-        };
+        const isLong = cleanText.length > 15 || /[，。！？,.!?]/.test(cleanText);
+
+        if (isLong) {
+            // ĐỐI VỚI CÂU DÀI: Ưu tiên tuyệt đối file ghi âm sẵn (audio/...)
+            const localUrl = `audio/${encodeURIComponent(cleanText)}.mp3`;
+            const testAudio = new Audio(localUrl);
+            testAudio.oncanplaythrough = () => {
+                if (requestId !== currentAudioId) return resolve();
+                globalAudio.src = localUrl;
+                globalAudio.onended = finish;
+                globalAudio.onerror = tryGoogleTranslate;
+                globalAudio.play().catch(tryGoogleTranslate);
+            };
+            testAudio.onerror = () => {
+                // Không có file local cho câu dài, dùng Google TTS (tốt hơn Youdao cho câu)
+                tryGoogleTranslate();
+            };
+        } else {
+            // ĐỐI VỚI TỪ ĐƠN: Dùng Youdao cho nhanh và tự nhiên
+            tryYoudao();
+        }
     });
 };
 
