@@ -26,19 +26,24 @@ let globalAudio = new Audio(); // Duy nhất một đối tượng Audio để t
 let currentAudioId = 0;
 let audioTimeout = null;
 
+function cleanTTSText(text) {
+    if (!text) return "";
+    return text.replace(/（___）|（|）|___|\(.*?\)|\[.*?\]|<.*?>|['"]/g, '')
+               .replace(/[^\u4e00-\u9fa5a-zA-Z0-9，。！？,.!? ]/g, '') // Chỉ giữ lại Hán tự, chữ cái, số và dấu câu cơ bản
+               .trim();
+}
+
 window.playAudio = function(text, lang, rate = 1.0) {
     return new Promise((resolve) => {
         if (!text || text === '-' || lang !== 'zh-CN') return resolve();
         
         const requestId = ++currentAudioId;
-        
-        // Timeout an toàn 8 giây để tránh treo Promise nếu có lỗi mạng không bắt được
         const safetyTimer = setTimeout(() => {
             console.warn("Audio safety timeout.");
             if (requestId === currentAudioId) resolve();
-        }, 8000);
+        }, 10000);
 
-        let cleanText = text.replace(/（___）|（|）|___|\(.*?\)|\[.*?\]|<.*?>|['"]/g, '').trim();
+        const cleanText = cleanTTSText(text);
         if (!cleanText) { clearTimeout(safetyTimer); return resolve(); }
         
         if (audioTimeout) { clearTimeout(audioTimeout); audioTimeout = null; }
@@ -53,15 +58,27 @@ window.playAudio = function(text, lang, rate = 1.0) {
 
         const tryWebSpeech = () => {
             if (requestId !== currentAudioId) { clearTimeout(safetyTimer); return resolve(); }
+            if (!('speechSynthesis' in window)) return finish();
+
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = 'zh-CN';
             utterance.rate = rate;
             utterance.onend = finish;
             utterance.onerror = finish;
-            const voices = window.speechSynthesis.getVoices();
-            const zhVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
-            if (zhVoice) utterance.voice = zhVoice;
-            window.speechSynthesis.speak(utterance);
+            
+            const speak = () => {
+                const voices = window.speechSynthesis.getVoices();
+                const zhVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
+                if (zhVoice) utterance.voice = zhVoice;
+                window.speechSynthesis.speak(utterance);
+            };
+
+            if (window.speechSynthesis.getVoices().length === 0) {
+                window.speechSynthesis.onvoiceschanged = speak;
+                setTimeout(speak, 500);
+            } else {
+                speak();
+            }
         };
 
         const tryGoogleTranslate = () => {
