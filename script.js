@@ -31,8 +31,15 @@ window.playAudio = function(text, lang, rate = 1.0) {
         if (!text || text === '-' || lang !== 'zh-CN') return resolve();
         
         const requestId = ++currentAudioId;
+        
+        // Timeout an toàn 8 giây để tránh treo Promise nếu có lỗi mạng không bắt được
+        const safetyTimer = setTimeout(() => {
+            console.warn("Audio safety timeout.");
+            if (requestId === currentAudioId) resolve();
+        }, 8000);
+
         let cleanText = text.replace(/（___）|（|）|___|\(.*?\)|\[.*?\]|<.*?>|['"]/g, '').trim();
-        if (!cleanText) return resolve();
+        if (!cleanText) { clearTimeout(safetyTimer); return resolve(); }
         
         if (audioTimeout) { clearTimeout(audioTimeout); audioTimeout = null; }
         globalAudio.pause();
@@ -40,11 +47,12 @@ window.playAudio = function(text, lang, rate = 1.0) {
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
         const finish = () => {
+            clearTimeout(safetyTimer);
             if (requestId === currentAudioId) resolve();
         };
 
         const tryWebSpeech = () => {
-            if (requestId !== currentAudioId) return resolve();
+            if (requestId !== currentAudioId) { clearTimeout(safetyTimer); return resolve(); }
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = 'zh-CN';
             utterance.rate = rate;
@@ -57,7 +65,7 @@ window.playAudio = function(text, lang, rate = 1.0) {
         };
 
         const tryGoogleTranslate = () => {
-            if (requestId !== currentAudioId) return resolve();
+            if (requestId !== currentAudioId) { clearTimeout(safetyTimer); return resolve(); }
             globalAudio.src = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=${rate < 1 ? 0.5 : 1}`;
             globalAudio.onended = finish;
             globalAudio.onerror = tryWebSpeech;
@@ -2300,8 +2308,11 @@ function showFullscreenReveal(char, pinyin, callback) {
     overlay.classList.add('active');
     
     // GIẢI PHÁP TRIỆT ĐỂ: Sử dụng chuỗi Promise để phát âm thanh từ vựng trước, sau đó mới đến câu
+    const currentIdAtStart = currentAudioId;
     playAudio(char, 'zh-CN').then(() => {
-        // Đợi một chút sau khi phát xong từ mới gọi callback (để phát câu)
+        // Chỉ thực hiện tiếp nếu chưa có yêu cầu âm thanh mới chèn vào
+        if (currentAudioId !== currentIdAtStart + 1) return; 
+
         setTimeout(() => {
             overlay.classList.add('shrinking');
             if (callback) callback();
@@ -2309,7 +2320,7 @@ function showFullscreenReveal(char, pinyin, callback) {
             setTimeout(() => {
                 overlay.classList.remove('active');
             }, 500);
-        }, 800);
+        }, 500); // Giảm độ trễ xuống 500ms để giữ mạch interaction
     });
 }
 function stripPinyinTones(pinyin) {
