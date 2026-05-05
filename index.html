@@ -73,7 +73,7 @@
                 </button>
                 
                 <!-- Program Version -->
-                <div class="app-version">Version 3.6</div>
+                <div class="app-version">Version 3.7</div>
             </div>
         </div>
 
@@ -93,23 +93,20 @@
                 <input type="number" id="game-num-questions" value="30" min="1" max="500" style="width: 80px; display: inline-block; padding: 0.4rem;">
             </div>
             
-            <div id="level-stats-container" style="margin-bottom: 1.2rem; display: none; width: 100%;">
-                <div style="display: flex; justify-content: space-around; background: #fff; border: 1px solid #e5e7eb; padding: 0.8rem; border-radius: 12px; font-size: 0.85rem;">
-                    <div style="text-align: center;"><div style="color: #64748b; font-weight: bold;">Lvl 0</div><div id="lvl-0-count" style="font-size: 1.1rem; font-weight: 800;">0</div></div>
-                    <div style="text-align: center;"><div style="color: #94a3b8; font-weight: bold;">Lvl 1-2</div><div id="lvl-1-2-count" style="font-size: 1.1rem; font-weight: 800;">0</div></div>
-                    <div style="text-align: center;"><div style="color: #6366f1; font-weight: bold;">Lvl 3-4</div><div id="lvl-3-4-count" style="font-size: 1.1rem; font-weight: 800;">0</div></div>
-                    <div style="text-align: center;"><div style="color: #10b981; font-weight: bold;">Lvl 5 ⭐</div><div id="lvl-5-count" style="font-size: 1.1rem; font-weight: 800;">0</div></div>
+            <div id="level-selection-group" class="hidden" style="margin-bottom: 1rem; width: 100%;">
+                <label for="level-select" style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">Chọn Cấp độ để ôn luyện:</label>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <select id="level-select" class="user-input" style="margin-bottom: 0; border-color: var(--secondary-color); background: #ecfdf5; flex: 1;">
+                        <option value="1">Cấp độ 1 (Mới học)</option>
+                        <option value="2">Cấp độ 2</option>
+                        <option value="3">Cấp độ 3</option>
+                        <option value="4">Cấp độ 4</option>
+                        <option value="5">Cấp độ 5 (Thành thạo)</option>
+                    </select>
+                    <button class="btn secondary-btn" onclick="startLevelReview()" style="width: auto; padding: 0.8rem 1.5rem; margin-bottom: 0;">Ôn Luyện 🚀</button>
                 </div>
-                <div id="level-5-suggestions" class="suggestion-box hidden" style="margin-top: 0.8rem; background: #ecfdf5; border: 1px solid #10b981; padding: 0.8rem; border-radius: 12px; font-size: 0.85rem; color: #065f46;">
-                    <strong style="display: block; margin-bottom: 0.3rem;">💡 Gợi ý cho Level 5:</strong>
-                    <ul style="padding-left: 1.2rem; margin: 0;">
-                        <li>Ôn tập giãn cách (2-4 tuần/lần).</li>
-                        <li>Luyện phản xạ trong Time Attack.</li>
-                        <li>Luyện phát âm câu.</li>
-                    </ul>
-                </div>
-                <p id="time-attack-req-msg" style="font-size: 0.75rem; text-align: center; margin-top: 0.4rem; color: var(--text-muted);"><i>Phản xạ nhanh yêu cầu 5 từ Level 3 trở lên.</i></p>
             </div>
+
 
             <div id="grammar-selection-group" class="hidden" style="margin-bottom: 1.5rem; width: 100%;">
                 <label for="grammar-topic-select" style="display: block; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">1. Chọn Chuyên Đề Ngữ Pháp:</label>
@@ -292,6 +289,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=3.5"></script>
+    <script src="script.js?v=3.7"></script>
 </body>
 </html>

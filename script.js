@@ -480,31 +480,31 @@ function goToStartScreen(mode) {
     const headerIcon = document.getElementById('setup-header-icon');
     const headerTitle = document.getElementById('setup-header-title');
     const headerDesc = document.getElementById('setup-header-desc');
-    const levelStats = document.getElementById('level-stats-container');
     const sentenceStats = document.getElementById('sentence-stats-container');
     const grammarGroup = document.getElementById('grammar-selection-group');
+    const levelGroup = document.getElementById('level-selection-group');
     
     if(mode === 'vocab') {
         headerIcon.textContent = '🐼';
         headerTitle.textContent = 'Học Từ Vựng';
         headerDesc.textContent = 'Nâng cao vốn từ vựng mỗi ngày!';
-        levelStats.style.display = 'block';
         sentenceStats.style.display = 'none';
         grammarGroup.classList.add('hidden');
+        levelGroup.classList.remove('hidden');
     } else if (mode === 'sentence') {
         headerIcon.textContent = '🗣️';
         headerTitle.textContent = 'Luyện Câu';
         headerDesc.textContent = 'Luyện phản xạ giao tiếp!';
-        levelStats.style.display = 'none';
         sentenceStats.style.display = 'block';
         grammarGroup.classList.add('hidden');
+        levelGroup.classList.add('hidden');
     } else if (mode === 'builder') {
         headerIcon.textContent = '🧩';
         headerTitle.textContent = 'Ghép Câu';
         headerDesc.textContent = 'Luyện ngữ pháp và cấu trúc câu!';
-        levelStats.style.display = 'none';
         sentenceStats.style.display = 'block';
         grammarGroup.classList.remove('hidden');
+        levelGroup.classList.add('hidden');
     }
     
     renderDynamicButtons();
@@ -543,15 +543,7 @@ function renderDynamicButtons(stats) {
         const rBtn = createBtn('warning-btn', reviewReady.length === 0 ? '⏳' : '🔥', reviewReady.length === 0 ? 'Đã ôn hết' : `Ôn Ngay (${reviewReady.length})`, () => startGame('review'), !dataLoaded || reviewReady.length === 0);
         container.appendChild(rBtn);
 
-        // Nút luyện tập theo từng Level (1-5)
-        for (let l = 1; l <= 5; l++) {
-            if (stats[l] > 0) {
-                const lBtn = createBtn('secondary-btn', '📚', `Level ${l} (${stats[l]})`, () => startGame('review', l), !dataLoaded);
-                lBtn.style.border = '1px solid var(--primary-color)';
-                lBtn.style.backgroundColor = '#f0f9ff';
-                container.appendChild(lBtn);
-            }
-        }
+        // Individual Level buttons removed as per user request for simplicity
 
         const level3Plus = (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
         const tpBtn = createBtn('warning-btn', level3Plus > 0 ? '⌨️' : '🔒', level3Plus > 0 ? `Gõ Pinyin (${level3Plus})` : 'Gõ Pinyin (Cần Lvl 3)', () => startGame('type-pinyin'), !dataLoaded || level3Plus === 0);
@@ -811,6 +803,11 @@ async function startGame(mode, levelFilter = null) {
     } else {
         alert("Danh sách từ vựng chưa tải xong hoặc quá ngắn!");
     }
+}
+
+function startLevelReview() {
+    const lvl = parseInt(document.getElementById('level-select').value);
+    startGame('review', lvl);
 }
 
 function setupQuiz() {
