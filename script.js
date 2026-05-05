@@ -21,14 +21,64 @@ const TARGET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?fo
 const SENTENCE_GID = "1961448550";
 const SENTENCE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SENTENCE_GID}`;
 
-// Mở khóa định dạng Web Speech API và Audio trên Mobile (iOS/Android) ngay ở lần chạm màn hình đầu tiên
-document.addEventListener('click', function unlockAudio() {
-    if ('speechSynthesis' in window) {
-        const u = new SpeechSynthesisUtterance('');
-        u.volume = 0;
-        window.speechSynthesis.speak(u);
-    }
-    document.removeEventListener('click', unlockAudio);
+// --- HỆ THỐNG ÂM THANH TRIỆT ĐỂ (PROMISE-BASED) ---
+let globalAudio = new Audio(); // Duy nhất một đối tượng Audio để tối ưu và tránh bị chặn
+let currentAudioId = 0;
+let audioTimeout = null;
+
+window.playAudio = function(text, lang, rate = 1.0) {
+    return new Promise((resolve) => {
+        if (!text || text === '-' || lang !== 'zh-CN') return resolve();
+        
+        const requestId = ++currentAudioId;
+        let cleanText = text.replace(/（___）|（|）|___|\(.*?\)|\[.*?\]|<.*?>|['"]/g, '').trim();
+        if (!cleanText) return resolve();
+        
+        if (audioTimeout) { clearTimeout(audioTimeout); audioTimeout = null; }
+        globalAudio.pause();
+        globalAudio.src = "";
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+        const finish = () => {
+            if (requestId === currentAudioId) resolve();
+        };
+
+        const tryWebSpeech = () => {
+            if (requestId !== currentAudioId) return resolve();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'zh-CN';
+            utterance.rate = rate;
+            utterance.onend = finish;
+            utterance.onerror = finish;
+            const voices = window.speechSynthesis.getVoices();
+            const zhVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
+            if (zhVoice) utterance.voice = zhVoice;
+            window.speechSynthesis.speak(utterance);
+        };
+
+        const tryGoogleTranslate = () => {
+            if (requestId !== currentAudioId) return resolve();
+            globalAudio.src = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=${rate < 1 ? 0.5 : 1}`;
+            globalAudio.onended = finish;
+            globalAudio.onerror = tryWebSpeech;
+            globalAudio.play().catch(tryWebSpeech);
+        };
+
+        const isLong = cleanText.length > 20 || /[，。！？,.!?]/.test(cleanText);
+        if (isLong) {
+            tryGoogleTranslate();
+        } else {
+            globalAudio.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
+            globalAudio.onended = finish;
+            globalAudio.onerror = tryGoogleTranslate;
+            globalAudio.play().catch(tryGoogleTranslate);
+        }
+    });
+};
+
+// Mở khóa âm thanh ngay lần chạm đầu tiên
+document.addEventListener('click', function unlock() {
+    globalAudio.play().then(() => { globalAudio.pause(); document.removeEventListener('click', unlock); });
 }, { once: true });
 
 const FETCH_URLS = [
@@ -92,112 +142,7 @@ let lives = 3;
 let survivalScore = 0;
 
 // Nguồn âm thanh TTS với đa dạng dự phòng (Youdao -> Google -> Web Speech API)
-window.playAudio = function(text, lang, rate = 1.0) {
-    if (!text || text === '-' || lang !== 'zh-CN') return;
-    
-    const requestId = ++currentAudioId;
-
-    // Clean text: remove placeholders like (___), ___, or brackets that might confuse the API
-    let cleanText = text.replace(/（___）/g, '')
-                        .replace(/（/g, '(')
-                        .replace(/）/g, ')')
-                        .replace(/___/g, '')
-                        .replace(/\(.*?\)/g, '') // Remove (pinyin) or other bracketed info
-                        .replace(/\[.*?\]/g, '') // Remove [info]
-                        .replace(/<.*?>/g, '') // Remove HTML tags
-                        .replace(/['"]/g, '')
-                        .replace(/[/\\|]/g, ' ') // Replace slashes with space
-                        .trim();
-
-    if (!cleanText || cleanText.length === 0) {
-        console.warn("Skipping audio: clean text is empty.");
-        return;
-    }
-    
-    // Stop overlapping sounds and clear pending timers
-    if (audioTimeout) {
-        clearTimeout(audioTimeout);
-        audioTimeout = null;
-    }
-    if (globalAudio) {
-        globalAudio.pause();
-        globalAudio = null;
-    }
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-
-    console.groupCollapsed(`🔊 Audio [${requestId}]: "${cleanText.substring(0, 20)}${cleanText.length > 20 ? '...' : ''}"`);
-    console.log("Original Text:", text);
-    console.log("Language:", lang);
-    console.log("Rate:", rate);
-
-    const tryWebSpeech = () => {
-        if (requestId !== currentAudioId) return; // Obsolete request
-        if (!('speechSynthesis' in window)) return;
-        
-        console.log("Using Web Speech API fallback...");
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'zh-CN';
-        utterance.rate = rate;
-        
-        const setVoiceAndSpeak = () => {
-            const voices = window.speechSynthesis.getVoices();
-            const zhVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
-            if (zhVoice) utterance.voice = zhVoice;
-            window.speechSynthesis.speak(utterance);
-        };
-
-        if (window.speechSynthesis.getVoices().length === 0) {
-            window.speechSynthesis.onvoiceschanged = setVoiceAndSpeak;
-            setTimeout(setVoiceAndSpeak, 1000); // safety fallback
-        } else {
-            setVoiceAndSpeak();
-        }
-    };
-
-    const tryGoogleTranslate = () => {
-        if (requestId !== currentAudioId) return; // Obsolete request
-        
-        console.log("Using Google Translate TTS fallback...");
-        const gUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=${rate < 1 ? 0.5 : 1}`;
-        const gAudio = new Audio(gUrl);
-        gAudio.playbackRate = 1.0; 
-        globalAudio = gAudio;
-        gAudio.play().catch(e => {
-            if (requestId === currentAudioId) {
-                console.error("Google TTS failed:", e);
-                tryWebSpeech();
-            }
-        });
-    };
-
-    // Youdao fails frequently with 500 errors on sentences or texts with punctuation
-    const isLongOrSentence = cleanText.length > 15 || /[，。！？,.!?]/.test(cleanText);
-
-    if (isLongOrSentence) {
-        tryGoogleTranslate();
-    } else {
-        // Primary: Youdao
-        const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
-        const audio = new Audio(url);
-        audio.playbackRate = rate;
-        globalAudio = audio;
-
-        audio.play().then(() => {
-            if (requestId === currentAudioId) {
-                console.log("Played via Youdao API");
-            }
-            console.groupEnd();
-        }).catch(error => {
-            if (requestId === currentAudioId) {
-                console.warn("Youdao API failed:", error.message);
-                tryGoogleTranslate();
-            } else {
-                console.log("Youdao request aborted by newer request.");
-            }
-            console.groupEnd();
-        });
-    }
-};
+// playAudio replaced by the Promise-based version above
 
 window.downloadAudioFile = function(text, lang) {
     if (!text || text === '-' || lang !== 'zh-CN') return;
@@ -2304,7 +2249,6 @@ const CHAR_DECOMPOSITION = {
 };
 
 function showFullscreenReveal(char, pinyin, callback) {
-    console.log("Showing fullscreen reveal for:", char, pinyin); // Debug log
     const overlay = document.getElementById('character-reveal-overlay');
     const display = document.getElementById('large-char-display');
     const pinyinDisplay = document.getElementById('large-pinyin-display');
@@ -2314,7 +2258,7 @@ function showFullscreenReveal(char, pinyin, callback) {
 
     display.textContent = char;
     if (pinyinDisplay) pinyinDisplay.textContent = pinyin || "";
-
+    
     // Dynamic Font Scaling for long text
     if (char.length > 3) {
         display.style.fontSize = `min(${35 / (char.length/2)}vw, ${15 / (char.length/2)}rem)`;
@@ -2331,17 +2275,13 @@ function showFullscreenReveal(char, pinyin, callback) {
     // Radical Analysis Logic
     if (analysis) {
         analysis.innerHTML = '';
-        // Split multi-character words (e.g., '工人' -> ['工', '人'])
         const characters = char.split('');
-        
         characters.forEach(singleChar => {
             const components = CHAR_DECOMPOSITION[singleChar] || [singleChar];
-            
             components.forEach(comp => {
                 const data = RADICAL_DICTIONARY[comp];
                 const item = document.createElement('div');
                 item.className = 'radical-item';
-                
                 if (data) {
                     item.innerHTML = `
                         <span class="radical-char">${comp}</span>
@@ -2355,24 +2295,22 @@ function showFullscreenReveal(char, pinyin, callback) {
             });
         });
     }
-
+    
     overlay.classList.remove('shrinking');
     overlay.classList.add('active');
     
-    // Play audio immediately
-    // Luôn phát âm từ vựng ngay khi hiện bảng (dù có callback hay không)
-    playAudio(char, 'zh-CN');
-
-    // Sau 1.2 giây, bắt đầu thu nhỏ và gọi callback ngay để phát âm thanh câu (tránh bị trình duyệt chặn)
-    setTimeout(() => {
-        overlay.classList.add('shrinking');
-        if (callback) callback();
-        
-        // Dọn dẹp sau khi hoạt ảnh kết thúc
+    // GIẢI PHÁP TRIỆT ĐỂ: Sử dụng chuỗi Promise để phát âm thanh từ vựng trước, sau đó mới đến câu
+    playAudio(char, 'zh-CN').then(() => {
+        // Đợi một chút sau khi phát xong từ mới gọi callback (để phát câu)
         setTimeout(() => {
-            overlay.classList.remove('active');
-        }, 400); 
-    }, 1200);
+            overlay.classList.add('shrinking');
+            if (callback) callback();
+            
+            setTimeout(() => {
+                overlay.classList.remove('active');
+            }, 500);
+        }, 800);
+    });
 }
 function stripPinyinTones(pinyin) {
     if (!pinyin) return "";
