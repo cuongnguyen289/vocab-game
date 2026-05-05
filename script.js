@@ -89,17 +89,44 @@ window.playAudio = function(text, lang, rate = 1.0) {
             globalAudio.play().catch(tryWebSpeech);
         };
 
-        const isLong = cleanText.length > 20 || /[，。！？,.!?]/.test(cleanText);
-        if (isLong) {
-            tryGoogleTranslate();
-        } else {
+        const tryYoudao = () => {
+            if (requestId !== currentAudioId) { clearTimeout(safetyTimer); return resolve(); }
             globalAudio.src = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
             globalAudio.onended = finish;
             globalAudio.onerror = tryGoogleTranslate;
             globalAudio.play().catch(tryGoogleTranslate);
-        }
+        };
+
+        // Lớp 0: Kiểm tra file ghi âm sẵn trong thư mục local (audio/[text].mp3)
+        // Nếu bạn có file ghi âm sẵn, hãy bỏ vào thư mục audio/ với tên file là từ đó
+        const localUrl = `audio/${encodeURIComponent(cleanText)}.mp3`;
+        const testAudio = new Audio(localUrl);
+        testAudio.oncanplaythrough = () => {
+            if (requestId !== currentAudioId) return resolve();
+            globalAudio.src = localUrl;
+            globalAudio.onended = finish;
+            globalAudio.onerror = tryYoudao;
+            globalAudio.play().catch(tryYoudao);
+        };
+        testAudio.onerror = () => {
+            // Không có file local, dùng TTS
+            const isLong = cleanText.length > 20 || /[，。！？,.!?]/.test(cleanText);
+            if (isLong) tryGoogleTranslate();
+            else tryYoudao();
+        };
     });
 };
+
+// Hàm tải trước âm thanh cho các câu hỏi tiếp theo để tránh lag
+function prefetchNextAudio(index) {
+    for (let i = 1; i <= 2; i++) {
+        const nextQ = currentQuestions[index + i];
+        if (nextQ) {
+            if (nextQ.hanTu) new Audio(`https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanTTSText(nextQ.hanTu))}&le=zh`).preload = "auto";
+            if (nextQ.cau && nextQ.cau !== '-') new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanTTSText(nextQ.cau))}&tl=zh-CN&client=tw-ob&ttsspeed=1`).preload = "auto";
+        }
+    }
+}
 
 // Mở khóa âm thanh ngay lần chạm đầu tiên
 document.addEventListener('click', function unlock() {
@@ -920,6 +947,7 @@ function setupQuiz() {
     scoreEl.textContent = score;
     showScreen('quiz');
     loadQuestion();
+    prefetchNextAudio(currentQuestionIndex);
 }
 
 function loadQuestion() {
@@ -946,6 +974,7 @@ function loadQuestion() {
     const h = currentQuestionIndex;
     const qData = currentQuestions[h];
     counterEl.textContent = `${h + 1}/${currentQuestions.length}`;
+    prefetchNextAudio(h);
     
     let correctAnswerText, questionTextMain, questionTextSub;
 
