@@ -2360,10 +2360,8 @@ function showFullscreenReveal(char, pinyin, callback) {
     overlay.classList.add('active');
     
     // Play audio immediately
-    // Play audio immediately (unless we're about to play a sentence in the callback)
-    if (!callback) {
-        playAudio(char, 'zh-CN');
-    }
+    // Luôn phát âm từ vựng ngay khi hiện bảng (dù có callback hay không)
+    playAudio(char, 'zh-CN');
 
     // Sau 1.2 giây, bắt đầu thu nhỏ và gọi callback ngay để phát âm thanh câu (tránh bị trình duyệt chặn)
     setTimeout(() => {
@@ -2459,8 +2457,13 @@ function checkTypingAnswer() {
             exampleContainer.classList.remove('hidden');
         }
         
-        // Show Fullscreen Reveal
-        showFullscreenReveal(qData.hanTu, qData.pinyin);
+        // Show Fullscreen Reveal and play example sentence after it
+        showFullscreenReveal(qData.hanTu, qData.pinyin, () => {
+            if (qData.cau && qData.cau !== '-') {
+                console.log("Auto-playing sentence after typing success reveal...");
+                playAudio(qData.cau, 'zh-CN');
+            }
+        });
     } else {
         inputEl.style.backgroundColor = '#fee2e2';
         inputEl.style.borderColor = '#ef4444';
