@@ -2320,7 +2320,7 @@ function showFullscreenReveal(char, pinyin, callback) {
             setTimeout(() => {
                 overlay.classList.remove('active');
             }, 500);
-        }, 500); // Giảm độ trễ xuống 500ms để giữ mạch interaction
+        }, 5000); // Tăng thời gian hiển thị lên 5 giây theo yêu cầu
     });
 }
 function stripPinyinTones(pinyin) {
