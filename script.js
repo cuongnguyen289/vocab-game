@@ -133,9 +133,6 @@ let vocabHistory = {}; // Daily Level Stats: { "YYYY-MM-DD": { 1, 2, 3, 4, 5 } }
 let activityHistory = {}; // Daily Correct Count: { "YYYY-MM-DD": count }
 let recognition; // SpeechRecognition instance
 let isRecording = false;
-let globalAudio = null; // To manage and stop overlapping sounds
-let audioTimeout = null; // To manage automatic playback timers
-let currentAudioId = 0; // To track the latest audio request and prevent race conditions
 
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
