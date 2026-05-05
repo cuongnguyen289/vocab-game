@@ -43,8 +43,9 @@
                     <span style="opacity: 0.3;">|</span>
                     <span style="color: #ec4899; font-weight: 600;">L5: <span id="top-lvl-5-count">0</span> ⭐</span>
                 </p>
-                <div style="display: flex; justify-content: center; gap: 15px;">
-                    <a href="#" onclick="showHistoryScreen()" style="color: #8b5cf6; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📊 Xem lịch sử]</a>
+                <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                    <a href="#" onclick="showHistoryScreen()" style="color: #8b5cf6; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📊 Lịch sử]</a>
+                    <a href="#" id="batch-download-btn" onclick="downloadAllSentenceAudio()" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📥 Tải âm thanh câu]</a>
                     <a href="#" onclick="resetProgress()" style="color: var(--error-color); text-decoration: none; font-weight: 600; font-size: 0.85rem; opacity: 0.8;">[🔄 Học lại]</a>
                 </div>
             </div>
@@ -289,6 +290,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=3.9"></script>
+    <script src="script.js?v=4.0"></script>
 </body>
 </html>

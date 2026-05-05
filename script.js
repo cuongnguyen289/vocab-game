@@ -231,6 +231,52 @@ window.downloadAudioFile = function(text, lang) {
     document.body.removeChild(a);
 };
 
+// Hàm tải hàng loạt toàn bộ câu ví dụ để người dùng lưu vào thư mục audio/
+window.downloadAllSentenceAudio = async function() {
+    const uniqueSentences = new Set();
+    
+    // Thu thập câu từ từ vựng chính
+    vocabulary.forEach(v => {
+        if (v.cau && v.cau !== '-') uniqueSentences.add(v.cau);
+    });
+    
+    // Thu thập câu từ pool câu
+    sentencePool.forEach(s => {
+        if (s.cau) uniqueSentences.add(s.cau);
+    });
+    
+    const sentenceList = Array.from(uniqueSentences);
+    if (sentenceList.length === 0) return alert("Không tìm thấy câu ví dụ nào để tải.");
+    
+    if (!confirm(`Hệ thống sẽ tải xuống ${sentenceList.length} file âm thanh. Bạn nên cho phép trình duyệt 'Tải nhiều file' khi được hỏi. Tiếp tục?`)) return;
+
+    let downloadedCount = 0;
+    const btn = document.getElementById('batch-download-btn');
+    const originalText = btn.textContent;
+    
+    for (const text of sentenceList) {
+        downloadedCount++;
+        btn.textContent = `📥 Đang tải ${downloadedCount}/${sentenceList.length}...`;
+        
+        const cleanText = cleanTTSText(text);
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=1`;
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = "_blank";
+        a.download = `${cleanText}.mp3`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // Nghỉ 1 giây giữa mỗi lần tải để tránh bị trình duyệt chặn
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    btn.textContent = originalText;
+    alert(`Đã hoàn tất tải xuống ${downloadedCount} file. Hãy chuyển chúng vào thư mục /audio trong dự án của bạn.`);
+};
+
 const counterEl = document.getElementById('question-counter');
 const nextBtn = document.getElementById('next-btn');
 
@@ -1805,18 +1851,25 @@ function showHistoryScreen() {
     renderHistory();
     showScreen('history-screen');
 }
-
 function renderHistory() {
     const container = document.getElementById('history-container');
     if (!container) return;
     
     const dates = Object.keys(vocabHistory).sort().reverse(); // Newest first
     if (dates.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 2rem;">Chưa có dữ liệu lịch sử. Hãy bắt đầu học ngay!</p>';
+        container.innerHTML = '<div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">' +
+                    '<a href="#" onclick="showHistoryScreen()" style="color: #8b5cf6; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📊 Lịch sử]</a>' +
+                    '<a href="#" id="batch-download-btn" onclick="downloadAllSentenceAudio()" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📥 Tải âm thanh câu]</a>' +
+                    '<a href="#" onclick="resetProgress()" style="color: var(--error-color); text-decoration: none; font-weight: 600; font-size: 0.85rem; opacity: 0.8;">[🔄 Học lại]</a>' +
+                '</div><p style="text-align: center; color: var(--text-muted); padding: 2rem;">Chưa có dữ liệu lịch sử. Hãy bắt đầu học ngay!</p>';
         return;
     }
     
-    container.innerHTML = '';
+    container.innerHTML = '<div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">' +
+                    '<a href="#" onclick="showHistoryScreen()" style="color: #8b5cf6; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📊 Lịch sử]</a>' +
+                    '<a href="#" id="batch-download-btn" onclick="downloadAllSentenceAudio()" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📥 Tải âm thanh câu]</a>' +
+                    '<a href="#" onclick="resetProgress()" style="color: var(--error-color); text-decoration: none; font-weight: 600; font-size: 0.85rem; opacity: 0.8;">[🔄 Học lại]</a>' +
+                '</div>';
     dates.forEach(date => {
         const data = vocabHistory[date];
         const dataValues = [data[1]||0, data[2]||0, data[3]||0, data[4]||0, data[5]||0];
