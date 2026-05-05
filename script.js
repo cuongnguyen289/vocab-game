@@ -983,7 +983,7 @@ function loadQuestion() {
     let correctAnswerText, questionTextMain, questionTextSub;
 
     currentQuestionMode = gameMode;
-    if (gameMode === 'review' || gameMode === 'test' || gameMode === 'time-attack') {
+    if (gameMode === 'review' || gameMode === 'test' || gameMode === 'time-attack' || gameMode === 'survival') {
         currentQuestionMode = (Math.random() > 0.5) ? 'han-viet' : 'viet-han';
     }
     
