@@ -45,8 +45,19 @@
                 </p>
                 <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
                     <a href="#" onclick="showHistoryScreen()" style="color: #8b5cf6; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📊 Lịch sử]</a>
-                    <a href="#" id="batch-download-btn" onclick="downloadAllSentenceAudio()" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📥 Tải âm thanh câu]</a>
+                    <a href="#" id="batch-download-btn" onclick="downloadAllSentenceAudio()" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📥 Lưu Cache Audio]</a>
+                    <a href="#" onclick="clearAudioCache()" style="color: #f59e0b; text-decoration: none; font-weight: 600; font-size: 0.85rem;">[🧹 Xóa Cache]</a>
                     <a href="#" onclick="resetProgress()" style="color: var(--error-color); text-decoration: none; font-weight: 600; font-size: 0.85rem; opacity: 0.8;">[🔄 Học lại]</a>
+                </div>
+                <!-- Audio Caching Progress -->
+                <div id="audio-cache-progress-container" class="hidden" style="margin-top: 15px; width: 100%; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 5px; color: var(--text-muted);">
+                        <span id="audio-progress-status">Đang lưu cache...</span>
+                        <span id="audio-progress-percent">0%</span>
+                    </div>
+                    <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                        <div id="audio-progress-bar" style="width: 0%; height: 100%; background: #10b981; transition: width 0.3s ease;"></div>
+                    </div>
                 </div>
             </div>
             
@@ -169,7 +180,6 @@
                     <h2 id="question-text" style="margin-bottom: 0;">Câu hỏi</h2>
                     <button id="play-audio-btn" class="audio-btn hidden" title="Nghe phát âm">🔊</button>
                     <button id="play-audio-slow-btn" class="audio-btn slow hidden" title="Nghe chậm">🐢</button>
-                    <button id="download-audio-btn" class="audio-btn hidden" title="Tải MP3 về máy" style="font-size: 1.1rem; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd;">⬇️</button>
                 </div>
                 <div id="pinyin-text" class="pinyin" style="margin-top: 5px;"></div>
             </div>
