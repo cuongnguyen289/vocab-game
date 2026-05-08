@@ -660,18 +660,29 @@ function renderDynamicButtons(stats) {
         // 1. Trắc Nghiệm Tổng Hợp (Hán-Việt, Việt-Hán, Review)
         container.appendChild(createBtn('primary-btn', '📚', 'Trắc Nghiệm', () => startGame('vocab-mcq'), !dataLoaded));
         
-        // 2. Luyện Viết & Gõ (Pinyin, Hanzi, Draw)
+        // 2. Gõ Pinyin
         const level3Plus = (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
-        const writeBtn = createBtn('secondary-btn', '✍️', 'Luyện Viết & Gõ', () => startGame('vocab-writing'), !dataLoaded || level3Plus === 0);
-        writeBtn.style.backgroundColor = level3Plus > 0 ? '#0ea5e9' : '';
-        container.appendChild(writeBtn);
+        const pinyinBtn = createBtn('secondary-btn', '⌨️', 'Gõ Pinyin', () => startGame('type-pinyin'), !dataLoaded || level3Plus === 0);
+        pinyinBtn.style.backgroundColor = level3Plus > 0 ? '#0ea5e9' : '';
+        container.appendChild(pinyinBtn);
 
-        // 3. Luyện Phát Âm (Speech Challenge)
+        // 3. Gõ Chữ Hán
+        const level4Plus = (stats[4] || 0) + (stats[5] || 0);
+        const hanziBtn = createBtn('secondary-btn', '✍️', 'Gõ Chữ Hán', () => startGame('type-hanzi'), !dataLoaded || level4Plus === 0);
+        hanziBtn.style.backgroundColor = level4Plus > 0 ? '#14b8a6' : '';
+        container.appendChild(hanziBtn);
+
+        // 4. Viết Chữ Hán (Interactive)
+        const drawBtn = createBtn('secondary-btn', '🖌️', 'Viết Chữ Hán', () => startGame('draw-hanzi'), !dataLoaded || level4Plus === 0);
+        drawBtn.style.backgroundColor = level4Plus > 0 ? '#f43f5e' : '';
+        container.appendChild(drawBtn);
+
+        // 5. Luyện Phát Âm (Speech Challenge)
         const spBtn = createBtn('primary-btn', stats[5] > 0 ? '🎙️' : '🔒', 'Luyện Phát Âm', () => startGame('speech-challenge'), !dataLoaded || stats[5] === 0);
         spBtn.style.backgroundColor = stats[5] > 0 ? '#8b5cf6' : '';
         container.appendChild(spBtn);
 
-        // 4. Thử Thách (Time Attack, Survival)
+        // 6. Thử Thách (Time Attack, Survival)
         const chalBtn = createBtn('warning-btn', '⚡', 'Thử Thách', () => startGame('vocab-challenge'), !dataLoaded);
         chalBtn.style.background = 'linear-gradient(135deg, #f59e0b, #ef4444)';
         container.appendChild(chalBtn);
@@ -919,9 +930,12 @@ async function startGame(mode, levelFilter = null) {
             return true; // Use all words for general MCQ
         });
         if (availableWords.length < 4) { alert("Cần ít nhất 4 từ để chơi."); showScreen('vocab'); return; }
-    } else if (mode === 'vocab-writing') {
+    } else if (mode === 'type-pinyin') {
         availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
-        if (availableWords.length === 0) { alert("Cần đạt Level 3+ để luyện Viết & Gõ!"); showScreen('vocab'); return; }
+        if (availableWords.length === 0) { alert("Cần đạt Level 3+ để luyện Gõ Pinyin!"); showScreen('vocab'); return; }
+    } else if (mode === 'type-hanzi' || mode === 'draw-hanzi') {
+        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 4);
+        if (availableWords.length === 0) { alert("Cần đạt Level 4+ để luyện Chữ Hán!"); showScreen('vocab'); return; }
     } else if (mode === 'vocab-challenge') {
         availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
         if (availableWords.length < 5) { alert("Cần 5 từ Level 3+ để chơi Thử Thách!"); showScreen('vocab'); return; }
@@ -1089,13 +1103,6 @@ function loadQuestion() {
     currentQuestionMode = gameMode;
     if (gameMode === 'review' || gameMode === 'test' || gameMode === 'time-attack' || gameMode === 'survival' || gameMode === 'vocab-mcq') {
         currentQuestionMode = (Math.random() > 0.5) ? 'han-viet' : 'viet-han';
-    }
-
-    if (gameMode === 'vocab-writing') {
-        const r = Math.random();
-        if (r < 0.4) currentQuestionMode = 'draw-hanzi';
-        else if (r < 0.7) currentQuestionMode = 'type-pinyin';
-        else currentQuestionMode = 'type-hanzi';
     }
     
     // Safety check for empty data
