@@ -657,36 +657,24 @@ function renderDynamicButtons(stats) {
     const sentenceLoaded = sentencePool.length >= 2;
 
     if (currentSetupMode === 'vocab') {
-        container.appendChild(createBtn('primary-btn', '🇨🇳', 'Hán ➡️ Việt', () => startGame('han-viet'), !dataLoaded));
-        container.appendChild(createBtn('secondary-btn', '🇻🇳', 'Việt ➡️ Hán', () => startGame('viet-han'), !dataLoaded));
+        // 1. Trắc Nghiệm Tổng Hợp (Hán-Việt, Việt-Hán, Review)
+        container.appendChild(createBtn('primary-btn', '📚', 'Trắc Nghiệm', () => startGame('vocab-mcq'), !dataLoaded));
         
-        const rBtn = createBtn('warning-btn', reviewReady.length === 0 ? '⏳' : '🔥', reviewReady.length === 0 ? 'Đã ôn hết' : `Ôn Ngay (${reviewReady.length})`, () => startGame('review'), !dataLoaded || reviewReady.length === 0);
-        container.appendChild(rBtn);
-
-        // Individual Level buttons removed as per user request for simplicity
-
+        // 2. Luyện Viết & Gõ (Pinyin, Hanzi, Draw)
         const level3Plus = (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
-        const tpBtn = createBtn('warning-btn', level3Plus > 0 ? '⌨️' : '🔒', level3Plus > 0 ? `Gõ Pinyin (${level3Plus})` : 'Gõ Pinyin (Cần Lvl 3)', () => startGame('type-pinyin'), !dataLoaded || level3Plus === 0);
-        tpBtn.style.backgroundColor = level3Plus > 0 ? '#0ea5e9' : '';
-        container.appendChild(tpBtn);
+        const writeBtn = createBtn('secondary-btn', '✍️', 'Luyện Viết & Gõ', () => startGame('vocab-writing'), !dataLoaded || level3Plus === 0);
+        writeBtn.style.backgroundColor = level3Plus > 0 ? '#0ea5e9' : '';
+        container.appendChild(writeBtn);
 
-        const level4Plus = (stats[4] || 0) + (stats[5] || 0);
-        const thBtn = createBtn('warning-btn', level4Plus > 0 ? '✍️' : '🔒', level4Plus > 0 ? `Gõ Mặt Chữ (${level4Plus})` : 'Gõ Mặt Chữ (Cần Lvl 4)', () => startGame('type-hanzi'), !dataLoaded || level4Plus === 0);
-        thBtn.style.backgroundColor = level4Plus > 0 ? '#14b8a6' : '';
-        container.appendChild(thBtn);
-
-        const level3PlusCount = (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
-        const taBtn = createBtn('secondary-btn', level3PlusCount >= 5 ? '⚡' : '🔒', level3PlusCount >= 5 ? 'Phản Xạ Nhanh' : `Phản xạ (${level3PlusCount}/5)`, () => startGame('time-attack'), !dataLoaded || level3PlusCount < 5);
-        taBtn.style.backgroundColor = level3PlusCount >= 5 ? '#f43f5e' : '';
-        container.appendChild(taBtn);
-
-        const spBtn = createBtn('primary-btn', stats[5] > 0 ? '🎙️' : '🔒', stats[5] > 0 ? `Luyện Phát Âm (${stats[5]})` : 'Phát âm (Cần Lvl 5)', () => startGame('speech-challenge'), !dataLoaded || stats[5] === 0);
+        // 3. Luyện Phát Âm (Speech Challenge)
+        const spBtn = createBtn('primary-btn', stats[5] > 0 ? '🎙️' : '🔒', 'Luyện Phát Âm', () => startGame('speech-challenge'), !dataLoaded || stats[5] === 0);
         spBtn.style.backgroundColor = stats[5] > 0 ? '#8b5cf6' : '';
         container.appendChild(spBtn);
 
-        const svBtn = createBtn('primary-btn', '🔥', 'Sinh Tồn (Hệ Máu)', () => startGame('survival'), !dataLoaded);
-        svBtn.style.background = 'linear-gradient(135deg, #ef4444, #b91c1c)';
-        container.appendChild(svBtn);
+        // 4. Thử Thách (Time Attack, Survival)
+        const chalBtn = createBtn('warning-btn', '⚡', 'Thử Thách', () => startGame('vocab-challenge'), !dataLoaded);
+        chalBtn.style.background = 'linear-gradient(135deg, #f59e0b, #ef4444)';
+        container.appendChild(chalBtn);
 
     } else if (currentSetupMode === 'sentence') {
         container.appendChild(createBtn('primary-btn', '🇨🇳', 'Trung ➡️ Việt', () => startGame('sentence-trung-viet'), !sentenceLoaded));
@@ -917,26 +905,27 @@ function parseCSV(csvText) {
 async function startGame(mode, levelFilter = null) {
     gameMode = mode;
     currentLevelFilter = levelFilter;
-    
-    if (vocabulary.length >= 4) {
-        setupQuiz();
-    } else {
-        alert("Danh sách từ vựng chưa tải xong hoặc quá ngắn!");
-    }
-}
-
-function startLevelReview() {
-    const lvl = parseInt(document.getElementById('level-select').value);
-    startGame('review', lvl);
-}
-
-function setupQuiz() {
     score = 0;
     currentQuestionIndex = 0;
+    lives = 3;
     
     let availableWords = [];
     
-    if (gameMode === 'review') {
+    if (mode === 'vocab-mcq') {
+        const now = Date.now();
+        availableWords = vocabulary.filter(v => {
+            const s = wordStats[v.hanTu];
+            if (levelFilter !== null) return (s ? Math.floor(s.level) : 0) === levelFilter;
+            return true; // Use all words for general MCQ
+        });
+        if (availableWords.length < 4) { alert("Cần ít nhất 4 từ để chơi."); showScreen('vocab'); return; }
+    } else if (mode === 'vocab-writing') {
+        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
+        if (availableWords.length === 0) { alert("Cần đạt Level 3+ để luyện Viết & Gõ!"); showScreen('vocab'); return; }
+    } else if (mode === 'vocab-challenge') {
+        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
+        if (availableWords.length < 5) { alert("Cần 5 từ Level 3+ để chơi Thử Thách!"); showScreen('vocab'); return; }
+    } else if (gameMode === 'review') {
         const now = Date.now();
         availableWords = vocabulary.filter(v => {
             const s = wordStats[v.hanTu];
@@ -944,139 +933,47 @@ function setupQuiz() {
                 const lvl = s ? Math.floor(s.level) : 0;
                 return lvl === currentLevelFilter;
             }
-            // Mode Ôn ngay: ONLY words that have been studied (lvl > 0) AND are due
             return s && s.level > 0 && s.nextReview <= now;
         });
         
-        if (currentLevelFilter === null) {
-            // Sort: Lvl 1-2 first, then others by proximity to review time
-            availableWords.sort((a, b) => {
-                const sa = wordStats[a.hanTu];
-                const sb = wordStats[b.hanTu];
-                if (sa.level <= 2 && sb.level > 2) return -1;
-                if (sb.level <= 2 && sa.level > 2) return 1;
-                return sa.nextReview - sb.nextReview;
-            });
-        }
-
         if (availableWords.length === 0) {
-            const msg = currentLevelFilter !== null ? `Bạn chưa có từ nào ở Level ${currentLevelFilter}!` : "Tuyệt vời! Bạn không có từ vựng nào cần ôn tập hôm nay. Quay lại học bài mới nhé!";
-            alert(msg);
+            alert(currentLevelFilter !== null ? `Chưa có từ nào ở Level ${currentLevelFilter}!` : "Chưa đến lúc ôn tập!");
             showScreen('vocab');
             return;
         }
     } else if (gameMode === 'sentence-trung-viet') {
         availableWords = sentencePool;
-        if (availableWords.length < 4) {
-             alert("Danh sách của bạn cần ít nhất 4 câu ví dụ để chơi chế độ này!");
-             showScreen('gameSetup');
-             return;
-        }
     } else if (gameMode === 'sentence-cloze') {
-        availableWords = vocabulary.filter(v => v.hanTu && v.pinyin && v.cau && v.cau !== '-' && v.cauNghia && v.cauNghia !== '-' && v.cau.includes(v.hanTu));
-        if (availableWords.length < 4) {
-             alert("Danh sách của bạn cần ít nhất 4 từ có câu ví dụ chứa từ đó để chơi chế độ này!");
-             showScreen('builder');
-             return;
-        }
+        availableWords = vocabulary.filter(v => v.hanTu && v.cau && v.cau !== '-' && v.cau.includes(v.hanTu));
     } else if (gameMode === 'sentence-target' || gameMode === 'sentence-viet') {
         availableWords = sentencePool;
-        if (availableWords.length < 2) {
-            alert("Cần ít nhất 2 câu để vào chế độ này.");
-            showScreen('builder');
-            return;
-        }
-    } else if (gameMode === 'time-attack') {
-        // Only use words that are well-learned (level >= 3)
-        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
-        if (availableWords.length < 5) {
-            alert("Bạn cần thuộc ít nhất 5 từ (Level 3+) để mở khóa thử thách Phản Xạ Nhanh!");
-            showScreen('vocab');
-            return;
-        }
-        maxTimeLimit = 5;
-        correctStreak = 0;
     } else if (gameMode === 'speech-challenge') {
         availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 5);
-        if (availableWords.length === 0) {
-            alert("Bạn chưa có từ vựng nào đạt Level 5 để luyện phát âm!");
-            showScreen('vocab');
-            return;
-        }
-    } else if (gameMode === 'type-pinyin') {
-        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
-        if (availableWords.length === 0) {
-            alert("Bạn cần có ít nhất 1 từ đạt Level 3 để mở khóa chế độ Gõ Pinyin!");
-            showScreen('vocab');
-            return;
-        }
-    } else if (gameMode === 'type-hanzi') {
-        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 4);
-        if (availableWords.length === 0) {
-            alert("Bạn cần có ít nhất 1 từ đạt Level 4 để mở khóa chế độ Gõ Mặt Chữ Hán!");
-            showScreen('vocab');
-            return;
-        }
     } else if (gameMode === 'survival') {
-        // Survival mode uses studied words primarily, or all if not many studied
-        availableWords = vocabulary; 
+        availableWords = vocabulary;
         lives = 3;
-        survivalScore = 0;
-        maxTimeLimit = 8; // Start with 8s
-        document.getElementById('hearts-container').classList.remove('hidden');
         updateHeartsUI();
+        document.getElementById('hearts-container').classList.remove('hidden');
     } else {
-        // Normal Learning Mode (Hán->Việt, Việt->Hán)
-        // If currentLevelFilter is set, use it. Otherwise default to Level 0 (New words)
-        if (currentLevelFilter !== null) {
-            availableWords = vocabulary.filter(v => {
-                const s = wordStats[v.hanTu];
-                const lvl = s ? Math.floor(s.level) : 0;
-                return lvl === currentLevelFilter;
-            });
-        } else {
-            availableWords = vocabulary.filter(v => !wordStats[v.hanTu]);
-        }
-
-        if (availableWords.length === 0) {
-            alert("Tuyệt vời! Bạn đã vượt qua đợt 1 (làm quen) với tất cả từ vựng trong danh sách hiện tại. Hãy chuyển sang chế độ [Ôn Ngay] để củng cố trí nhớ nhé!");
-            showScreen('vocab');
-            return;
-        }
+        // Default new words
+        availableWords = vocabulary.filter(v => !wordStats[v.hanTu]);
     }
 
-    // Apply Grammar Topic Filter if in Builder Screen modes
-    if (gameMode.includes('sentence-target') || gameMode === 'sentence-cloze') {
-        const topicSelect = document.getElementById('grammar-topic-select');
-        const selectedTopic = topicSelect ? topicSelect.value : 'all';
-        if (selectedTopic !== 'all') {
-            const filtered = availableWords.filter(v => v.topic === selectedTopic);
-            if (filtered.length > 0) {
-                availableWords = filtered;
-            } else {
-                console.warn(`Không tìm thấy câu nào của chuyên đề "${selectedTopic}". Sử dụng chế độ mặc định.`);
-            }
-        }
+    if (availableWords.length === 0) {
+        alert("Không còn từ nào để học trong chế độ này!");
+        showScreen('vocab');
+        return;
     }
-    
-    // Mobile pre-warm: Play silent sound on user click to unlock engine
-    globalAudio.play().then(() => globalAudio.pause()).catch(() => {});
-    
-    let shuffled = [...availableWords].sort(() => 0.5 - Math.random());
-    
-    let inputId = 'game-num-questions';
-    
-    const inputQ = document.getElementById(inputId);
+
+    let inputQ = document.getElementById('game-num-questions');
     let desiredCount = inputQ ? parseInt(inputQ.value) : 30;
-    if (isNaN(desiredCount) || desiredCount < 1) desiredCount = 30;
-    
-    const TOTAL_QUESTIONS = Math.min(desiredCount, availableWords.length);
-    currentQuestions = shuffled.slice(0, TOTAL_QUESTIONS);
+    let shuffled = [...availableWords].sort(() => 0.5 - Math.random());
+    currentQuestions = shuffled.slice(0, Math.min(desiredCount, availableWords.length));
     
     scoreEl.textContent = score;
     showScreen('quiz');
     loadQuestion();
-    prefetchNextAudio(currentQuestionIndex);
+    prefetchNextAudio(0);
 }
 
 function loadQuestion() {
