@@ -26,6 +26,18 @@ const DB_NAME = 'VocabGameAudioDB';
 const STORE_NAME = 'audio_cache';
 let dbInstance = null;
 
+async function updateCacheCountDisplay() {
+    if (!dbInstance) await initAudioDB();
+    if (!dbInstance) return;
+    const transaction = dbInstance.transaction([STORE_NAME], 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const countRequest = store.count();
+    countRequest.onsuccess = () => {
+        const display = document.getElementById('cache-count-display');
+        if (display) display.textContent = `(${countRequest.result})`;
+    };
+}
+
 function initAudioDB() {
     return new Promise((resolve) => {
         const request = indexedDB.open(DB_NAME, 1);
@@ -37,6 +49,7 @@ function initAudioDB() {
         };
         request.onsuccess = (e) => {
             dbInstance = e.target.result;
+            updateCacheCountDisplay(); // Update display on success
             resolve(dbInstance);
         };
         request.onerror = (e) => {
@@ -84,6 +97,7 @@ window.clearAudioCache = async function() {
     const transaction = dbInstance.transaction([STORE_NAME], 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
     store.clear();
+    updateCacheCountDisplay(); // Reset display
     alert("Đã xóa sạch bộ nhớ đệm âm thanh.");
 };
 
@@ -290,6 +304,7 @@ window.downloadAllSentenceAudio = async function() {
     }
     
     alert(`Đã hoàn tất lưu ${processedCount} mục vào bộ nhớ đệm! Bây giờ bạn có thể học Offline.`);
+    updateCacheCountDisplay(); // Update final count
     setTimeout(() => progressContainer.classList.add('hidden'), 3000);
 };
 
