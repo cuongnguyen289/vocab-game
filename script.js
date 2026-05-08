@@ -1097,12 +1097,13 @@ function loadQuestion() {
     document.getElementById('writing-quiz-container').style.display = 'none';
     document.getElementById('quiz-screen').classList.remove('writing-mode-active');
     
-    const h = currentQuestionIndex;
-    const qData = currentQuestions[h];
-    counterEl.textContent = `${h + 1}/${currentQuestions.length}`;
-    prefetchNextAudio(h);
+    const qData = currentQuestions[currentQuestionIndex];
+    counterEl.textContent = `${currentQuestionIndex + 1}/${currentQuestions.length}`;
+    prefetchNextAudio(currentQuestionIndex);
     
-    let correctAnswerText, questionTextMain, questionTextSub;
+    let correctAnswerText = ""; 
+    let questionTextMain = "";
+    let questionTextSub = "";
 
     currentQuestionMode = gameMode;
     if (gameMode === 'review' || gameMode === 'test' || gameMode === 'time-attack' || gameMode === 'survival' || gameMode === 'vocab-mcq') {
@@ -1111,7 +1112,8 @@ function loadQuestion() {
     
     // Safety check for empty data
     if (!qData) {
-        console.error("No question data found for index", h);
+        console.error("No question data found!");
+        alert("Có lỗi xảy ra khi tải câu hỏi. Quay lại màn hình chính.");
         showScreen('main-menu');
         return;
     }
@@ -1119,38 +1121,27 @@ function loadQuestion() {
     if (currentQuestionMode === 'han-viet') {
         questionTextMain = qData.hanTu;
         questionTextSub = qData.pinyin;
-        correctAnswerText = qData.tiengViet;
+        correctAnswerText = qData.tiengViet || qData.nghia || "";
         questionEl.style.fontSize = '3.2rem'; 
     } else if (currentQuestionMode === 'viet-han') {
         questionTextMain = qData.tiengViet;
         questionTextSub = ""; 
-        correctAnswerText = `${qData.hanTu} (${qData.pinyin})`;
+        correctAnswerText = (qData.hanTu && qData.pinyin) ? `${qData.hanTu} (${qData.pinyin})` : (qData.hanTu || "");
         questionEl.style.fontSize = '1.8rem'; 
     } else if (currentQuestionMode === 'sentence-trung-viet') {
         questionTextMain = qData.cau;
         questionTextSub = qData.cauPinyin;
         correctAnswerText = qData.cauNghia;
-        questionEl.style.fontSize = '2rem'; 
-
+        questionEl.style.fontSize = '1.8rem';
     } else if (currentQuestionMode === 'sentence-cloze') {
-        const blank = "（___）";
-        questionTextMain = qData.cau.replace(qData.hanTu, blank);
-        
-        let pinyinBlanked = qData.cauPinyin || "";
-        if (pinyinBlanked && qData.pinyin) {
-            // Try direct replacement first (handles most cases)
-            const escapedPinyin = qData.pinyin.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const replaced = pinyinBlanked.replace(new RegExp(escapedPinyin, 'gi'), "___");
-            // Only use replacement if something changed, otherwise leave as-is
-            pinyinBlanked = replaced;
-        }
-        
-        questionTextSub = `<div class="pinyin-q">${pinyinBlanked}</div><div class="meaning-q">${qData.cauNghia}</div>`; 
-        correctAnswerText = `${qData.hanTu} (${qData.pinyin})`;
-        questionEl.style.fontSize = '2rem';
+        let displayCau = qData.cau.replace(qData.hanTu, `<span class="cloze-gap">（ ___ ）</span>`);
+        questionTextMain = displayCau;
+        questionTextSub = qData.cauNghia;
+        correctAnswerText = qData.hanTu;
+        questionEl.style.fontSize = '1.8rem';
     } else if (currentQuestionMode === 'sentence-target') {
         questionTextMain = qData.cauNghia;
-        questionTextSub = ""; // Hide by default, revealed by Hint
+        questionTextSub = ""; 
         correctAnswerText = qData.cau;
         questionEl.style.fontSize = '1.8rem';
     } else if (currentQuestionMode === 'sentence-viet') {
@@ -1160,19 +1151,18 @@ function loadQuestion() {
         questionEl.style.fontSize = '2.5rem';
     } else if (currentQuestionMode === 'type-pinyin') {
         questionTextMain = qData.hanTu;
-        questionTextSub = qData.tiengViet; // Show meaning as subtitle
+        questionTextSub = qData.tiengViet; 
         correctAnswerText = qData.pinyin;
         questionEl.style.fontSize = '3.2rem';
     } else if (currentQuestionMode === 'type-hanzi') {
         questionTextMain = qData.tiengViet;
-        questionTextSub = qData.pinyin; // Show pinyin as subtitle
+        questionTextSub = qData.pinyin; 
         correctAnswerText = qData.hanTu;
         questionEl.style.fontSize = '2rem';
     } else {
-        // Default fallbacks: if currentQuestionMode is somehow invalid (e.g. 'time-attack' wasn't randomized)
         questionTextMain = qData.hanTu || "";
         questionTextSub = qData.pinyin || "";
-        correctAnswerText = qData.tiengViet || "";
+        correctAnswerText = qData.tiengViet || qData.nghia || "";
         questionEl.style.fontSize = '3.2rem';
     }
     
@@ -1182,65 +1172,45 @@ function loadQuestion() {
     } else {
         pinyinEl.textContent = questionTextSub;
     }
+    
     if(!questionTextSub) {
         pinyinEl.style.display = 'none';
         questionEl.style.marginBottom = '0';
     } else {
         pinyinEl.style.display = 'block';
         questionEl.style.marginBottom = '0.2rem';
-        if (currentQuestionMode === 'sentence-cloze') {
-            pinyinEl.style.display = 'block';
-            pinyinEl.style.marginBottom = '0.5rem';
-        } else {
-            pinyinEl.style.fontSize = '1.4rem';
-            pinyinEl.style.color = 'var(--primary-color)';
-            pinyinEl.style.fontStyle = 'normal';
-        }
+        pinyinEl.style.fontSize = '1.4rem';
+        pinyinEl.style.color = 'var(--primary-color)';
+        pinyinEl.style.fontStyle = 'normal';
     }
     
     if (questionTextMain) {
         let isVietnamese = (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-target');
-        
-        if (isVietnamese || gameMode === 'type-pinyin' || gameMode === 'type-hanzi' || gameMode === 'sentence-cloze') {
+        if (isVietnamese || currentQuestionMode === 'type-pinyin' || currentQuestionMode === 'type-hanzi' || currentQuestionMode === 'sentence-cloze') {
             playAudioBtn.classList.add('hidden');
             playAudioSlowBtn.classList.add('hidden');
-            if(downloadAudioBtn) downloadAudioBtn.classList.add('hidden');
         } else {
             playAudioBtn.classList.remove('hidden');
             playAudioSlowBtn.classList.remove('hidden');
-            if(downloadAudioBtn) downloadAudioBtn.classList.remove('hidden');
-            let langCode = 'zh-CN';
-            const triggerAudio = () => playAudio(questionTextMain, langCode);
-            const triggerAudioSlow = () => playAudio(questionTextMain, langCode, 0.65);
-            playAudioBtn.onclick = triggerAudio;
-            playAudioSlowBtn.onclick = triggerAudioSlow;
-            // Thực thi ngay lập tức để giữ user gesture trên mobile
-            triggerAudio();
+            playAudio(questionTextMain, 'zh-CN');
+            playAudioBtn.onclick = () => playAudio(questionTextMain, 'zh-CN');
+            playAudioSlowBtn.onclick = () => playAudio(questionTextMain, 'zh-CN', 0.65);
         }
-    } else {
-        playAudioBtn.classList.add('hidden');
-        playAudioSlowBtn.classList.add('hidden');
-        if(downloadAudioBtn) downloadAudioBtn.classList.add('hidden');
     }
 
     if (gameMode === 'speech-challenge') {
-        const voiceInputContainer = document.getElementById('voice-input-container');
-        voiceInputContainer.classList.remove('hidden');
+        document.getElementById('voice-input-container').classList.remove('hidden');
         document.getElementById('skip-speech-btn').classList.remove('hidden');
-        optionsContainer.classList.add('hidden'); // Hide multiple choice options
-        
-        // Use Hán Tự as the target for comparison
+        optionsContainer.classList.add('hidden');
         correctAnswerText = qData.hanTu;
     } else if (currentQuestionMode === 'draw-hanzi') {
         optionsContainer.classList.add('hidden');
         sentenceBuilderContainer.classList.add('hidden');
         loadWritingQuiz(qData.hanTu);
-        correctAnswerText = qData.hanTu;
     } else if (currentQuestionMode === 'type-pinyin' || currentQuestionMode === 'type-hanzi') {
         optionsContainer.classList.add('hidden');
         sentenceBuilderContainer.classList.add('hidden');
         document.getElementById('pinyin-input-container').classList.remove('hidden');
-        
         const inputEl = document.getElementById('pinyin-input');
         if (inputEl) {
             inputEl.value = '';
@@ -1254,83 +1224,40 @@ function loadQuestion() {
     } else {
         optionsContainer.classList.remove('hidden');
         sentenceBuilderContainer.classList.add('hidden');
+        optionsContainer.innerHTML = '';
         
-        let options = [correctAnswerText];
+        const cleanCorrect = (correctAnswerText || "").trim();
         let distractors = new Set();
         
-        // Function to get the correct text representation for a distractor based on mode
         const getModeText = (item) => {
-            if (currentQuestionMode === 'han-viet') return item.tiengViet;
+            if (currentQuestionMode === 'han-viet') return item.tiengViet || item.nghia;
             if (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-cloze') {
-                return (item.hanTu && item.pinyin) ? `${item.hanTu} (${item.pinyin})` : null;
+                return (item.hanTu && item.pinyin) ? `${item.hanTu} (${item.pinyin})` : item.hanTu;
             }
             if (currentQuestionMode === 'sentence-trung-viet') return item.cauNghia;
-
             return null;
         };
 
-        // Determine the correct pool for distractors
-        const isSentenceMode = currentQuestionMode.includes('sentence');
-        const primaryPool = isSentenceMode ? sentencePool : vocabulary;
-
-        // Filter all potential candidates that have the required data for this mode
+        const primaryPool = currentQuestionMode.includes('sentence') ? sentencePool : vocabulary;
         let candidates = primaryPool.filter(v => {
             const txt = getModeText(v);
-            return txt && txt.trim() !== "" && txt.trim() !== correctAnswerText.trim();
-        });
+            return txt && txt.trim() !== "" && txt.trim() !== cleanCorrect;
+        }).sort(() => 0.5 - Math.random());
 
-        // Shuffle candidates
-        candidates.sort(() => 0.5 - Math.random());
-
-        // --- 1. Distractor Collection ---
-        // Pick unique distractors from candidates
         for (const cand of candidates) {
             const txt = getModeText(cand);
-            if (txt && txt.trim() !== "" && txt.trim() !== correctAnswerText.trim() && !distractors.has(txt.trim())) {
+            if (txt && txt.trim() !== "" && txt.trim() !== cleanCorrect && !distractors.has(txt.trim())) {
                 distractors.add(txt.trim());
                 if (distractors.size >= 3) break;
             }
         }
 
-        // --- 2. Fallback if insufficient (using exhaustive search across all pools) ---
-        if (distractors.size < 3) {
-            console.warn("Insufficient unique distractors! Attempting exhaustive fallback...");
-            const allItems = [...vocabulary, ...sentencePool];
-            for (const item of allItems) {
-                const potentialFields = [
-                    item.tiengViet, 
-                    (item.hanTu && item.pinyin) ? `${item.hanTu} (${item.pinyin})` : item.hanTu,
-                    item.cauNghia,
-                    item.cau
-                ];
-                for (let f of potentialFields) {
-                    if (f && typeof f === 'string' && f.trim() !== "" && f.trim() !== correctAnswerText.trim() && !distractors.has(f.trim())) {
-                        distractors.add(f.trim());
-                        if (distractors.size >= 3) break;
-                    }
-                }
-                if (distractors.size >= 3) break;
-            }
-        }
-
-        // --- 3. Emergency Placeholder Fallback (Ensures UI never breaks) ---
-        const placeholders = ["Học tập", "Công việc", "Cuộc sống", "Gia đình", "Bạn bè"];
-        for (let p of placeholders) {
-            if (distractors.size >= 3) break;
-            if (p !== correctAnswerText && !distractors.has(p)) {
-                distractors.add(p);
-            }
-        }
-
         // --- 4. Final Mix & Unique Guarantee ---
-        let finalOptions = [correctAnswerText, ...Array.from(distractors).slice(0, 3)];
+        let finalOptions = [correctAnswerText, ...Array.from(distractors)].sort(() => 0.5 - Math.random());
         
-        // Shuffle
-        finalOptions.sort(() => 0.5 - Math.random());
-
         // --- 5. Render Buttons ---
         finalOptions.forEach(opt => {
-            if (!opt) return; // Should not happen with placeholders
+            if (!opt) return;
             const btn = document.createElement('button');
             btn.className = 'btn option-btn';
             btn.textContent = opt;
