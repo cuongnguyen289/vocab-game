@@ -673,8 +673,9 @@ function renderDynamicButtons(stats) {
         container.appendChild(hanziBtn);
 
         // 4. Viết Chữ Hán (Interactive)
-        const drawBtn = createBtn('secondary-btn', '🖌️', 'Viết Chữ Hán', () => startGame('draw-hanzi'), !dataLoaded || level4Plus === 0);
-        drawBtn.style.backgroundColor = level4Plus > 0 ? '#f43f5e' : '';
+        const level1Plus = (stats[1] || 0) + (stats[2] || 0) + (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
+        const drawBtn = createBtn('secondary-btn', '🖌️', 'Viết Chữ Hán', () => startGame('draw-hanzi'), !dataLoaded || level1Plus === 0);
+        drawBtn.style.backgroundColor = level1Plus > 0 ? '#f43f5e' : '';
         container.appendChild(drawBtn);
 
         // 5. Luyện Phát Âm (Speech Challenge)
@@ -933,9 +934,12 @@ async function startGame(mode, levelFilter = null) {
     } else if (mode === 'type-pinyin') {
         availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
         if (availableWords.length === 0) { alert("Cần đạt Level 3+ để luyện Gõ Pinyin!"); showScreen('vocab'); return; }
-    } else if (mode === 'type-hanzi' || mode === 'draw-hanzi') {
+    } else if (mode === 'type-hanzi') {
         availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 4);
-        if (availableWords.length === 0) { alert("Cần đạt Level 4+ để luyện Chữ Hán!"); showScreen('vocab'); return; }
+        if (availableWords.length === 0) { alert("Cần đạt Level 4+ để luyện Gõ Chữ Hán!"); showScreen('vocab'); return; }
+    } else if (mode === 'draw-hanzi') {
+        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 1);
+        if (availableWords.length === 0) { alert("Cần đạt Level 1+ để luyện Viết Chữ Hán!"); showScreen('vocab'); return; }
     } else if (mode === 'vocab-challenge') {
         availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
         if (availableWords.length < 5) { alert("Cần 5 từ Level 3+ để chơi Thử Thách!"); showScreen('vocab'); return; }
