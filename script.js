@@ -121,44 +121,76 @@ window.playAudio = async function(text, lang, rate = 1.0) {
 
     if (audioTimeout) { clearTimeout(audioTimeout); audioTimeout = null; }
     globalAudio.pause();
-    globalAudio.src = "";
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-
-    // 1. Kiểm tra Cache trước
-    const cachedBlob = await getCachedAudio(cleanText);
-    if (cachedBlob && requestId === currentAudioId) {
-        console.log("Playing from cache:", cleanText);
-        const blobUrl = URL.createObjectURL(cachedBlob);
-        globalAudio.src = blobUrl;
-        globalAudio.playbackRate = rate;
-        globalAudio.play().catch(e => console.warn("Cache play error:", e));
-        return;
-    }
-
-    // 2. Nếu không có cache, dùng TTS và lưu lại
-    const isLong = cleanText.length > 15 || /[，。！？,.!?]/.test(cleanText);
-    let url = "";
-    if (isLong) {
-        url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=${rate < 1 ? 0.5 : 1}`;
-    } else {
-        url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
-    }
-
-    if (requestId === currentAudioId) {
-        globalAudio.src = url;
-        globalAudio.playbackRate = rate;
-        globalAudio.play().catch(e => {
-            console.warn("TTS play error, falling back to WebSpeech:", e);
+    
+    // WebSpeech API as a fallback if everything else fails
+    const playWebSpeech = () => {
+        if ('speechSynthesis' in window && requestId === currentAudioId) {
+            window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = 'zh-CN';
             utterance.rate = rate;
             window.speechSynthesis.speak(utterance);
-        });
+        }
+    };
 
-        // Tải ngầm để lưu cache cho lần sau
-        fetchAudioBlob(url).then(blob => {
-            if (blob) saveAudioToCache(cleanText, blob);
+    // Helper to play from URL with fallback
+    const tryPlay = async (url) => {
+        return new Promise((resolve) => {
+            if (requestId !== currentAudioId) return resolve(false);
+            
+            globalAudio.src = url;
+            globalAudio.playbackRate = rate;
+            
+            const onPlay = () => {
+                globalAudio.removeEventListener('error', onError);
+                resolve(true);
+            };
+            const onError = () => {
+                globalAudio.removeEventListener('canplaythrough', onPlay);
+                resolve(false);
+            };
+            
+            globalAudio.addEventListener('canplaythrough', onPlay, { once: true });
+            globalAudio.addEventListener('error', onError, { once: true });
+            
+            globalAudio.play().catch(err => {
+                console.warn("Auto-play blocked or error:", err);
+                resolve(false);
+            });
         });
+    };
+
+    // 1. Kiểm tra Cache trước
+    const cachedBlob = await getCachedAudio(cleanText);
+    if (cachedBlob && requestId === currentAudioId) {
+        const blobUrl = URL.createObjectURL(cachedBlob);
+        const success = await tryPlay(blobUrl);
+        if (success) return;
+    }
+
+    // 2. Danh sách các nguồn TTS để thử (Dự phòng đa tầng)
+    const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=${rate < 1 ? 0.5 : 1}`;
+    const youdaoUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
+    
+    // Nếu câu dài ưu tiên Google, câu ngắn ưu tiên Youdao
+    const isLong = cleanText.length > 15 || /[，。！？,.!?]/.test(cleanText);
+    const sources = isLong ? [googleUrl, youdaoUrl] : [youdaoUrl, googleUrl];
+
+    let playedSuccessfully = false;
+    for (const url of sources) {
+        if (await tryPlay(url)) {
+            playedSuccessfully = true;
+            // Lưu cache nếu thành công từ nguồn mạng
+            fetchAudioBlob(url).then(blob => {
+                if (blob) saveAudioToCache(cleanText, blob);
+            });
+            break;
+        }
+    }
+
+    // 3. Fallback cuối cùng: WebSpeech API (Không cần mạng)
+    if (!playedSuccessfully && requestId === currentAudioId) {
+        playWebSpeech();
     }
 };
 
@@ -1169,8 +1201,8 @@ function loadQuestion() {
             const triggerAudioSlow = () => playAudio(questionTextMain, langCode, 0.65);
             playAudioBtn.onclick = triggerAudio;
             playAudioSlowBtn.onclick = triggerAudioSlow;
-            // downloadAudioBtn removed
-            audioTimeout = setTimeout(triggerAudio, 100);
+            // Thực thi ngay lập tức để giữ user gesture trên mobile
+            triggerAudio();
         }
     } else {
         playAudioBtn.classList.add('hidden');
