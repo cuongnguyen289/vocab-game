@@ -2450,28 +2450,104 @@ const CHAR_DECOMPOSITION = {
     '对': ['又', '寸']
 };
 
+let writerInstance = null;
+let currentRevealCallback = null;
+let revealTimeout = null;
+
+function closeRevealOverlay() {
+    const overlay = document.getElementById('character-reveal-overlay');
+    if (!overlay) return;
+    
+    if (revealTimeout) {
+        clearTimeout(revealTimeout);
+        revealTimeout = null;
+    }
+    
+    overlay.classList.add('shrinking');
+    setTimeout(() => {
+        overlay.classList.remove('active');
+        if (currentRevealCallback) {
+            currentRevealCallback();
+            currentRevealCallback = null;
+        }
+    }, 500);
+}
+
 function showFullscreenReveal(char, pinyin, callback) {
     const overlay = document.getElementById('character-reveal-overlay');
-    const display = document.getElementById('large-char-display');
+    const container = document.getElementById('hanzi-writer-container');
     const pinyinDisplay = document.getElementById('large-pinyin-display');
     const analysis = document.getElementById('radical-analysis');
-    
-    if (!overlay || !display) return callback ? callback() : null;
+    const speedSlider = document.getElementById('stroke-speed-slider');
+    const replayBtn = document.getElementById('replay-stroke-btn');
 
-    display.textContent = char;
+    if (!overlay || !container) return callback ? callback() : null;
+
+    currentRevealCallback = callback;
+    if (revealTimeout) clearTimeout(revealTimeout);
+
+    // Reset container and pinyin
+    container.innerHTML = '';
     if (pinyinDisplay) pinyinDisplay.textContent = pinyin || "";
     
-    // Dynamic Font Scaling for long text
-    if (char.length > 3) {
-        display.style.fontSize = `min(${35 / (char.length/2)}vw, ${15 / (char.length/2)}rem)`;
-    } else {
-        display.style.fontSize = ""; // Reset to CSS default
+    // Hanzi Writer Logic
+    const characters = char.split('').filter(c => /\p{Script=Han}/u.test(c));
+    let charIndex = 0;
+
+    function animateNextChar() {
+        if (charIndex >= characters.length) {
+            // Done animating all characters - set timeout to close
+            revealTimeout = setTimeout(closeRevealOverlay, 4000);
+            return;
+        }
+
+        const currentChar = characters[charIndex];
+        container.innerHTML = ''; // Clear for next char
+        
+        writerInstance = HanziWriter.create('hanzi-writer-container', currentChar, {
+            width: 250,
+            height: 250,
+            padding: 5,
+            strokeAnimationSpeed: parseFloat(speedSlider.value || 1),
+            delayBetweenStrokes: 150,
+            strokeColor: '#6366f1', // primary-color
+            radicalColor: '#10b981' // secondary-color
+        });
+
+        writerInstance.animateCharacter({
+            onComplete: () => {
+                charIndex++;
+                setTimeout(animateNextChar, 800);
+            }
+        });
     }
 
-    if (pinyin && pinyin.length > 10) {
-        pinyinDisplay.style.fontSize = `min(${12 / (pinyin.length/10)}vw, ${6 / (pinyin.length/10)}rem)`;
+    // Speed Slider Logic
+    speedSlider.oninput = (e) => {
+        if (writerInstance) {
+            // update options for current and future animations
+            writerInstance._options.strokeAnimationSpeed = parseFloat(e.target.value);
+        }
+    };
+
+    // Replay Logic
+    replayBtn.onclick = () => {
+        if (revealTimeout) {
+            clearTimeout(revealTimeout);
+            revealTimeout = null;
+        }
+        charIndex = 0;
+        animateNextChar();
+    };
+
+    // Start Animation
+    if (characters.length > 0) {
+        animateNextChar();
     } else {
-        pinyinDisplay.style.fontSize = ""; // Reset to CSS default
+        // Fallback for non-Han characters
+        container.textContent = char;
+        container.style.fontSize = "5rem";
+        revealTimeout = setTimeout(closeRevealOverlay, 3000);
     }
     
     // Radical Analysis Logic
@@ -2502,20 +2578,7 @@ function showFullscreenReveal(char, pinyin, callback) {
     overlay.classList.add('active');
     
     // GIẢI PHÁP TRIỆT ĐỂ: Sử dụng chuỗi Promise để phát âm thanh từ vựng trước, sau đó mới đến câu
-    const currentIdAtStart = currentAudioId;
-    playAudio(char, 'zh-CN').then(() => {
-        // Chỉ thực hiện tiếp nếu chưa có yêu cầu âm thanh mới chèn vào
-        if (currentAudioId !== currentIdAtStart + 1) return; 
-
-        setTimeout(() => {
-            overlay.classList.add('shrinking');
-            if (callback) callback();
-            
-            setTimeout(() => {
-                overlay.classList.remove('active');
-            }, 500);
-        }, 5000); // Tăng thời gian hiển thị lên 5 giây theo yêu cầu
-    });
+    playAudio(char, 'zh-CN');
 }
 function stripPinyinTones(pinyin) {
     if (!pinyin) return "";
