@@ -227,6 +227,15 @@
                 </button>
                 <button id="skip-speech-btn" class="btn skip-btn hidden" onclick="skipSpeechQuestion()">Bỏ qua từ này ⏩</button>
             </div>
+
+            <!-- Writing Quiz Container (Interactive Writing) -->
+            <div id="writing-quiz-container" class="hidden" style="flex-direction: column; align-items: center; gap: 1rem; width: 100%; margin-top: 1rem;">
+                <div id="hanzi-quiz-canvas" style="width: 300px; height: 300px; background: white; border: 2px solid var(--primary-color); border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: crosshair; position: relative;"></div>
+                <div class="writing-controls" style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="writing-hint-btn" class="btn secondary-btn" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.9rem;">Gợi ý 💡</button>
+                    <button id="writing-reset-btn" class="btn warning-btn" style="width: auto; padding: 0.6rem 1.2rem; font-size: 0.9rem;">Viết lại 🔄</button>
+                </div>
+            </div>
             
             <div id="explanation-container" class="explanation-box hidden">
                 <p id="explanation-text"></p>

@@ -1104,3 +1104,21 @@ p {
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
+
+/* Writing Quiz Styles */
+#hanzi-quiz-canvas {
+    background-image: 
+        linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+        linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 50% 50%, 50% 50%;
+    background-position: center;
+}
+
+.writing-mode-active #options-container,
+.writing-mode-active #pinyin-input-container,
+.writing-mode-active #voice-input-container,
+.writing-mode-active #sentence-builder-container {
+    display: none !important;
+}
