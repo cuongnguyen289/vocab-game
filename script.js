@@ -184,10 +184,12 @@ window.playAudio = async function(text, lang, rate = 1.0) {
         if (await tryPlay(blobUrl)) return;
     }
 
-    // 2. Nguồn Online
-    const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=${rate < 1 ? 0.5 : 1}`;
+    // CHỌN NGUỒN PHÁT: Ưu tiên tuyệt đối Youdao vì chất lượng cao và ổn định
     const youdaoUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
-    const sources = isMobile ? [youdaoUrl, googleUrl] : (cleanText.length > 15 ? [googleUrl, youdaoUrl] : [youdaoUrl, googleUrl]);
+    const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=gtx&ttsspeed=${rate < 1 ? 0.5 : 1}`;
+    
+    // Luôn ưu tiên Youdao trước, Google sau
+    const sources = [youdaoUrl, googleUrl];
 
     let played = false;
     for (const url of sources) {
@@ -337,16 +339,11 @@ window.downloadAllSentenceAudio = async function() {
         // Kiểm tra xem đã có trong cache chưa
         const exists = await getCachedAudio(cleanText);
         if (!exists) {
-            const isLong = cleanText.length > 15 || /[，。！？,.!?]/.test(cleanText);
-            const url = isLong 
-                ? `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=1`
-                : `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
-            
+            const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
             const blob = await fetchAudioBlob(url);
             if (blob) {
                 await saveAudioToCache(cleanText, blob);
             }
-            // Nghỉ một chút để tránh spam server
             await new Promise(r => setTimeout(r, 100));
         }
     }
