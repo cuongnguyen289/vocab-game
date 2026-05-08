@@ -1644,7 +1644,7 @@ function checkAnswer(selected, correct, selectedBtn) {
         activityHistory[today] = (activityHistory[today] || 0) + 1;
         saveActivityData();
 
-        selectedBtn.classList.add('correct');
+        if (selectedBtn) selectedBtn.classList.add('correct');
         score += (gameMode === 'time-attack') ? (50 + Math.round(timeRemaining * 5)) : 10;
         scoreEl.textContent = score;
 
@@ -1733,8 +1733,9 @@ function checkAnswer(selected, correct, selectedBtn) {
                 }, 600); 
             }
         }
+        if (selectedBtn) selectedBtn.classList.add('correct');
     } else {
-        selectedBtn.classList.add('wrong');
+        if (selectedBtn) selectedBtn.classList.add('wrong');
         
         if (gameMode === 'time-attack') {
             correctStreak = 0;
