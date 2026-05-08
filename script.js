@@ -21,209 +21,137 @@ const TARGET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?fo
 const SENTENCE_GID = "1961448550";
 const SENTENCE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SENTENCE_GID}`;
 
-// --- HỆ THỐNG LƯU TRỮ ÂM THANH (INDEXED DB CACHING) ---
+// --- HỆ THỐNG ÂM THANH INDEXED DB CACHING (v4.1) ---
 const DB_NAME = 'VocabGameAudioDB';
-const DB_VERSION = 1;
 const STORE_NAME = 'audio_cache';
+let dbInstance = null;
 
 function initAudioDB() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
+    return new Promise((resolve) => {
+        const request = indexedDB.open(DB_NAME, 1);
         request.onupgradeneeded = (e) => {
             const db = e.target.result;
             if (!db.objectStoreNames.contains(STORE_NAME)) {
                 db.createObjectStore(STORE_NAME);
             }
         };
-        request.onsuccess = (e) => resolve(e.target.result);
-        request.onerror = (e) => reject(e.target.error);
+        request.onsuccess = (e) => {
+            dbInstance = e.target.result;
+            resolve(dbInstance);
+        };
+        request.onerror = (e) => {
+            console.error("IndexedDB error:", e.target.error);
+            resolve(null);
+        };
     });
 }
 
-async function getCachedAudio(text) {
+async function getCachedAudio(key) {
+    if (!dbInstance) await initAudioDB();
+    if (!dbInstance) return null;
+    return new Promise((resolve) => {
+        const transaction = dbInstance.transaction([STORE_NAME], 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get(key);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(null);
+    });
+}
+
+async function saveAudioToCache(key, blob) {
+    if (!dbInstance) await initAudioDB();
+    if (!dbInstance) return;
+    const transaction = dbInstance.transaction([STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    store.put(blob, key);
+}
+
+async function fetchAudioBlob(url) {
     try {
-        const db = await initAudioDB();
-        return new Promise((resolve) => {
-            const transaction = db.transaction(STORE_NAME, 'readonly');
-            const store = transaction.objectStore(STORE_NAME);
-            const request = store.get(text);
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => {
-                console.error("Lỗi lấy dữ liệu từ cache:", request.error);
-                resolve(null);
-            };
-        });
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Fetch failed");
+        return await response.blob();
     } catch (e) {
-        console.error("Không thể mở IndexedDB:", e);
+        console.error("Error fetching audio blob:", e);
         return null;
     }
 }
 
-async function saveAudioToCache(text, blob) {
-    try {
-        const db = await initAudioDB();
-        return new Promise((resolve) => {
-            const transaction = db.transaction(STORE_NAME, 'readwrite');
-            const store = transaction.objectStore(STORE_NAME);
-            store.put(blob, text);
-            transaction.oncomplete = () => resolve(true);
-            transaction.onerror = () => {
-                console.error("Lỗi lưu dữ liệu vào cache:", transaction.error);
-                resolve(false);
-            };
-        });
-    } catch (e) {
-        console.error("Không thể mở IndexedDB để lưu:", e);
-        return false;
-    }
-}
+window.clearAudioCache = async function() {
+    if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ bộ nhớ đệm âm thanh? Bạn sẽ cần internet để nghe lại.")) return;
+    if (!dbInstance) await initAudioDB();
+    if (!dbInstance) return;
+    const transaction = dbInstance.transaction([STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    store.clear();
+    alert("Đã xóa sạch bộ nhớ đệm âm thanh.");
+};
 
-async function clearAudioCache() {
-    try {
-        const db = await initAudioDB();
-        return new Promise((resolve) => {
-            const transaction = db.transaction(STORE_NAME, 'readwrite');
-            const store = transaction.objectStore(STORE_NAME);
-            const request = store.clear();
-            request.onsuccess = () => {
-                alert("Đã xóa toàn bộ bộ nhớ đệm âm thanh.");
-                resolve(true);
-            };
-            request.onerror = () => resolve(false);
-        });
-    } catch (e) {
-        return false;
-    }
-}
-
-// --- HỆ THỐNG ÂM THANH TRIỆT ĐỂ (PROMISE-BASED) ---
-let globalAudio = new Audio(); // Duy nhất một đối tượng Audio để tối ưu và tránh bị chặn
+let globalAudio = new Audio();
 let currentAudioId = 0;
 let audioTimeout = null;
 
 function cleanTTSText(text) {
     if (!text) return "";
     return text.replace(/（___）|（|）|___|\(.*?\)|\[.*?\]|<.*?>|['"]/g, '')
-               .replace(/[^\u4e00-\u9fa5a-zA-Z0-9，。！？,.!? ]/g, '') // Chỉ giữ lại Hán tự, chữ cái, số và dấu câu cơ bản
+               .replace(/[^\u4e00-\u9fa5a-zA-Z0-9，。！？,.!? ]/g, '')
                .trim();
 }
 
-async function fetchAudioBlob(url, textToCache) {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) return null;
-        const blob = await response.blob();
-        if (textToCache) {
-            await saveAudioToCache(textToCache, blob);
-        }
-        return blob;
-    } catch (e) {
-        console.error("Lỗi fetch audio blob:", e);
-        return null;
+window.playAudio = async function(text, lang, rate = 1.0) {
+    if (!text || text === '-' || lang !== 'zh-CN') return;
+    
+    const requestId = ++currentAudioId;
+    const cleanText = cleanTTSText(text);
+    if (!cleanText) return;
+
+    if (audioTimeout) { clearTimeout(audioTimeout); audioTimeout = null; }
+    globalAudio.pause();
+    globalAudio.src = "";
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+
+    // 1. Kiểm tra Cache trước
+    const cachedBlob = await getCachedAudio(cleanText);
+    if (cachedBlob && requestId === currentAudioId) {
+        console.log("Playing from cache:", cleanText);
+        const blobUrl = URL.createObjectURL(cachedBlob);
+        globalAudio.src = blobUrl;
+        globalAudio.playbackRate = rate;
+        globalAudio.play().catch(e => console.warn("Cache play error:", e));
+        return;
     }
-}
 
-window.playAudio = function(text, lang, rate = 1.0) {
-    return new Promise(async (resolve) => {
-        if (!text || text === '-' || lang !== 'zh-CN') return resolve();
-        
-        const requestId = ++currentAudioId;
-        const cleanText = cleanTTSText(text);
-        if (!cleanText) return resolve();
+    // 2. Nếu không có cache, dùng TTS và lưu lại
+    const isLong = cleanText.length > 15 || /[，。！？,.!?]/.test(cleanText);
+    let url = "";
+    if (isLong) {
+        url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=${rate < 1 ? 0.5 : 1}`;
+    } else {
+        url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
+    }
 
-        const safetyTimer = setTimeout(() => {
-            if (requestId === currentAudioId) resolve();
-        }, 15000);
-
-        if (audioTimeout) { clearTimeout(audioTimeout); audioTimeout = null; }
-        globalAudio.pause();
-        globalAudio.src = "";
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-
-        const finish = () => {
-            clearTimeout(safetyTimer);
-            if (requestId === currentAudioId) resolve();
-        };
-
-        // 1. KIỂM TRA CACHE TRƯỚC
-        const cachedBlob = await getCachedAudio(cleanText);
-        if (cachedBlob && requestId === currentAudioId) {
-            const url = URL.createObjectURL(cachedBlob);
-            globalAudio.src = url;
-            globalAudio.onended = () => { URL.revokeObjectURL(url); finish(); };
-            globalAudio.onerror = () => { URL.revokeObjectURL(url); finish(); };
-            globalAudio.play().catch(finish);
-            return;
-        }
-
-        const tryWebSpeech = () => {
-            if (requestId !== currentAudioId) return resolve();
-            if (!('speechSynthesis' in window)) return finish();
-
+    if (requestId === currentAudioId) {
+        globalAudio.src = url;
+        globalAudio.playbackRate = rate;
+        globalAudio.play().catch(e => {
+            console.warn("TTS play error, falling back to WebSpeech:", e);
             const utterance = new SpeechSynthesisUtterance(cleanText);
             utterance.lang = 'zh-CN';
             utterance.rate = rate;
-            utterance.onend = finish;
-            utterance.onerror = finish;
-            
-            const speak = () => {
-                const voices = window.speechSynthesis.getVoices();
-                const zhVoice = voices.find(v => v.lang.includes('zh') || v.lang.includes('CN'));
-                if (zhVoice) utterance.voice = zhVoice;
-                window.speechSynthesis.speak(utterance);
-            };
+            window.speechSynthesis.speak(utterance);
+        });
 
-            if (window.speechSynthesis.getVoices().length === 0) {
-                window.speechSynthesis.onvoiceschanged = speak;
-                setTimeout(speak, 500);
-            } else {
-                speak();
-            }
-        };
-
-        const tryGoogleTranslate = async () => {
-            if (requestId !== currentAudioId) return resolve();
-            const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=${rate < 1 ? 0.5 : 1}`;
-            
-            const blob = await fetchAudioBlob(url, cleanText);
-            if (blob && requestId === currentAudioId) {
-                const blobUrl = URL.createObjectURL(blob);
-                globalAudio.src = blobUrl;
-                globalAudio.onended = () => { URL.revokeObjectURL(blobUrl); finish(); };
-                globalAudio.onerror = () => { URL.revokeObjectURL(blobUrl); finish(); };
-                globalAudio.play().catch(tryWebSpeech);
-            } else {
-                tryWebSpeech();
-            }
-        };
-
-        const tryYoudao = async () => {
-            if (requestId !== currentAudioId) return resolve();
-            const url = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
-            
-            const blob = await fetchAudioBlob(url, cleanText);
-            if (blob && requestId === currentAudioId) {
-                const blobUrl = URL.createObjectURL(blob);
-                globalAudio.src = blobUrl;
-                globalAudio.onended = () => { URL.revokeObjectURL(blobUrl); finish(); };
-                globalAudio.onerror = () => { URL.revokeObjectURL(blobUrl); finish(); };
-                globalAudio.play().catch(tryGoogleTranslate);
-            } else {
-                tryGoogleTranslate();
-            }
-        };
-
-        const isLong = cleanText.length > 15 || /[，。！？,.!?]/.test(cleanText);
-
-        if (isLong) {
-            // Với câu dài: Dùng Google Translate
-            tryGoogleTranslate();
-        } else {
-            // Với từ đơn: Dùng Youdao
-            tryYoudao();
-        }
-    });
+        // Tải ngầm để lưu cache cho lần sau
+        fetchAudioBlob(url).then(blob => {
+            if (blob) saveAudioToCache(cleanText, blob);
+        });
+    }
 };
+
+// Mở khóa âm thanh
+document.addEventListener('click', function unlock() {
+    globalAudio.play().then(() => { globalAudio.pause(); document.removeEventListener('click', unlock); }).catch(()=>{});
+}, { once: true });
 
 // Hàm tải trước âm thanh cho các câu hỏi tiếp theo để tránh lag
 function prefetchNextAudio(index) {
@@ -290,6 +218,7 @@ const exampleMeaning = document.getElementById('example-meaning');
 const scoreEl = document.getElementById('score-display');
 const playAudioBtn = document.getElementById('play-audio-btn');
 const playAudioSlowBtn = document.getElementById('play-audio-slow-btn');
+const downloadAudioBtn = document.getElementById('download-audio-btn');
 const playExAudioBtn = document.getElementById('play-ex-audio-btn');
 const playExAudioSlowBtn = document.getElementById('play-ex-audio-slow-btn');
 
@@ -300,9 +229,7 @@ let survivalScore = 0;
 // Nguồn âm thanh TTS với đa dạng dự phòng (Youdao -> Google -> Web Speech API)
 // playAudio replaced by the Promise-based version above
 
-// window.downloadAudioFile removed for IndexedDB Caching
-
-// Hàm tải hàng loạt toàn bộ câu ví dụ và từ vựng để lưu vào IndexedDB (Caching)
+// --- HỆ THỐNG BATCH CACHING AUDIO (v4.1) ---
 window.downloadAllSentenceAudio = async function() {
     const uniqueItems = new Set();
     
@@ -322,32 +249,29 @@ window.downloadAllSentenceAudio = async function() {
     });
     
     const itemList = Array.from(uniqueItems);
-    if (itemList.length === 0) return alert("Không tìm thấy dữ liệu để tải.");
+    if (itemList.length === 0) return alert("Không tìm thấy dữ liệu âm thanh nào để lưu.");
     
-    if (!confirm(`Hệ thống sẽ tải và lưu bộ nhớ đệm cho ${itemList.length} mục âm thanh vào trình duyệt. Quá trình này giúp bạn học offline và mượt mà hơn. Tiếp tục?`)) return;
+    if (!confirm(`Hệ thống sẽ tải và lưu trữ ${itemList.length} mục âm thanh vào trình duyệt để bạn có thể học Offline. Tiếp tục?`)) return;
 
-    const progressContainer = document.getElementById('audio-cache-progress-container');
+    const progressContainer = document.getElementById('audio-progress-container');
     const progressBar = document.getElementById('audio-progress-bar');
-    const progressPercent = document.getElementById('audio-progress-percent');
     const progressStatus = document.getElementById('audio-progress-status');
-    const btn = document.getElementById('batch-download-btn');
+    const progressPercent = document.getElementById('audio-progress-percent');
     
-    if (progressContainer) progressContainer.classList.remove('hidden');
-    if (btn) btn.style.pointerEvents = 'none';
-    if (btn) btn.style.opacity = '0.5';
-
+    progressContainer.classList.remove('hidden');
     let processedCount = 0;
     
     for (const text of itemList) {
         processedCount++;
         const percent = Math.round((processedCount / itemList.length) * 100);
         
-        if (progressBar) progressBar.style.width = `${percent}%`;
-        if (progressPercent) progressPercent.textContent = `${percent}%`;
-        if (progressStatus) progressStatus.textContent = `Đang xử lý ${processedCount}/${itemList.length}`;
-
-        const cleanText = cleanTTSText(text);
+        progressStatus.textContent = `Đang xử lý ${processedCount}/${itemList.length}`;
+        progressPercent.textContent = `${percent}%`;
+        progressBar.style.width = `${percent}%`;
         
+        const cleanText = cleanTTSText(text);
+        if (!cleanText) continue;
+
         // Kiểm tra xem đã có trong cache chưa
         const exists = await getCachedAudio(cleanText);
         if (!exists) {
@@ -356,24 +280,17 @@ window.downloadAllSentenceAudio = async function() {
                 ? `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=1`
                 : `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
             
-            await fetchAudioBlob(url, cleanText);
-            // Nghỉ ngắn để tránh spam server quá nhanh
-            await new Promise(resolve => setTimeout(resolve, 300));
+            const blob = await fetchAudioBlob(url);
+            if (blob) {
+                await saveAudioToCache(cleanText, blob);
+            }
+            // Nghỉ một chút để tránh spam server
+            await new Promise(r => setTimeout(r, 100));
         }
     }
     
-    if (progressStatus) progressStatus.textContent = "✅ Đã tải xong tất cả!";
-    if (btn) {
-        btn.style.pointerEvents = 'auto';
-        btn.style.opacity = '1';
-        btn.textContent = "[✅ Đã lưu cache]";
-    }
-    
-    setTimeout(() => {
-        if (progressContainer) progressContainer.classList.add('hidden');
-    }, 3000);
-    
-    alert(`Đã hoàn tất lưu cache cho ${processedCount} mục âm thanh. Bây giờ bạn có thể học offline!`);
+    alert(`Đã hoàn tất lưu ${processedCount} mục vào bộ nhớ đệm! Bây giờ bạn có thể học Offline.`);
+    setTimeout(() => progressContainer.classList.add('hidden'), 3000);
 };
 
 const counterEl = document.getElementById('question-counter');
@@ -1237,6 +1154,7 @@ function loadQuestion() {
             const triggerAudioSlow = () => playAudio(questionTextMain, langCode, 0.65);
             playAudioBtn.onclick = triggerAudio;
             playAudioSlowBtn.onclick = triggerAudioSlow;
+            // downloadAudioBtn removed
             audioTimeout = setTimeout(triggerAudio, 100);
         }
     } else {
@@ -1759,6 +1677,7 @@ function checkAnswer(selected, correct, selectedBtn) {
                 
                 playAudioBtn.onclick = () => playAudio(audioText, 'zh-CN');
                 playAudioSlowBtn.onclick = () => playAudio(audioText, 'zh-CN', 0.65);
+                // downloadAudioBtn removed
             }
         }
 
@@ -1956,8 +1875,7 @@ function renderHistory() {
     if (dates.length === 0) {
         container.innerHTML = '<div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">' +
                     '<a href="#" onclick="showHistoryScreen()" style="color: #8b5cf6; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📊 Lịch sử]</a>' +
-                    '<a href="#" id="batch-download-btn" onclick="downloadAllSentenceAudio()" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📥 Lưu Cache Audio]</a>' +
-                    '<a href="#" onclick="clearAudioCache()" style="color: #f59e0b; text-decoration: none; font-weight: 600; font-size: 0.85rem;">[🧹 Xóa Cache]</a>' +
+                    '<a href="#" id="batch-download-btn" onclick="downloadAllSentenceAudio()" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📥 Tải âm thanh câu]</a>' +
                     '<a href="#" onclick="resetProgress()" style="color: var(--error-color); text-decoration: none; font-weight: 600; font-size: 0.85rem; opacity: 0.8;">[🔄 Học lại]</a>' +
                 '</div><p style="text-align: center; color: var(--text-muted); padding: 2rem;">Chưa có dữ liệu lịch sử. Hãy bắt đầu học ngay!</p>';
         return;
@@ -1965,8 +1883,8 @@ function renderHistory() {
     
     container.innerHTML = '<div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">' +
                     '<a href="#" onclick="showHistoryScreen()" style="color: #8b5cf6; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📊 Lịch sử]</a>' +
-                    '<a href="#" id="batch-download-btn" onclick="downloadAllSentenceAudio()" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📥 Lưu Cache Audio]</a>' +
-                    '<a href="#" onclick="clearAudioCache()" style="color: #f59e0b; text-decoration: none; font-weight: 600; font-size: 0.85rem;">[🧹 Xóa Cache]</a>' +
+                    '<a href="#" id="batch-cache-btn" onclick="downloadAllSentenceAudio()" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[📥 Lưu Cache Audio]</a>' +
+                    '<a href="#" onclick="clearAudioCache()" style="color: #f59e0b; text-decoration: none; font-weight: 700; font-size: 0.85rem;">[🧹 Xóa Cache]</a>' +
                     '<a href="#" onclick="resetProgress()" style="color: var(--error-color); text-decoration: none; font-weight: 600; font-size: 0.85rem; opacity: 0.8;">[🔄 Học lại]</a>' +
                 '</div>';
     dates.forEach(date => {
