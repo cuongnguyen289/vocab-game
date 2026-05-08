@@ -976,6 +976,83 @@ async function startGame(mode, levelFilter = null) {
     prefetchNextAudio(0);
 }
 
+let writingQuizInstance = null;
+
+function loadWritingQuiz(hanziWord) {
+    const container = document.getElementById('writing-quiz-container');
+    const canvas = document.getElementById('hanzi-quiz-canvas');
+    const hintBtn = document.getElementById('writing-hint-btn');
+    const resetBtn = document.getElementById('writing-reset-btn');
+    const questionTextContainer = document.querySelector('.question-container');
+    
+    // Switch to writing mode UI
+    document.getElementById('quiz-screen').classList.add('writing-mode-active');
+    container.classList.remove('hidden');
+    container.style.display = 'flex';
+    canvas.innerHTML = '';
+    
+    // Filter only Hanzi characters
+    const chars = hanziWord.split('').filter(c => /\p{Script=Han}/u.test(c));
+    let charIndex = 0;
+
+    function startQuizForChar() {
+        if (charIndex >= chars.length) {
+            // Completed the whole word
+            setTimeout(() => {
+                document.getElementById('quiz-screen').classList.remove('writing-mode-active');
+                container.classList.add('hidden');
+                container.style.display = 'none';
+                handleCorrectAnswer(hanziWord);
+            }, 600);
+            return;
+        }
+
+        canvas.innerHTML = '';
+        writingQuizInstance = HanziWriter.create('hanzi-quiz-canvas', chars[charIndex], {
+            width: 300,
+            height: 300,
+            showCharacter: false,
+            showOutline: true,
+            padding: 15,
+            strokeColor: '#6366f1',
+            radicalColor: '#10b981',
+            outlineColor: '#e2e8f0',
+            strokeAnimationSpeed: 1.5
+        });
+
+        writingQuizInstance.quiz({
+            onComplete: () => {
+                // Flash success color on canvas border
+                canvas.style.borderColor = '#10b981';
+                setTimeout(() => {
+                    canvas.style.borderColor = 'var(--primary-color)';
+                    charIndex++;
+                    startQuizForChar();
+                }, 400);
+            }
+        });
+    }
+
+    hintBtn.onclick = () => {
+        if (writingQuizInstance) {
+            writingQuizInstance.revealFeedback();
+        }
+    };
+
+    resetBtn.onclick = () => {
+        startQuizForChar();
+    };
+
+    startQuizForChar();
+}
+
+function handleCorrectAnswer(answer) {
+    // Shared logic for correct answers across different modes
+    const correctBtn = Array.from(document.querySelectorAll('.option-btn'))
+                            .find(b => b.textContent === answer);
+    checkAnswer(answer, answer, correctBtn);
+}
+
 function loadQuestion() {
     if (audioTimeout) {
         clearTimeout(audioTimeout);
@@ -996,6 +1073,11 @@ function loadQuestion() {
     document.getElementById('skip-speech-btn').classList.add('hidden');
     document.getElementById('speech-result-display').innerHTML = '';
     document.getElementById('speech-score-display').textContent = 'Độ chính xác: 0%';
+
+    // Reset Writing UI
+    document.getElementById('writing-quiz-container').classList.add('hidden');
+    document.getElementById('writing-quiz-container').style.display = 'none';
+    document.getElementById('quiz-screen').classList.remove('writing-mode-active');
     
     const h = currentQuestionIndex;
     const qData = currentQuestions[h];
@@ -1005,8 +1087,15 @@ function loadQuestion() {
     let correctAnswerText, questionTextMain, questionTextSub;
 
     currentQuestionMode = gameMode;
-    if (gameMode === 'review' || gameMode === 'test' || gameMode === 'time-attack' || gameMode === 'survival') {
+    if (gameMode === 'review' || gameMode === 'test' || gameMode === 'time-attack' || gameMode === 'survival' || gameMode === 'vocab-mcq') {
         currentQuestionMode = (Math.random() > 0.5) ? 'han-viet' : 'viet-han';
+    }
+
+    if (gameMode === 'vocab-writing') {
+        const r = Math.random();
+        if (r < 0.4) currentQuestionMode = 'draw-hanzi';
+        else if (r < 0.7) currentQuestionMode = 'type-pinyin';
+        else currentQuestionMode = 'type-hanzi';
     }
     
     // Safety check for empty data
@@ -1131,7 +1220,12 @@ function loadQuestion() {
         
         // Use Hán Tự as the target for comparison
         correctAnswerText = qData.hanTu;
-    } else if (gameMode === 'type-pinyin' || gameMode === 'type-hanzi') {
+    } else if (currentQuestionMode === 'draw-hanzi') {
+        optionsContainer.classList.add('hidden');
+        sentenceBuilderContainer.classList.add('hidden');
+        loadWritingQuiz(qData.hanTu);
+        correctAnswerText = qData.hanTu;
+    } else if (currentQuestionMode === 'type-pinyin' || currentQuestionMode === 'type-hanzi') {
         optionsContainer.classList.add('hidden');
         sentenceBuilderContainer.classList.add('hidden');
         document.getElementById('pinyin-input-container').classList.remove('hidden');
@@ -1139,7 +1233,7 @@ function loadQuestion() {
         const inputEl = document.getElementById('pinyin-input');
         if (inputEl) {
             inputEl.value = '';
-            inputEl.placeholder = gameMode === 'type-pinyin' ? "Gõ pinyin (không dấu)..." : "Gõ chữ Hán...";
+            inputEl.placeholder = currentQuestionMode === 'type-pinyin' ? "Gõ pinyin (không dấu)..." : "Gõ chữ Hán...";
             setTimeout(() => inputEl.focus(), 100);
         }
     } else if (gameMode === 'sentence-target' || gameMode === 'sentence-viet') {
