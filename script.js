@@ -25,6 +25,7 @@ const SENTENCE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?
 const DB_NAME = 'VocabGameAudioDB';
 const STORE_NAME = 'audio_cache';
 let dbInstance = null;
+let prefetchedUrls = {}; // Lưu trữ sẵn Blob URL để phát ngay lập tức
 
 async function updateCacheCountDisplay() {
     if (!dbInstance) await initAudioDB();
@@ -120,9 +121,25 @@ window.playAudio = async function(text, lang, rate = 1.0) {
     if (!cleanText) return;
 
     if (audioTimeout) { clearTimeout(audioTimeout); audioTimeout = null; }
-    globalAudio.pause();
     
-    // WebSpeech API as a fallback if everything else fails
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    // 0. KIỂM TRA TRONG BỘ NHỚ TẠM (DÀNH CHO MOBILE - PHÁT ĐỒNG BỘ)
+    if (prefetchedUrls[cleanText] && requestId === currentAudioId) {
+        console.log("Playing from prefetch memory:", cleanText);
+        try {
+            globalAudio.pause();
+            globalAudio.src = prefetchedUrls[cleanText];
+            globalAudio.playbackRate = rate;
+            await globalAudio.play();
+            return;
+        } catch (e) {
+            console.warn("Prefetch play failed, falling back...");
+        }
+    }
+
+    globalAudio.pause();
+
     const playWebSpeech = () => {
         if ('speechSynthesis' in window && requestId === currentAudioId) {
             window.speechSynthesis.cancel();
@@ -133,14 +150,14 @@ window.playAudio = async function(text, lang, rate = 1.0) {
         }
     };
 
-    // Helper to play from URL with fallback
     const tryPlay = async (url) => {
         return new Promise((resolve) => {
             if (requestId !== currentAudioId) return resolve(false);
             
             globalAudio.src = url;
             globalAudio.playbackRate = rate;
-            
+            if (isMobile) globalAudio.load();
+
             const onPlay = () => {
                 globalAudio.removeEventListener('error', onError);
                 resolve(true);
@@ -154,66 +171,65 @@ window.playAudio = async function(text, lang, rate = 1.0) {
             globalAudio.addEventListener('error', onError, { once: true });
             
             globalAudio.play().catch(err => {
-                console.warn("Auto-play blocked or error:", err);
+                console.warn("Play blocked:", err);
                 resolve(false);
             });
         });
     };
 
-    // 1. Kiểm tra Cache trước
+    // 1. Kiểm tra Cache thông thường
     const cachedBlob = await getCachedAudio(cleanText);
     if (cachedBlob && requestId === currentAudioId) {
         const blobUrl = URL.createObjectURL(cachedBlob);
-        const success = await tryPlay(blobUrl);
-        if (success) return;
+        if (await tryPlay(blobUrl)) return;
     }
 
-    // 2. Danh sách các nguồn TTS để thử (Dự phòng đa tầng)
+    // 2. Nguồn Online
     const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=zh-CN&client=tw-ob&ttsspeed=${rate < 1 ? 0.5 : 1}`;
     const youdaoUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&le=zh`;
-    
-    // Nếu câu dài ưu tiên Google, câu ngắn ưu tiên Youdao
-    const isLong = cleanText.length > 15 || /[，。！？,.!?]/.test(cleanText);
-    const sources = isLong ? [googleUrl, youdaoUrl] : [youdaoUrl, googleUrl];
+    const sources = isMobile ? [youdaoUrl, googleUrl] : (cleanText.length > 15 ? [googleUrl, youdaoUrl] : [youdaoUrl, googleUrl]);
 
-    let playedSuccessfully = false;
+    let played = false;
     for (const url of sources) {
         if (await tryPlay(url)) {
-            playedSuccessfully = true;
-            // Lưu cache nếu thành công từ nguồn mạng
-            fetchAudioBlob(url).then(blob => {
-                if (blob) saveAudioToCache(cleanText, blob);
-            });
+            played = true;
+            fetchAudioBlob(url).then(blob => { if (blob) saveAudioToCache(cleanText, blob); });
             break;
         }
     }
 
-    // 3. Fallback cuối cùng: WebSpeech API (Không cần mạng)
-    if (!playedSuccessfully && requestId === currentAudioId) {
-        playWebSpeech();
-    }
+    if (!played && requestId === currentAudioId) playWebSpeech();
 };
 
 // Mở khóa âm thanh
+// Mở khóa âm thanh ngay lần chạm đầu tiên
 document.addEventListener('click', function unlock() {
     globalAudio.play().then(() => { globalAudio.pause(); document.removeEventListener('click', unlock); }).catch(()=>{});
 }, { once: true });
 
-// Hàm tải trước âm thanh cho các câu hỏi tiếp theo để tránh lag
-function prefetchNextAudio(index) {
-    for (let i = 1; i <= 2; i++) {
-        const nextQ = currentQuestions[index + i];
-        if (nextQ) {
-            if (nextQ.hanTu) new Audio(`https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanTTSText(nextQ.hanTu))}&le=zh`).preload = "auto";
-            if (nextQ.cau && nextQ.cau !== '-') new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanTTSText(nextQ.cau))}&tl=zh-CN&client=tw-ob&ttsspeed=1`).preload = "auto";
+// Hàm tải trước âm thanh cho các câu hỏi tiếp theo để tránh lag (Đặc biệt quan trọng cho mobile)
+async function prefetchNextAudio(index) {
+    if (index + 1 < currentQuestions.length) {
+        const nextQ = currentQuestions[index + 1];
+        const text = nextQ.hanTu || nextQ.cau;
+        if (!text) return;
+        
+        const cleanText = cleanTTSText(text);
+        if (prefetchedUrls[cleanText]) return; // Đã có rồi
+        
+        const blob = await getCachedAudio(cleanText);
+        if (blob) {
+            // Giải phóng bộ nhớ cũ nếu quá nhiều (tối đa giữ 10 tệp)
+            const keys = Object.keys(prefetchedUrls);
+            if (keys.length > 10) {
+                URL.revokeObjectURL(prefetchedUrls[keys[0]]);
+                delete prefetchedUrls[keys[0]];
+            }
+            prefetchedUrls[cleanText] = URL.createObjectURL(blob);
+            console.log("Prefetched for mobile sync:", cleanText);
         }
     }
 }
-
-// Mở khóa âm thanh ngay lần chạm đầu tiên
-document.addEventListener('click', function unlock() {
-    globalAudio.play().then(() => { globalAudio.pause(); document.removeEventListener('click', unlock); });
-}, { once: true });
 
 const FETCH_URLS = [
     TARGET_URL, 
@@ -1046,6 +1062,9 @@ function setupQuiz() {
         }
     }
     
+    // Mobile pre-warm: Play silent sound on user click to unlock engine
+    globalAudio.play().then(() => globalAudio.pause()).catch(() => {});
+    
     let shuffled = [...availableWords].sort(() => 0.5 - Math.random());
     
     let inputId = 'game-num-questions';
@@ -1861,6 +1880,20 @@ function updateHeartsUI() {
 }
 
 nextBtn.onclick = () => {
+    // Mobile fix: 'Pre-warm' or play the pre-fetched audio IMMEDIATELY on the same tick as the click
+    const nextQ = currentQuestions[currentQuestionIndex + 1];
+    if (nextQ) {
+        const text = cleanTTSText(nextQ.hanTu || nextQ.cau);
+        if (prefetchedUrls[text]) {
+             // We can't call playAudio directly here because it might do other things, 
+             // but we can prepare the globalAudio object.
+             globalAudio.pause();
+             globalAudio.src = prefetchedUrls[text];
+             // Don't play yet, loadQuestion will handle it, but the src is now set 
+             // in a synchronous user-triggered callback.
+        }
+    }
+
     currentQuestionIndex++;
     if (currentQuestionIndex < currentQuestions.length) {
         loadQuestion();
