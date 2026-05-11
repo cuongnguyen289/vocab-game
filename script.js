@@ -241,6 +241,7 @@ const FETCH_URLS = [
 ];
 
 let vocabulary = [];
+let radicalMap = {}; // Group words by radical: { '氵': [idx1, idx2, ...], ... }
 
 function getModeTitle(mode) {
     const titles = {
@@ -254,6 +255,8 @@ function getModeTitle(mode) {
         'sentence-trung-viet': '🗣️ Dịch Câu Trung - Việt',
         'sentence-target': '🧩 Ghép Câu Tiếng Trung',
         'sentence-cloze': '📝 Điền Từ Vào Câu',
+        'radical-mcq': '🧬 Trắc Nghiệm Bộ Thủ',
+        'radical-writing': '✍️ Luyện Viết Bộ Thủ',
         'survival': '❤️ Thử Thách Sinh Tồn',
         'han-viet': '📚 Trắc Nghiệm Hán - Việt',
         'viet-han': '📚 Trắc Nghiệm Việt - Hán'
@@ -460,6 +463,12 @@ function updateProgressUI() {
         } else {
             levelSelect.value = '1';
         }
+
+        // Re-render buttons when level changes to update the start handlers
+        if (!levelSelect.dataset.listenerAdded) {
+            levelSelect.addEventListener('change', () => renderDynamicButtons());
+            levelSelect.dataset.listenerAdded = "true";
+        }
     }
 
     // Update Grammar Topics Dropdown in Builder Screen
@@ -483,6 +492,71 @@ function updateProgressUI() {
     const today = getTodayDate();
     vocabHistory[today] = { 1: stats[1], 2: stats[2], 3: stats[3], 4: stats[4], 5: stats[5] };
     saveHistoryData();
+
+    // Update Radical Selector if current mode is radical grouping
+    if (currentSetupMode === 'radical-grouping') {
+        renderRadicalSelector();
+    }
+}
+
+function buildRadicalMap() {
+    radicalMap = {};
+    vocabulary.forEach((word, index) => {
+        if (!word.hanTu) return;
+        // Split multi-char words and find radicals for each character
+        const chars = [...word.hanTu].filter(c => /\p{Script=Han}/u.test(c));
+        chars.forEach(char => {
+            const components = CHAR_DECOMPOSITION[char] || [char];
+            components.forEach(comp => {
+                // Only consider it a radical if it's in our RADICAL_DICTIONARY
+                if (RADICAL_DICTIONARY[comp]) {
+                    if (!radicalMap[comp]) radicalMap[comp] = [];
+                    if (!radicalMap[comp].includes(index)) {
+                        radicalMap[comp].push(index);
+                    }
+                }
+            });
+        });
+    });
+}
+
+function renderRadicalSelector() {
+    const container = document.getElementById('radical-list');
+    const selectedInput = document.getElementById('selected-radical');
+    if (!container) return;
+
+    if (Object.keys(radicalMap).length === 0) {
+        buildRadicalMap();
+    }
+
+    // Sort radicals by number of words (descending)
+    const sortedRadicals = Object.keys(radicalMap).sort((a, b) => radicalMap[b].length - radicalMap[a].length);
+    
+    container.innerHTML = '';
+    sortedRadicals.forEach(rad => {
+        const data = RADICAL_DICTIONARY[rad];
+        const count = radicalMap[rad].length;
+        
+        const pill = document.createElement('div');
+        pill.className = 'radical-pill' + (selectedInput.value === rad ? ' active' : '');
+        pill.innerHTML = `
+            <span class="rp-char">${rad}</span>
+            <span class="rp-name">${data.name}</span>
+            <span class="rp-count">${count} từ</span>
+        `;
+        
+        pill.onclick = () => {
+            document.querySelectorAll('.radical-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            selectedInput.value = rad;
+        };
+        
+        container.appendChild(pill);
+    });
+
+    if (sortedRadicals.length === 0) {
+        container.innerHTML = '<p style="font-size: 0.9rem; color: var(--text-muted);">Không tìm thấy bộ thủ nào trong kho từ vựng hiện tại.</p>';
+    }
 }
 
 function resetProgress() {
@@ -668,6 +742,7 @@ function goToStartScreen(mode) {
     const sentenceStats = document.getElementById('sentence-stats-container');
     const grammarGroup = document.getElementById('grammar-selection-group');
     const levelGroup = document.getElementById('level-selection-group');
+    const radicalGroup = document.getElementById('radical-selection-group');
     
     if(mode === 'vocab') {
         headerIcon.textContent = '🐼';
@@ -676,6 +751,7 @@ function goToStartScreen(mode) {
         sentenceStats.style.display = 'none';
         grammarGroup.classList.add('hidden');
         levelGroup.classList.remove('hidden');
+        radicalGroup.classList.add('hidden');
         document.getElementById('setup-progress-stats').classList.remove('hidden');
     } else if (mode === 'sentence') {
         headerIcon.textContent = '🗣️';
@@ -684,6 +760,7 @@ function goToStartScreen(mode) {
         sentenceStats.style.display = 'block';
         grammarGroup.classList.add('hidden');
         levelGroup.classList.add('hidden');
+        radicalGroup.classList.add('hidden');
         document.getElementById('setup-progress-stats').classList.add('hidden');
     } else if (mode === 'builder') {
         headerIcon.textContent = '🧩';
@@ -692,7 +769,18 @@ function goToStartScreen(mode) {
         sentenceStats.style.display = 'block';
         grammarGroup.classList.remove('hidden');
         levelGroup.classList.add('hidden');
+        radicalGroup.classList.add('hidden');
         document.getElementById('setup-progress-stats').classList.add('hidden');
+    } else if (mode === 'radical-grouping') {
+        headerIcon.textContent = '🧬';
+        headerTitle.textContent = 'Học theo Bộ Thủ';
+        headerDesc.textContent = 'Nắm vững cội nguồn và ý nghĩa chữ Hán!';
+        sentenceStats.style.display = 'none';
+        grammarGroup.classList.add('hidden');
+        levelGroup.classList.add('hidden');
+        radicalGroup.classList.remove('hidden');
+        document.getElementById('setup-progress-stats').classList.remove('hidden');
+        renderRadicalSelector();
     }
     
     renderDynamicButtons();
@@ -725,22 +813,24 @@ function renderDynamicButtons(stats) {
     const sentenceLoaded = sentencePool.length >= 2;
 
     if (currentSetupMode === 'vocab') {
-        // 1. Trắc Nghiệm Tổng Hợp
-        container.appendChild(createBtn('primary-btn', '📚', 'Trắc Nghiệm', () => startGame('vocab-mcq'), !dataLoaded));
-        
-        // 2. Luyện Viết & Gõ (Consolidated)
-        const level1Plus = (stats[1] || 0) + (stats[2] || 0) + (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
-        const writeBtn = createBtn('secondary-btn', '✍️', 'Luyện Viết & Gõ', () => startGame('vocab-writing'), !dataLoaded || level1Plus === 0);
-        writeBtn.style.backgroundColor = level1Plus > 0 ? '#0ea5e9' : '';
-        container.appendChild(writeBtn);
+        const levelSelect = document.getElementById('level-select');
+        const getLevel = () => {
+            if (!levelSelect) return 1;
+            const val = levelSelect.value;
+            return val === 'srs' ? null : parseInt(val);
+        };
 
-        // 3. Luyện Phát Âm
-        const spBtn = createBtn('primary-btn', stats[5] > 0 ? '🎙️' : '🔒', 'Phát Âm', () => startGame('speech-challenge'), !dataLoaded || stats[5] === 0);
-        spBtn.style.backgroundColor = stats[5] > 0 ? '#8b5cf6' : '';
-        container.appendChild(spBtn);
+        // 1. Trắc Nghiệm
+        container.appendChild(createBtn('primary-btn', '📚', 'Trắc Nghiệm', () => startGame('vocab-mcq', getLevel()), !dataLoaded));
+        
+        // 2. Gõ Pinyin
+        container.appendChild(createBtn('secondary-btn', '⌨️', 'Gõ Pinyin', () => startGame('type-pinyin', getLevel()), !dataLoaded));
+
+        // 3. Tập Viết
+        container.appendChild(createBtn('primary-btn', '🖌️', 'Tập Viết', () => startGame('draw-hanzi', getLevel()), !dataLoaded));
 
         // 4. Thử Thách
-        const chalBtn = createBtn('warning-btn', '⚡', 'Thử Thách', () => startGame('vocab-challenge'), !dataLoaded);
+        const chalBtn = createBtn('warning-btn', '⚡', 'Thử Thách', () => startGame('vocab-challenge', getLevel()), !dataLoaded);
         chalBtn.style.background = 'linear-gradient(135deg, #f59e0b, #ef4444)';
         container.appendChild(chalBtn);
     } else if (currentSetupMode === 'sentence') {
@@ -753,6 +843,12 @@ function renderDynamicButtons(stats) {
         const b2 = createBtn('primary-btn', '📝', 'Điền khuyết (Cloze)', () => startGame('sentence-cloze'), !sentenceLoaded);
         b2.style.backgroundColor = '#f59e0b';
         container.appendChild(b2);
+    } else if (currentSetupMode === 'radical-grouping') {
+        const selectedRad = document.getElementById('selected-radical').value;
+        const isDisabled = !dataLoaded || !selectedRad;
+        
+        container.appendChild(createBtn('primary-btn', '📚', 'Trắc Nghiệm', () => startGame('radical-mcq'), isDisabled));
+        container.appendChild(createBtn('secondary-btn', '✍️', 'Luyện Viết', () => startGame('radical-writing'), isDisabled));
     }
 }
 
@@ -965,18 +1061,12 @@ function parseCSV(csvText) {
         alert("Danh sách từ vựng quá ngắn (cần ít nhất 4 từ có đủ Hán Tự và Nghĩa để tạo 4 đáp án).");
         showScreen('main-menu');
     } else {
+        buildRadicalMap();
         renderDynamicButtons();
     }
 }
 
-window.startLevelReview = function() {
-    const val = document.getElementById('level-select').value;
-    if (val === 'srs') {
-        startGame('review', null);
-    } else {
-        startGame('review', parseInt(val));
-    }
-};
+// startLevelReview removed
 
 async function startGame(mode, levelFilter = null) {
     gameMode = mode;
@@ -1001,21 +1091,66 @@ async function startGame(mode, levelFilter = null) {
         availableWords = vocabulary.filter(v => {
             const s = wordStats[v.hanTu];
             if (levelFilter !== null) return (s ? Math.floor(s.level) : 0) === levelFilter;
-            return true; // Use all words for general MCQ
+            return s && s.level > 0 && s.nextReview <= now; // SRS mode
         });
         if (availableWords.length < 4) { alert("Cần ít nhất 4 từ để chơi."); showScreen('vocab'); return; }
+    } else if (mode === 'radical-mcq' || mode === 'radical-writing') {
+        const selectedRad = document.getElementById('selected-radical').value;
+        if (!selectedRad || !radicalMap[selectedRad]) {
+            alert("Vui lòng chọn một bộ thủ!");
+            return;
+        }
+        // Map word indices back to word objects
+        availableWords = radicalMap[selectedRad].map(idx => vocabulary[idx]);
+        if (availableWords.length === 0) {
+            alert("Không tìm thấy từ vựng nào thuộc bộ thủ này.");
+            return;
+        }
+        if (mode === 'radical-mcq' && availableWords.length < 4) {
+            alert("Cần ít nhất 4 từ thuộc bộ thủ này để chơi trắc nghiệm.");
+            return;
+        }
     } else if (mode === 'type-pinyin') {
-        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
-        if (availableWords.length === 0) { alert("Cần đạt Level 3+ để luyện Gõ Pinyin!"); showScreen('vocab'); return; }
+        const now = Date.now();
+        availableWords = vocabulary.filter(v => {
+            const s = wordStats[v.hanTu];
+            if (levelFilter !== null) return (s ? Math.floor(s.level) : 0) === levelFilter;
+            return s && s.level > 0 && s.nextReview <= now; // SRS
+        });
+        if (availableWords.length === 0) { 
+            alert(levelFilter !== null ? `Chưa có từ nào ở Level ${levelFilter} để luyện gõ!` : "Chưa có từ nào đến hạn ôn tập!"); 
+            showScreen('gameSetup'); return; 
+        }
     } else if (mode === 'type-hanzi') {
-        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 4);
-        if (availableWords.length === 0) { alert("Cần đạt Level 4+ để luyện Gõ Chữ Hán!"); showScreen('vocab'); return; }
+        const now = Date.now();
+        availableWords = vocabulary.filter(v => {
+            const s = wordStats[v.hanTu];
+            if (levelFilter !== null) return (s ? Math.floor(s.level) : 0) === levelFilter;
+            return s && s.level > 0 && s.nextReview <= now; // SRS
+        });
+        if (availableWords.length === 0) { showScreen('gameSetup'); return; }
     } else if (mode === 'draw-hanzi') {
-        availableWords = vocabulary.filter(v => !wordStats[v.hanTu] || wordStats[v.hanTu].level >= 1);
-        if (availableWords.length === 0) { alert("Chưa có từ vựng nào để luyện viết!"); showScreen('vocab'); return; }
+        const now = Date.now();
+        availableWords = vocabulary.filter(v => {
+            const s = wordStats[v.hanTu];
+            if (levelFilter !== null) return (s ? Math.floor(s.level) : 0) === levelFilter;
+            return s && s.level > 0 && s.nextReview <= now; // SRS
+        });
+        if (availableWords.length === 0) { 
+            alert(levelFilter !== null ? `Chưa có từ nào ở Level ${levelFilter} để tập viết!` : "Chưa có từ nào đến hạn ôn tập!"); 
+            showScreen('gameSetup'); return; 
+        }
     } else if (mode === 'vocab-challenge') {
-        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
-        if (availableWords.length < 5) { alert("Cần 5 từ Level 3+ để chơi Thử Thách!"); showScreen('vocab'); return; }
+        const now = Date.now();
+        availableWords = vocabulary.filter(v => {
+            const s = wordStats[v.hanTu];
+            if (levelFilter !== null) return (s ? Math.floor(s.level) : 0) === levelFilter;
+            return s && s.level > 0 && s.nextReview <= now; // SRS
+        });
+        if (availableWords.length < 4) { 
+            alert("Cần ít nhất 4 từ trong nhóm này để chơi Thử Thách!"); 
+            showScreen('gameSetup'); return; 
+        }
     } else if (gameMode === 'review') {
         const now = Date.now();
         availableWords = vocabulary.filter(v => {
@@ -1191,9 +1326,13 @@ function loadQuestion() {
     let correctAnswerText = ""; 
     let questionTextMain = "";
     let questionTextSub = "";
+    
+    // Radical Info Display Reset
+    const radicalInfo = document.getElementById('radical-info-display');
+    if (radicalInfo) radicalInfo.classList.add('hidden');
 
     currentQuestionMode = gameMode;
-    if (gameMode === 'review' || gameMode === 'test' || gameMode === 'time-attack' || gameMode === 'survival' || gameMode === 'vocab-mcq') {
+    if (gameMode === 'review' || gameMode === 'test' || gameMode === 'time-attack' || gameMode === 'survival' || gameMode === 'vocab-mcq' || gameMode === 'radical-mcq') {
         currentQuestionMode = (Math.random() > 0.5) ? 'han-viet' : 'viet-han';
     } else if (gameMode === 'vocab-writing') {
         const rand = Math.random();
@@ -1204,6 +1343,8 @@ function loadQuestion() {
         } else {
             currentQuestionMode = 'type-hanzi';
         }
+    } else if (gameMode === 'radical-writing') {
+        currentQuestionMode = 'draw-hanzi';
     }
     
     // Update banner title based on the final currentQuestionMode
@@ -1295,6 +1436,17 @@ function loadQuestion() {
             playAudio(questionTextMain, 'zh-CN');
             playAudioBtn.onclick = () => playAudio(questionTextMain, 'zh-CN');
             playAudioSlowBtn.onclick = () => playAudio(questionTextMain, 'zh-CN', 0.65);
+        }
+    }
+
+    // Handle Radical Info Display for Radical Modes
+    if (gameMode.startsWith('radical-')) {
+        const selectedRad = document.getElementById('selected-radical').value;
+        const radData = RADICAL_DICTIONARY[selectedRad];
+        if (selectedRad && radData && radicalInfo) {
+            document.getElementById('ri-char').textContent = selectedRad;
+            document.getElementById('ri-name').textContent = `Bộ ${radData.name} (${radData.meaning})`;
+            radicalInfo.classList.remove('hidden');
         }
     }
 
@@ -2670,22 +2822,8 @@ function checkTypingAnswer() {
         score += 30;
         scoreEl.textContent = score;
         
-        // Progress update (similar to normal learning)
-        if (!wordStats[qData.hanTu]) {
-            wordStats[qData.hanTu] = {
-                level: 1,
-                lastReview: Date.now(),
-                nextReview: Date.now() + (1 * 60 * 60 * 1000),
-                interval: 1,
-                repCount: 1
-            };
-            saveSRSData();
-        } else {
-             // For Pinyin mode, maybe just increase repCount slightly
-             const stats = wordStats[qData.hanTu];
-             stats.repCount = (stats.repCount || 0) + 0.5;
-             saveSRSData();
-        }
+        // Progress update
+        updateSRSProgress(qData.hanTu, true, gameMode);
 
         // Show example if exists
         if(qData.cau && qData.cau !== '-') {
