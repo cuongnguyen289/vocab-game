@@ -86,7 +86,7 @@
                 </button>
                 
                 <!-- Program Version -->
-                <div class="app-version">Version 5.1</div>
+                <div class="app-version">Version 5.2</div>
             </div>
         </div>
 
@@ -104,6 +104,23 @@
             <div class="settings-group" style="margin-bottom: 1rem; text-align: center;">
                 <label for="game-num-questions" style="display: inline-block; margin-right: 0.5rem; margin-bottom: 0;">Số lượng câu / lượt:</label>
                 <input type="number" id="game-num-questions" value="30" min="1" max="500" style="width: 80px; display: inline-block; padding: 0.4rem;">
+            </div>
+
+            <!-- Stats Bar in Setup Screen -->
+            <div id="setup-progress-stats" class="progress-stats hidden" style="text-align: center; background: #F3F4F6; padding: 0.6rem; border-radius: 12px; margin-bottom: 1.2rem; width: 100%;">
+                <p style="font-size: 0.85rem; margin-bottom: 0; display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; line-height: 1.6;">
+                    <span>📚 Tổng: <span id="setup-total-count" style="font-weight: bold; color: var(--primary-color);">0</span></span>
+                    <span style="opacity: 0.3;">|</span>
+                    <span style="color: #94a3b8; font-weight: 600;">L1: <span id="setup-lvl-1-count">0</span></span>
+                    <span style="opacity: 0.3;">|</span>
+                    <span style="color: #6366f1; font-weight: 600;">L2: <span id="setup-lvl-2-count">0</span></span>
+                    <span style="opacity: 0.3;">|</span>
+                    <span style="color: #10b981; font-weight: 600;">L3: <span id="setup-lvl-3-count">0</span></span>
+                    <span style="opacity: 0.3;">|</span>
+                    <span style="color: #f59e0b; font-weight: 600;">L4: <span id="setup-lvl-4-count">0</span></span>
+                    <span style="opacity: 0.3;">|</span>
+                    <span style="color: #ec4899; font-weight: 600;">L5: <span id="setup-lvl-5-count">0</span></span>
+                </p>
             </div>
             
             <div id="level-selection-group" class="hidden" style="margin-bottom: 1rem; width: 100%;">

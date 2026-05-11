@@ -383,9 +383,10 @@ const checkSentenceBtn = document.getElementById('check-sentence-btn');
 
 function updateProgressUI() {
     const totalCountEl = document.getElementById('total-count');
-    const reviewBtn = document.getElementById('review-btn');
+    const setupTotalCountEl = document.getElementById('setup-total-count');
     
     if(totalCountEl) totalCountEl.textContent = vocabulary.length;
+    if(setupTotalCountEl) setupTotalCountEl.textContent = vocabulary.length;
     
     // Calculate Level Stats (0-5)
     const stats = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
@@ -409,12 +410,57 @@ function updateProgressUI() {
         4: document.getElementById('top-lvl-4-count'),
         5: document.getElementById('top-lvl-5-count')
     };
+    const setupEls = {
+        1: document.getElementById('setup-lvl-1-count'),
+        2: document.getElementById('setup-lvl-2-count'),
+        3: document.getElementById('setup-lvl-3-count'),
+        4: document.getElementById('setup-lvl-4-count'),
+        5: document.getElementById('setup-lvl-5-count')
+    };
+
     for (let l = 1; l <= 5; l++) {
         if (topEls[l]) topEls[l].textContent = stats[l];
+        if (setupEls[l]) setupEls[l].textContent = stats[l];
     }
     
     // Render các nút chức năng động
     renderDynamicButtons(stats);
+
+    // Update Level Select Dropdown with counts and SRS option
+    const levelSelect = document.getElementById('level-select');
+    if (levelSelect) {
+        const now = Date.now();
+        const reviewReady = Object.keys(wordStats).filter(hanTu => {
+            const s = wordStats[hanTu];
+            return s.level > 0 && s.nextReview <= now;
+        }).length;
+
+        const currentVal = levelSelect.value;
+        levelSelect.innerHTML = '';
+        
+        // SRS Option
+        const srsOpt = document.createElement('option');
+        srsOpt.value = 'srs';
+        srsOpt.textContent = `🎯 Ôn tập SRS (${reviewReady} từ đến hạn)`;
+        levelSelect.appendChild(srsOpt);
+
+        // Level Options
+        for (let l = 1; l <= 5; l++) {
+            const opt = document.createElement('option');
+            opt.value = l;
+            opt.textContent = `Cấp độ ${l} (${stats[l]} từ)`;
+            levelSelect.appendChild(opt);
+        }
+        
+        // Auto-select SRS if words are ready, else keep previous or default to L1
+        if (currentVal && levelSelect.querySelector(`option[value="${currentVal}"]`)) {
+            levelSelect.value = currentVal;
+        } else if (reviewReady > 0) {
+            levelSelect.value = 'srs';
+        } else {
+            levelSelect.value = '1';
+        }
+    }
 
     // Update Grammar Topics Dropdown in Builder Screen
     const topicSelect = document.getElementById('grammar-topic-select');
@@ -630,6 +676,7 @@ function goToStartScreen(mode) {
         sentenceStats.style.display = 'none';
         grammarGroup.classList.add('hidden');
         levelGroup.classList.remove('hidden');
+        document.getElementById('setup-progress-stats').classList.remove('hidden');
     } else if (mode === 'sentence') {
         headerIcon.textContent = '🗣️';
         headerTitle.textContent = 'Luyện Câu';
@@ -637,6 +684,7 @@ function goToStartScreen(mode) {
         sentenceStats.style.display = 'block';
         grammarGroup.classList.add('hidden');
         levelGroup.classList.add('hidden');
+        document.getElementById('setup-progress-stats').classList.add('hidden');
     } else if (mode === 'builder') {
         headerIcon.textContent = '🧩';
         headerTitle.textContent = 'Ghép Câu';
@@ -644,6 +692,7 @@ function goToStartScreen(mode) {
         sentenceStats.style.display = 'block';
         grammarGroup.classList.remove('hidden');
         levelGroup.classList.add('hidden');
+        document.getElementById('setup-progress-stats').classList.add('hidden');
     }
     
     renderDynamicButtons();
@@ -919,6 +968,15 @@ function parseCSV(csvText) {
         renderDynamicButtons();
     }
 }
+
+window.startLevelReview = function() {
+    const val = document.getElementById('level-select').value;
+    if (val === 'srs') {
+        startGame('review', null);
+    } else {
+        startGame('review', parseInt(val));
+    }
+};
 
 async function startGame(mode, levelFilter = null) {
     gameMode = mode;
