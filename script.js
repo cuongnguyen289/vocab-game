@@ -2521,7 +2521,8 @@ function showFullscreenReveal(char, pinyin, callback) {
     if (pinyinDisplay) pinyinDisplay.textContent = pinyin || "";
     
     // Hanzi Writer Logic
-    const characters = char.split('').filter(c => /\p{Script=Han}/u.test(c));
+    // Use spread operator to correctly handle surrogate pairs and filter for Han characters
+    const characters = [...char].filter(c => /\p{Script=Han}/u.test(c));
     let writerInstances = [];
     let charIndex = 0;
 
