@@ -1151,3 +1151,22 @@ p {
 .writing-mode-active #sentence-builder-container {
     display: none !important;
 }
+
+/* Hanzi Reveal Styles */
+.hanzi-char-box {
+    margin: 0 10px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+@media (max-width: 600px) {
+    .hanzi-char-box {
+        margin: 0 5px;
+        padding: 5px;
+    }
+}

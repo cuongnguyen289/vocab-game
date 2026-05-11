@@ -2522,42 +2522,49 @@ function showFullscreenReveal(char, pinyin, callback) {
     
     // Hanzi Writer Logic
     const characters = char.split('').filter(c => /\p{Script=Han}/u.test(c));
+    let writerInstances = [];
     let charIndex = 0;
 
-    function animateNextChar() {
-        if (charIndex >= characters.length) {
-            // Done animating all characters - set timeout to close
+    // Create containers for all characters upfront
+    characters.forEach(currentChar => {
+        const charDiv = document.createElement('div');
+        charDiv.className = 'hanzi-char-box';
+        container.appendChild(charDiv);
+        
+        // Calculate dynamic size based on character count
+        const boxSize = characters.length > 3 ? 120 : (characters.length > 1 ? 180 : 250);
+        
+        const writer = HanziWriter.create(charDiv, currentChar, {
+            width: boxSize,
+            height: boxSize,
+            padding: 5,
+            strokeAnimationSpeed: parseFloat(speedSlider.value || 1),
+            delayBetweenStrokes: 150,
+            strokeColor: '#6366f1',
+            radicalColor: '#10b981'
+        });
+        writerInstances.push(writer);
+    });
+
+    function animateSequence() {
+        if (charIndex >= writerInstances.length) {
             revealTimeout = setTimeout(closeRevealOverlay, 4000);
             return;
         }
 
-        const currentChar = characters[charIndex];
-        container.innerHTML = ''; // Clear for next char
-        
-        writerInstance = HanziWriter.create('hanzi-writer-container', currentChar, {
-            width: 250,
-            height: 250,
-            padding: 5,
-            strokeAnimationSpeed: parseFloat(speedSlider.value || 1),
-            delayBetweenStrokes: 150,
-            strokeColor: '#6366f1', // primary-color
-            radicalColor: '#10b981' // secondary-color
-        });
-
-        writerInstance.animateCharacter({
+        writerInstances[charIndex].animateCharacter({
             onComplete: () => {
                 charIndex++;
-                setTimeout(animateNextChar, 800);
+                setTimeout(animateSequence, 500);
             }
         });
     }
 
     // Speed Slider Logic
     speedSlider.oninput = (e) => {
-        if (writerInstance) {
-            // update options for current and future animations
-            writerInstance._options.strokeAnimationSpeed = parseFloat(e.target.value);
-        }
+        writerInstances.forEach(writer => {
+            writer._options.strokeAnimationSpeed = parseFloat(e.target.value);
+        });
     };
 
     // Replay Logic
@@ -2567,12 +2574,18 @@ function showFullscreenReveal(char, pinyin, callback) {
             revealTimeout = null;
         }
         charIndex = 0;
-        animateNextChar();
+        // Reset all characters before replaying
+        const resetPromises = writerInstances.map(w => {
+            return new Promise(resolve => w.hideCharacter({ onComplete: resolve }));
+        });
+        Promise.all(resetPromises).then(() => {
+            animateSequence();
+        });
     };
 
     // Start Animation
-    if (characters.length > 0) {
-        animateNextChar();
+    if (writerInstances.length > 0) {
+        animateSequence();
     } else {
         // Fallback for non-Han characters
         container.textContent = char;
