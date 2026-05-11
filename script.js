@@ -241,6 +241,25 @@ const FETCH_URLS = [
 ];
 
 let vocabulary = [];
+
+function getModeTitle(mode) {
+    const titles = {
+        'vocab-mcq': '📚 Trắc Nghiệm Tổng Hợp',
+        'vocab-writing': '✍️ Luyện Viết & Gõ',
+        'type-pinyin': '⌨️ Luyện Gõ Pinyin',
+        'type-hanzi': '✍️ Luyện Gõ Chữ Hán',
+        'draw-hanzi': '🖌️ Tập Viết Chữ Hán',
+        'speech-challenge': '🎙️ Luyện Phát Âm',
+        'vocab-challenge': '⚡ Thử Thách Từ Vựng',
+        'sentence-trung-viet': '🗣️ Dịch Câu Trung - Việt',
+        'sentence-target': '🧩 Ghép Câu Tiếng Trung',
+        'sentence-cloze': '📝 Điền Từ Vào Câu',
+        'survival': '❤️ Thử Thách Sinh Tồn',
+        'han-viet': '📚 Trắc Nghiệm Hán - Việt',
+        'viet-han': '📚 Trắc Nghiệm Việt - Hán'
+    };
+    return titles[mode] || '🎮 Đang Chơi';
+}
 let sentencePool = [];
 let currentQuestions = [];
 let currentQuestionIndex = 0;
@@ -657,37 +676,24 @@ function renderDynamicButtons(stats) {
     const sentenceLoaded = sentencePool.length >= 2;
 
     if (currentSetupMode === 'vocab') {
-        // 1. Trắc Nghiệm Tổng Hợp (Hán-Việt, Việt-Hán, Review)
+        // 1. Trắc Nghiệm Tổng Hợp
         container.appendChild(createBtn('primary-btn', '📚', 'Trắc Nghiệm', () => startGame('vocab-mcq'), !dataLoaded));
         
-        // 2. Gõ Pinyin
-        const level3Plus = (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
-        const pinyinBtn = createBtn('secondary-btn', '⌨️', 'Gõ Pinyin', () => startGame('type-pinyin'), !dataLoaded || level3Plus === 0);
-        pinyinBtn.style.backgroundColor = level3Plus > 0 ? '#0ea5e9' : '';
-        container.appendChild(pinyinBtn);
-
-        // 3. Gõ Chữ Hán
-        const level4Plus = (stats[4] || 0) + (stats[5] || 0);
-        const hanziBtn = createBtn('secondary-btn', '✍️', 'Gõ Chữ Hán', () => startGame('type-hanzi'), !dataLoaded || level4Plus === 0);
-        hanziBtn.style.backgroundColor = level4Plus > 0 ? '#14b8a6' : '';
-        container.appendChild(hanziBtn);
-
-        // 4. Viết Chữ Hán (Interactive)
+        // 2. Luyện Viết & Gõ (Consolidated)
         const level1Plus = (stats[1] || 0) + (stats[2] || 0) + (stats[3] || 0) + (stats[4] || 0) + (stats[5] || 0);
-        const drawBtn = createBtn('secondary-btn', '🖌️', 'Viết Chữ Hán', () => startGame('draw-hanzi'), !dataLoaded || level1Plus === 0);
-        drawBtn.style.backgroundColor = level1Plus > 0 ? '#f43f5e' : '';
-        container.appendChild(drawBtn);
+        const writeBtn = createBtn('secondary-btn', '✍️', 'Luyện Viết & Gõ', () => startGame('vocab-writing'), !dataLoaded || level1Plus === 0);
+        writeBtn.style.backgroundColor = level1Plus > 0 ? '#0ea5e9' : '';
+        container.appendChild(writeBtn);
 
-        // 5. Luyện Phát Âm (Speech Challenge)
-        const spBtn = createBtn('primary-btn', stats[5] > 0 ? '🎙️' : '🔒', 'Luyện Phát Âm', () => startGame('speech-challenge'), !dataLoaded || stats[5] === 0);
+        // 3. Luyện Phát Âm
+        const spBtn = createBtn('primary-btn', stats[5] > 0 ? '🎙️' : '🔒', 'Phát Âm', () => startGame('speech-challenge'), !dataLoaded || stats[5] === 0);
         spBtn.style.backgroundColor = stats[5] > 0 ? '#8b5cf6' : '';
         container.appendChild(spBtn);
 
-        // 6. Thử Thách (Time Attack, Survival)
+        // 4. Thử Thách
         const chalBtn = createBtn('warning-btn', '⚡', 'Thử Thách', () => startGame('vocab-challenge'), !dataLoaded);
         chalBtn.style.background = 'linear-gradient(135deg, #f59e0b, #ef4444)';
         container.appendChild(chalBtn);
-
     } else if (currentSetupMode === 'sentence') {
         container.appendChild(createBtn('primary-btn', '🇨🇳', 'Trung ➡️ Việt', () => startGame('sentence-trung-viet'), !sentenceLoaded));
     } else if (currentSetupMode === 'builder') {
@@ -921,6 +927,15 @@ async function startGame(mode, levelFilter = null) {
     currentQuestionIndex = 0;
     lives = 3;
     
+    // Update Mode Title Banner
+    const titleEl = document.getElementById('mode-title-text');
+    if (titleEl) titleEl.textContent = getModeTitle(mode);
+
+    // Handle vocab-writing sub-mode selection
+    if (mode === 'vocab-writing') {
+        // Logic will be handled in loadQuestion for each item
+    }
+    
     let availableWords = [];
     
     if (mode === 'vocab-mcq') {
@@ -938,8 +953,8 @@ async function startGame(mode, levelFilter = null) {
         availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 4);
         if (availableWords.length === 0) { alert("Cần đạt Level 4+ để luyện Gõ Chữ Hán!"); showScreen('vocab'); return; }
     } else if (mode === 'draw-hanzi') {
-        availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 1);
-        if (availableWords.length === 0) { alert("Cần đạt Level 1+ để luyện Viết Chữ Hán!"); showScreen('vocab'); return; }
+        availableWords = vocabulary.filter(v => !wordStats[v.hanTu] || wordStats[v.hanTu].level >= 1);
+        if (availableWords.length === 0) { alert("Chưa có từ vựng nào để luyện viết!"); showScreen('vocab'); return; }
     } else if (mode === 'vocab-challenge') {
         availableWords = vocabulary.filter(v => wordStats[v.hanTu] && wordStats[v.hanTu].level >= 3);
         if (availableWords.length < 5) { alert("Cần 5 từ Level 3+ để chơi Thử Thách!"); showScreen('vocab'); return; }
@@ -1003,12 +1018,23 @@ function loadWritingQuiz(hanziWord) {
     const resetBtn = document.getElementById('writing-reset-btn');
     const questionTextContainer = document.querySelector('.question-container');
     
+    const skipBtn = document.getElementById('writing-skip-btn');
+    
     // Switch to writing mode UI
     document.getElementById('quiz-screen').classList.add('writing-mode-active');
     container.classList.remove('hidden');
     container.style.display = 'flex';
     canvas.innerHTML = '';
     
+    if (skipBtn) {
+        skipBtn.onclick = () => {
+            document.getElementById('quiz-screen').classList.remove('writing-mode-active');
+            container.classList.add('hidden');
+            container.style.display = 'none';
+            handleCorrectAnswer(hanziWord);
+        };
+    }
+
     // Filter only Hanzi characters
     const chars = hanziWord.split('').filter(c => /\p{Script=Han}/u.test(c));
     let charIndex = 0;
@@ -1026,7 +1052,11 @@ function loadWritingQuiz(hanziWord) {
         }
 
         canvas.innerHTML = '';
-        writingQuizInstance = HanziWriter.create('hanzi-quiz-canvas', chars[charIndex], {
+        const charDiv = document.createElement('div');
+        charDiv.id = 'current-hanzi-target';
+        canvas.appendChild(charDiv);
+
+        writingQuizInstance = HanziWriter.create('current-hanzi-target', chars[charIndex], {
             width: 300,
             height: 300,
             showCharacter: false,
@@ -1040,7 +1070,6 @@ function loadWritingQuiz(hanziWord) {
 
         writingQuizInstance.quiz({
             onComplete: () => {
-                // Flash success color on canvas border
                 canvas.style.borderColor = '#10b981';
                 setTimeout(() => {
                     canvas.style.borderColor = 'var(--primary-color)';
@@ -1108,7 +1137,20 @@ function loadQuestion() {
     currentQuestionMode = gameMode;
     if (gameMode === 'review' || gameMode === 'test' || gameMode === 'time-attack' || gameMode === 'survival' || gameMode === 'vocab-mcq') {
         currentQuestionMode = (Math.random() > 0.5) ? 'han-viet' : 'viet-han';
+    } else if (gameMode === 'vocab-writing') {
+        const rand = Math.random();
+        if (rand < 0.4) {
+            currentQuestionMode = 'draw-hanzi';
+        } else if (rand < 0.7) {
+            currentQuestionMode = 'type-pinyin';
+        } else {
+            currentQuestionMode = 'type-hanzi';
+        }
     }
+    
+    // Update banner title based on the final currentQuestionMode
+    const titleEl = document.getElementById('mode-title-text');
+    if (titleEl) titleEl.textContent = getModeTitle(currentQuestionMode);
     
     // Safety check for empty data
     if (!qData) {

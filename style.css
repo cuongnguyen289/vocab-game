@@ -60,6 +60,35 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* Mode Title Banner */
+.mode-title-banner {
+    width: calc(100% + 3rem); /* Expand to edges of container */
+    margin: -1.2rem -1.5rem 1rem -1.5rem; /* Offset container padding */
+    padding: 0.8rem;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    text-align: center;
+    border-radius: 20px 20px 0 0; /* Match container top corners */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+#mode-title-text {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    letter-spacing: 0.5px;
+}
+
+/* Grouped Button styling */
+.mode-group-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+}
+
 /* Header */
 .header {
     margin-bottom: 2rem;
