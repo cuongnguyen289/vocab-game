@@ -1088,7 +1088,7 @@ function parseLessonCSV(csvText) {
             const lessonName = parts[parts.length - 1] || "Khác";
             
             // Skip if it looks like a header row
-            if (lessonName.includes("Nguồn tài liệu") || hantu === "Hán Tự" || hantu === "STT") return;
+            if (lessonName.includes("Nguồn tài liệu") || hantu === "Hán Tự" || hantu === "STT") continue;
 
             const cauNghia = parts[parts.length - 2] || "";
             const cauPinyin = parts[parts.length - 3] || "";
