@@ -303,7 +303,8 @@ const screens = {
     quiz: document.getElementById('quiz-screen'),
     history: document.getElementById('history-screen'),
     result: document.getElementById('result-screen'),
-    lessonSelection: document.getElementById('lesson-selection-screen')
+    lessonSelection: document.getElementById('lesson-selection-screen'),
+    matching: document.getElementById('matching-screen')
 };
 
 const questionEl = document.getElementById('question-text');
@@ -327,6 +328,13 @@ let lives = 3;
 let survivalScore = 0;
 
 // Nguồn âm thanh TTS với đa dạng dự phòng (Youdao -> Google -> Web Speech API)
+// Matching Game State
+let matchingSelectedTiles = [];
+let matchingMatchedCount = 0;
+let currentMatchingWords = [];
+let matchingLessonPool = [];
+let matchingPoolIndex = 0;
+
 // playAudio replaced by the Promise-based version above
 
 // --- HỆ THỐNG BATCH CACHING AUDIO (v4.1) ---
@@ -748,6 +756,7 @@ function showScreen(screenName) {
     else if(screenName === 'gameSetup' || screenName === 'vocab') screens.gameSetup.classList.add('active');
     else if(screenName === 'history-screen') screens.history.classList.add('active');
     else if(screenName === 'lesson-selection-screen') screens.lessonSelection.classList.add('active');
+    else if(screenName === 'matching-screen') screens.matching.classList.add('active');
     else if(screens[screenName]) screens[screenName].classList.add('active');
 }
 
@@ -770,8 +779,9 @@ function goToLessonSelection() {
                 <span class="lesson-name">${lessonName}</span>
                 <span class="lesson-count">${count} từ vựng</span>
             </div>
-            <div class="lesson-action">
-                <span style="color: #6366f1; font-weight: 700;">Chọn ➡️</span>
+            <div class="lesson-action" style="gap: 10px;">
+                <button class="lesson-btn matching-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;" onclick="event.stopPropagation(); startMatchingGame('${lessonName}')">Nối Chữ 🧩</button>
+                <span style="color: #6366f1; font-weight: 700; cursor: pointer;" onclick="startLessonSetup('${lessonName}')">Chọn ➡️</span>
             </div>
         `;
         card.onclick = () => startLessonSetup(lessonName);
@@ -3274,4 +3284,136 @@ function loadProgressFromCloud(uid) {
     }).finally(() => {
         if(loadingScreen) loadingScreen.classList.remove('active');
     });
+}
+
+// Matching Game Logic
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function startMatchingGame(lessonName) {
+    matchingLessonPool = lessonsGrouped[lessonName] || [];
+    if (matchingLessonPool.length < 4) {
+        alert("Bài học này không đủ từ để chơi nối chữ (cần tối thiểu 4 từ)!");
+        return;
+    }
+    matchingMatchedCount = 0;
+    matchingPoolIndex = 0;
+    shuffleArray(matchingLessonPool);
+    
+    document.getElementById('matching-title').textContent = `Nối Chữ: ${lessonName}`;
+    initMatchingRound();
+    showScreen('matching-screen');
+}
+
+function initMatchingRound() {
+    // Pick next 4 words from pool
+    currentMatchingWords = matchingLessonPool.slice(matchingPoolIndex, matchingPoolIndex + 4);
+    
+    // If we reach the end, reshuffle or loop
+    if (currentMatchingWords.length < 4) {
+        matchingPoolIndex = 0;
+        shuffleArray(matchingLessonPool);
+        currentMatchingWords = matchingLessonPool.slice(0, 4);
+    }
+    
+    matchingMatchedCount = 0;
+    matchingSelectedTiles = [];
+    
+    // Create 12 tiles
+    const tiles = [];
+    currentMatchingWords.forEach(word => {
+        tiles.push({ text: word.hanTu, type: 'hantu', id: word.hanTu, wordRef: word });
+        tiles.push({ text: word.pinyin, type: 'pinyin', id: word.hanTu, wordRef: word });
+        tiles.push({ text: word.tiengViet, type: 'meaning', id: word.hanTu, wordRef: word });
+    });
+    
+    shuffleArray(tiles);
+    renderMatchingGrid(tiles);
+    updateMatchingProgress();
+}
+
+function renderMatchingGrid(tiles) {
+    const grid = document.getElementById('matching-grid');
+    grid.innerHTML = '';
+    
+    tiles.forEach(tile => {
+        const el = document.createElement('div');
+        el.className = 'matching-tile';
+        el.textContent = tile.text;
+        el.dataset.id = tile.id;
+        el.dataset.type = tile.type;
+        el.onclick = () => handleTileClick(el, tile.wordRef);
+        grid.appendChild(el);
+    });
+}
+
+function handleTileClick(el, wordRef) {
+    if (el.classList.contains('correct') || el.classList.contains('selected')) return;
+    
+    // If same type is already selected, replace it
+    const sameTypeIndex = matchingSelectedTiles.findIndex(t => t.el.dataset.type === el.dataset.type);
+    if (sameTypeIndex > -1) {
+        matchingSelectedTiles[sameTypeIndex].el.classList.remove('selected');
+        matchingSelectedTiles.splice(sameTypeIndex, 1);
+    }
+    
+    el.classList.add('selected');
+    matchingSelectedTiles.push({ el, wordRef });
+    
+    if (matchingSelectedTiles.length === 3) {
+        checkMatchingSet();
+    }
+}
+
+function checkMatchingSet() {
+    const firstId = matchingSelectedTiles[0].el.dataset.id;
+    const isMatch = matchingSelectedTiles.every(t => t.el.dataset.id === firstId);
+    
+    if (isMatch) {
+        const word = matchingSelectedTiles[0].wordRef;
+        matchingSelectedTiles.forEach(t => {
+            t.el.classList.remove('selected');
+            t.el.classList.add('correct');
+        });
+        
+        // Play Audio
+        speakWord(word.hanTu);
+        
+        matchingMatchedCount++;
+        matchingSelectedTiles = [];
+        updateMatchingProgress();
+        
+        if (matchingMatchedCount === 4) {
+            matchingPoolIndex += 4;
+            setTimeout(() => {
+                initMatchingRound();
+            }, 800);
+        }
+    } else {
+        // Wrong
+        matchingSelectedTiles.forEach(t => {
+            t.el.classList.add('wrong');
+        });
+        
+        if (navigator.vibrate) navigator.vibrate(200);
+        
+        setTimeout(() => {
+            matchingSelectedTiles.forEach(t => {
+                t.el.classList.remove('selected', 'wrong');
+            });
+            matchingSelectedTiles = [];
+        }, 500);
+    }
+}
+
+function updateMatchingProgress() {
+    const progressEl = document.getElementById('matching-progress');
+    if (progressEl) {
+        progressEl.textContent = `${matchingMatchedCount}/4`;
+    }
 }
