@@ -21,6 +21,14 @@ const TARGET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?fo
 const SENTENCE_GID = "1961448550";
 const SENTENCE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SENTENCE_GID}`;
 
+const LESSON_GID = "1457813627";
+const LESSON_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${LESSON_GID}`;
+
+let lessonVocabulary = []; // Lưu từ vựng theo bài học
+let lessonsGrouped = {}; // Lưu danh sách bài học { "Bài 1": [word1, word2], ... }
+let isLessonMode = false;
+let currentSelectedLesson = "";
+
 // --- HỆ THỐNG ÂM THANH INDEXED DB CACHING (v4.1) ---
 const DB_NAME = 'VocabGameAudioDB';
 const STORE_NAME = 'audio_cache';
@@ -605,6 +613,7 @@ function saveSRSData() {
  * Unified SRS (Spaced Repetition System) Update Logic
  */
 function updateSRSProgress(hanTu, isCorrect, mode = "") {
+    if (isLessonMode) return; // Bỏ qua cập nhật SRS nếu đang ôn theo bài học
     if (!hanTu) return;
     
     if (!wordStats[hanTu]) {
@@ -740,8 +749,48 @@ function showScreen(screenName) {
     else if(screens[screenName]) screens[screenName].classList.add('active');
 }
 
+function goToLessonSelection() {
+    const container = document.getElementById('lesson-list-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    // Sort lessons naturally (Bài 1, Bài 2, ..., Bài 10)
+    const sortedLessons = Object.keys(lessonsGrouped).sort((a, b) => {
+        return a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'});
+    });
+    
+    sortedLessons.forEach(lessonName => {
+        const count = lessonsGrouped[lessonName].length;
+        const card = document.createElement('div');
+        card.className = 'lesson-card';
+        card.innerHTML = `
+            <div class="lesson-info">
+                <span class="lesson-name">${lessonName}</span>
+                <span class="lesson-count">${count} từ vựng</span>
+            </div>
+            <div class="lesson-action">
+                <span style="color: #6366f1; font-weight: 700;">Chọn ➡️</span>
+            </div>
+        `;
+        card.onclick = () => startLessonSetup(lessonName);
+        container.appendChild(card);
+    });
+    
+    showScreen('lesson-selection-screen');
+}
+
+function startLessonSetup(lessonName) {
+    currentSelectedLesson = lessonName;
+    isLessonMode = true;
+    goToStartScreen('lesson-review');
+}
+
 function goToStartScreen(mode) {
     currentSetupMode = mode;
+    if (mode !== 'lesson-review') {
+        isLessonMode = false;
+        currentSelectedLesson = "";
+    }
     const headerIcon = document.getElementById('setup-header-icon');
     const headerTitle = document.getElementById('setup-header-title');
     const headerDesc = document.getElementById('setup-header-desc');
@@ -787,6 +836,15 @@ function goToStartScreen(mode) {
         radicalGroup.classList.remove('hidden');
         document.getElementById('setup-progress-stats').classList.remove('hidden');
         renderRadicalSelector();
+    } else if (mode === 'lesson-review') {
+        headerIcon.textContent = '📖';
+        headerTitle.textContent = `Ôn tập: ${currentSelectedLesson}`;
+        headerDesc.textContent = 'Luyện tập các từ trong bài học đã chọn';
+        sentenceStats.style.display = 'none';
+        grammarGroup.classList.add('hidden');
+        levelGroup.classList.add('hidden');
+        radicalGroup.classList.add('hidden');
+        document.getElementById('setup-progress-stats').classList.add('hidden');
     }
     
     renderDynamicButtons();
@@ -839,6 +897,15 @@ function renderDynamicButtons(stats) {
         const chalBtn = createBtn('warning-btn', '⚡', 'Thử Thách', () => startGame('vocab-challenge', getLevel()), !dataLoaded);
         chalBtn.style.background = 'linear-gradient(135deg, #f59e0b, #ef4444)';
         container.appendChild(chalBtn);
+    } else if (currentSetupMode === 'lesson-review') {
+        // 1. Trắc Nghiệm
+        container.appendChild(createBtn('primary-btn', '📚', 'Trắc Nghiệm', () => startGame('vocab-mcq')));
+        
+        // 2. Gõ Pinyin
+        container.appendChild(createBtn('secondary-btn', '⌨️', 'Gõ Pinyin', () => startGame('type-pinyin')));
+
+        // 3. Tập Viết
+        container.appendChild(createBtn('primary-btn', '🖌️', 'Tập Viết', () => startGame('draw-hanzi')));
     } else if (currentSetupMode === 'sentence') {
         container.appendChild(createBtn('primary-btn', '🇨🇳', 'Trung ➡️ Việt', () => startGame('sentence-trung-viet'), !sentenceLoaded));
     } else if (currentSetupMode === 'builder') {
@@ -908,6 +975,29 @@ async function fetchVocabulary() {
             console.warn(`Lỗi Câu ${url}:`, error);
         }
     }
+
+    // Fetch Lesson Sheet (gid=1457813627)
+    const lessonUrls = [
+        LESSON_URL,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(LESSON_URL)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(LESSON_URL)}`,
+        `https://corsproxy.io/?${encodeURIComponent(LESSON_URL)}`
+    ];
+
+    for (const url of lessonUrls) {
+        try {
+            console.log("Đang tải Bài học:", url);
+            const response = await fetch(url);
+            if (response.ok) {
+                const csvText = await response.text();
+                parseLessonCSV(csvText);
+                successCount++;
+                break;
+            }
+        } catch (error) {
+            console.warn(`Lỗi Bài học ${url}:`, error);
+        }
+    }
     
     updateProgressUI();
     
@@ -975,6 +1065,50 @@ function parseSentenceCSV(csvText) {
         }
     }
     console.log(`Đã nạp ${addedCount} câu từ sheet Câu.`);
+}
+
+function parseLessonCSV(csvText) {
+    const lines = csvText.split(/\r?\n/);
+    lessonVocabulary = [];
+    lessonsGrouped = {};
+    
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const parts = splitCSVLine(line);
+        if (parts.length >= 9) {
+            const hantu = parts[1] || "";
+            const phienam = parts[2] || "";
+            const nghia = parts[3] || "";
+            const cau = parts[6] || "";
+            const cauPinyin = parts[7] || "";
+            const cauNghia = parts[8] || "";
+            const lessonName = parts[9] || "Khác";
+
+            if (hantu && nghia) {
+                const wordObj = {
+                    hanTu: hantu,
+                    pinyin: phienam,
+                    tiengViet: nghia,
+                    cau: cau,
+                    cauPinyin: cauPinyin,
+                    cauNghia: cauNghia,
+                    lesson: lessonName
+                };
+                
+                lessonVocabulary.push(wordObj);
+                
+                if (!lessonsGrouped[lessonName]) {
+                    lessonsGrouped[lessonName] = [];
+                }
+                lessonsGrouped[lessonName].push(wordObj);
+                
+                updateGlobalCharMap(hantu, phienam);
+            }
+        }
+    }
+    console.log(`Đã nạp ${lessonVocabulary.length} từ theo bài.`);
 }
 
 function splitPinyinIntoSyllables(pinyin) {
@@ -1104,7 +1238,19 @@ async function startGame(mode, levelFilter = null) {
     
     let availableWords = [];
     
-    if (mode === 'vocab-mcq') {
+    if (isLessonMode) {
+        availableWords = lessonsGrouped[currentSelectedLesson] || [];
+        if (mode === 'vocab-mcq' && availableWords.length < 4) {
+            alert("Bài học này cần ít nhất 4 từ để chơi trắc nghiệm.");
+            showScreen('gameSetup');
+            return;
+        }
+        if (availableWords.length === 0) {
+            alert("Không tìm thấy từ vựng trong bài học này.");
+            showScreen('gameSetup');
+            return;
+        }
+    } else if (mode === 'vocab-mcq') {
         const now = Date.now();
         availableWords = vocabulary.filter(v => {
             const s = wordStats[v.hanTu];
@@ -2129,6 +2275,8 @@ function endGame() {
 
 function returnToMenu() {
     stopTimer();
+    isLessonMode = false;
+    currentSelectedLesson = "";
     showScreen('main-menu');
 }
 
