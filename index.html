@@ -6,7 +6,7 @@
     <title>Game Trắc Nghiệm Từ Vựng</title>
     <!-- Modern Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=5.16">
+    <link rel="stylesheet" href="style.css?v=5.18">
     <!-- Firebase Compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
@@ -131,7 +131,7 @@
                 </button>
                 
                 <!-- Program Version -->
-                <div class="app-version">Version 5.16</div>
+                <div class="app-version">Version 5.18</div>
             </div>
         </div>
 
@@ -407,6 +407,20 @@
                     <span style="font-size: 1.2rem; margin-right: 10px;">🌐</span>
                     Đăng nhập bằng Google
                 </button>
+        </div>
+        <!-- Matching Game Screen -->
+        <div id="matching-screen" class="screen">
+            <div class="matching-container">
+                <div class="matching-header">
+                    <button class="back-btn" onclick="showScreen('lesson-selection-screen')" style="position: static; transform: none; margin: 0; color: var(--text-main);">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h2 id="matching-title" style="margin: 0; flex: 1; text-align: center; font-size: 1.5rem;">Nối Chữ</h2>
+                    <div class="matching-stats" style="font-weight: 600; color: var(--text-muted);">📍 <span id="matching-progress">0/0</span></div>
+                </div>
+                <div id="matching-grid" class="matching-grid">
+                    <!-- Tiles will be injected here -->
+                </div>
             </div>
         </div>
     </div>
@@ -433,23 +447,8 @@
         </div>
     </div>
 
-    <!-- Matching Game Screen -->
-    <div id="matching-screen" class="screen">
-        <div class="matching-container">
-            <div class="matching-header">
-                <button class="back-btn" onclick="showScreen('lesson-selection-screen')" style="position: static; transform: none; margin: 0;">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <h2 id="matching-title">Nối Chữ</h2>
-                <div class="matching-stats">Tiến độ: <span id="matching-progress">0/0</span></div>
-            </div>
-            <div id="matching-grid" class="matching-grid">
-                <!-- Tiles will be injected here -->
-            </div>
-        </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
-    <script src="script.js?v=5.16"></script>
+    <script src="script.js?v=5.18"></script>
 </body>
 </html>
