@@ -1079,14 +1079,16 @@ function parseLessonCSV(csvText) {
         if (!line) continue;
         
         const parts = splitCSVLine(line);
-        if (parts.length >= 10) {
+        if (parts.length >= 9) {
             const hantu = parts[1] || "";
             const phienam = parts[2] || "";
             const nghia = parts[3] || "";
-            const cau = parts[8] || "";
-            const cauPinyin = parts[7] || "";
-            const cauNghia = parts[9] || "";
-            const lessonName = parts[10] || "Khác";
+            
+            // Flexibly find example fields from the end of the row
+            const lessonName = parts[parts.length - 1] || "Khác";
+            const cauNghia = parts[parts.length - 2] || "";
+            const cauPinyin = parts[parts.length - 3] || "";
+            const cau = parts[parts.length - 4] || "";
 
             if (hantu && nghia) {
                 const wordObj = {
