@@ -302,7 +302,8 @@ const screens = {
     loading: document.getElementById('loading-screen'),
     quiz: document.getElementById('quiz-screen'),
     history: document.getElementById('history-screen'),
-    result: document.getElementById('result-screen')
+    result: document.getElementById('result-screen'),
+    lessonSelection: document.getElementById('lesson-selection-screen')
 };
 
 const questionEl = document.getElementById('question-text');
@@ -736,7 +737,7 @@ function loadProgressFromLocal() {
 let currentSetupMode = 'vocab';
 
 function showScreen(screenName) {
-    if(screenName === 'gameSetup' || screenName === 'main-menu') {
+    if(screenName === 'gameSetup' || screenName === 'main-menu' || screenName === 'vocab') {
         updateProgressUI();
     }
     Object.values(screens).forEach(s => {
@@ -744,8 +745,9 @@ function showScreen(screenName) {
     });
     
     if(screenName === 'main-menu') screens.mainMenu.classList.add('active');
-    else if(screenName === 'gameSetup') screens.gameSetup.classList.add('active');
+    else if(screenName === 'gameSetup' || screenName === 'vocab') screens.gameSetup.classList.add('active');
     else if(screenName === 'history-screen') screens.history.classList.add('active');
+    else if(screenName === 'lesson-selection-screen') screens.lessonSelection.classList.add('active');
     else if(screens[screenName]) screens[screenName].classList.add('active');
 }
 
@@ -1077,14 +1079,14 @@ function parseLessonCSV(csvText) {
         if (!line) continue;
         
         const parts = splitCSVLine(line);
-        if (parts.length >= 9) {
+        if (parts.length >= 10) {
             const hantu = parts[1] || "";
             const phienam = parts[2] || "";
             const nghia = parts[3] || "";
-            const cau = parts[6] || "";
+            const cau = parts[8] || "";
             const cauPinyin = parts[7] || "";
-            const cauNghia = parts[8] || "";
-            const lessonName = parts[9] || "Khác";
+            const cauNghia = parts[9] || "";
+            const lessonName = parts[10] || "Khác";
 
             if (hantu && nghia) {
                 const wordObj = {
