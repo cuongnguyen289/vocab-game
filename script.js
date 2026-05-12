@@ -1086,6 +1086,10 @@ function parseLessonCSV(csvText) {
             
             // Flexibly find example fields from the end of the row
             const lessonName = parts[parts.length - 1] || "Khác";
+            
+            // Skip if it looks like a header row
+            if (lessonName.includes("Nguồn tài liệu") || hantu === "Hán Tự" || hantu === "STT") return;
+
             const cauNghia = parts[parts.length - 2] || "";
             const cauPinyin = parts[parts.length - 3] || "";
             const cau = parts[parts.length - 4] || "";
