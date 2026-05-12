@@ -6,11 +6,40 @@
     <title>Game Trắc Nghiệm Từ Vựng</title>
     <!-- Modern Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=5.14">
+    <link rel="stylesheet" href="style.css?v=5.15">
     <!-- Firebase Compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+    <style>
+        .matching-tile {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 14px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            min-height: 90px;
+            user-select: none;
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .matching-tile.selected {
+            border-color: #60a5fa;
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.7);
+            background: rgba(96, 165, 250, 0.25);
+            transform: scale(1.08);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -102,7 +131,7 @@
                 </button>
                 
                 <!-- Program Version -->
-                <div class="app-version">Version 5.14</div>
+                <div class="app-version">Version 5.15</div>
             </div>
         </div>
 
@@ -198,6 +227,17 @@
             
             <div id="lesson-list-container" class="lesson-list">
                 <!-- Các bài học sẽ được gen động ở đây -->
+            </div>
+
+            <!-- Multi-select Play Button -->
+            <div id="multi-matching-controls" class="multi-matching-controls hidden" style="flex-direction: column; align-items: center; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--text-main); margin-bottom: 5px;">
+                    <input type="checkbox" id="matching-learned-only" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="matching-learned-only" style="cursor: pointer; font-weight: 600;">Chỉ chơi từ đã học (SRS Lvl 1+)</label>
+                </div>
+                <button class="btn primary-btn" onclick="startMultiMatchingGame()" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); width: 100%; box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);">
+                    Bắt đầu Nối Chữ (<span id="selected-lessons-count">0</span> bài) 🧩
+                </button>
             </div>
         </div>
 
@@ -410,6 +450,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
-    <script src="script.js?v=5.14"></script>
+    <script src="script.js?v=5.15"></script>
 </body>
 </html>

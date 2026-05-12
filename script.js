@@ -334,6 +334,7 @@ let matchingMatchedCount = 0;
 let currentMatchingWords = [];
 let matchingLessonPool = [];
 let matchingPoolIndex = 0;
+let selectedLessonsForMatching = [];
 
 // playAudio replaced by the Promise-based version above
 
@@ -772,23 +773,89 @@ function goToLessonSelection() {
     
     sortedLessons.forEach(lessonName => {
         const count = lessonsGrouped[lessonName].length;
+        const isSelected = selectedLessonsForMatching.includes(lessonName);
+        
         const card = document.createElement('div');
-        card.className = 'lesson-card';
+        card.className = `lesson-card${isSelected ? ' selected' : ''}`;
         card.innerHTML = `
+            <div class="selection-indicator"><i class="fas fa-check"></i></div>
             <div class="lesson-info">
                 <span class="lesson-name">${lessonName}</span>
                 <span class="lesson-count">${count} từ vựng</span>
             </div>
             <div class="lesson-action" style="gap: 10px;">
                 <button class="lesson-btn matching-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;" onclick="event.stopPropagation(); startMatchingGame('${lessonName}')">Nối Chữ 🧩</button>
-                <span style="color: #6366f1; font-weight: 700; cursor: pointer;" onclick="startLessonSetup('${lessonName}')">Chọn ➡️</span>
+                <span style="color: #6366f1; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); startLessonSetup('${lessonName}')">Chọn ➡️</span>
             </div>
         `;
-        card.onclick = () => startLessonSetup(lessonName);
+        card.onclick = () => toggleLessonSelection(lessonName, card);
         container.appendChild(card);
     });
     
+    updateMultiMatchingUI();
     showScreen('lesson-selection-screen');
+}
+
+function toggleLessonSelection(lessonName, cardEl) {
+    const index = selectedLessonsForMatching.indexOf(lessonName);
+    if (index > -1) {
+        selectedLessonsForMatching.splice(index, 1);
+        cardEl.classList.remove('selected');
+    } else {
+        selectedLessonsForMatching.push(lessonName);
+        cardEl.classList.add('selected');
+    }
+    updateMultiMatchingUI();
+}
+
+function updateMultiMatchingUI() {
+    const controls = document.getElementById('multi-matching-controls');
+    const countEl = document.getElementById('selected-lessons-count');
+    if (controls && countEl) {
+        if (selectedLessonsForMatching.length > 0) {
+            controls.classList.remove('hidden');
+            countEl.textContent = selectedLessonsForMatching.length;
+        } else {
+            controls.classList.add('hidden');
+        }
+    }
+}
+
+function startMultiMatchingGame() {
+    if (selectedLessonsForMatching.length === 0) return;
+    
+    // Combine all words from selected lessons
+    let combinedPool = [];
+    selectedLessonsForMatching.forEach(name => {
+        combinedPool = combinedPool.concat(lessonsGrouped[name] || []);
+    });
+    
+    // Filter if learned only is checked
+    const learnedOnly = document.getElementById('matching-learned-only')?.checked;
+    if (learnedOnly) {
+        combinedPool = combinedPool.filter(word => {
+            const stats = wordStats[word.hanTu];
+            return stats && stats.level >= 1;
+        });
+    }
+    
+    if (combinedPool.length < 4) {
+        if (learnedOnly) {
+            alert("Bạn chưa có đủ 4 từ 'đã học' trong các bài này. Hãy học thêm hoặc bỏ tích chọn 'Chỉ chơi từ đã học'.");
+        } else {
+            alert("Tổng số từ vựng không đủ để chơi nối chữ!");
+        }
+        return;
+    }
+    
+    matchingLessonPool = combinedPool;
+    matchingMatchedCount = 0;
+    matchingPoolIndex = 0;
+    shuffleArray(matchingLessonPool);
+    
+    document.getElementById('matching-title').textContent = `Nối Chữ: ${selectedLessonsForMatching.length} bài${learnedOnly ? ' (Từ đã học)' : ''}`;
+    initMatchingRound();
+    showScreen('matching-screen');
 }
 
 function startLessonSetup(lessonName) {
