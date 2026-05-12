@@ -116,6 +116,11 @@ function cleanTTSText(text) {
 window.playAudio = async function(text, lang, rate = 1.0) {
     if (!text || text === '-' || lang !== 'zh-CN') return;
     
+    // Immediately cancel any pending Web Speech to prevent overlap
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+    
     const requestId = ++currentAudioId;
     const cleanText = cleanTTSText(text);
     if (!cleanText) return;
@@ -549,6 +554,7 @@ function renderRadicalSelector() {
             document.querySelectorAll('.radical-pill').forEach(p => p.classList.remove('active'));
             pill.classList.add('active');
             selectedInput.value = rad;
+            renderDynamicButtons(); // Re-render buttons to enable them
         };
         
         container.appendChild(pill);
@@ -1031,14 +1037,26 @@ function parseCSV(csvText) {
             const cauNghia = parts[8] || "";
 
             if (hantu && nghia) {
-                vocabulary.push({
-                    hanTu: hantu,
-                    pinyin: phienam,
-                    tiengViet: nghia,
-                    cau: cau,
-                    cauPinyin: cauPinyin,
-                    cauNghia: cauNghia
-                });
+                // Fix duplicate words: check if this hanTu already exists
+                const existingIdx = vocabulary.findIndex(v => v.hanTu === hantu);
+                if (existingIdx === -1) {
+                    vocabulary.push({
+                        hanTu: hantu,
+                        pinyin: phienam,
+                        tiengViet: nghia,
+                        cau: cau,
+                        cauPinyin: cauPinyin,
+                        cauNghia: cauNghia
+                    });
+                } else {
+                    // Optional: If the existing entry doesn't have a sentence but the new one does, update it
+                    if ((!vocabulary[existingIdx].cau || vocabulary[existingIdx].cau === '-') && (cau && cau !== '-')) {
+                        vocabulary[existingIdx].cau = cau;
+                        vocabulary[existingIdx].cauPinyin = cauPinyin;
+                        vocabulary[existingIdx].cauNghia = cauNghia;
+                    }
+                }
+                
                 updateGlobalCharMap(hantu, phienam);
                 
                 // Add example sentence to pool if valid
@@ -1407,7 +1425,12 @@ function loadQuestion() {
         questionEl.style.fontSize = '3.2rem';
     }
     
-    questionEl.textContent = questionTextMain;
+    // Use innerHTML to support formatted questions (like cloze gaps)
+    if (currentQuestionMode === 'sentence-cloze') {
+        questionEl.innerHTML = questionTextMain;
+    } else {
+        questionEl.textContent = questionTextMain;
+    }
     if (currentQuestionMode === 'sentence-cloze') {
         pinyinEl.innerHTML = questionTextSub;
     } else {
@@ -1530,13 +1553,16 @@ function startTimer() {
     const timerContainer = document.getElementById('timer-bar-container');
     const timerBar = document.getElementById('timer-bar');
     
-    if (gameMode !== 'time-attack') {
+    if (gameMode !== 'time-attack' && gameMode !== 'survival') {
         timerContainer.classList.add('hidden');
         return;
     }
     
     timerContainer.classList.remove('hidden');
-    timeRemaining = gameMode === 'time-attack' ? maxTimeLimit : 10;
+    // For survival, we start with 10s if it's the first question, otherwise keep current timeRemaining
+    if (currentQuestionIndex === 0) {
+        timeRemaining = gameMode === 'time-attack' ? maxTimeLimit : 10;
+    }
     timerBar.style.width = '100%';
     timerBar.style.backgroundColor = 'var(--secondary-color)';
     
