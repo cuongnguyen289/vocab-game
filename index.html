@@ -6,40 +6,11 @@
     <title>Game Trắc Nghiệm Từ Vựng</title>
     <!-- Modern Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=5.18">
+    <link rel="stylesheet" href="style.css?v=5.21">
     <!-- Firebase Compat SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
-    <style>
-        .matching-tile {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 14px;
-            padding: 15px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #ffffff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            min-height: 90px;
-            user-select: none;
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .matching-tile.selected {
-            border-color: #60a5fa;
-            box-shadow: 0 0 20px rgba(96, 165, 250, 0.7);
-            background: rgba(96, 165, 250, 0.25);
-            transform: scale(1.08);
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -131,7 +102,7 @@
                 </button>
                 
                 <!-- Program Version -->
-                <div class="app-version">Version 5.18</div>
+                <div class="app-version">Version 5.21</div>
             </div>
         </div>
 
@@ -407,7 +378,9 @@
                     <span style="font-size: 1.2rem; margin-right: 10px;">🌐</span>
                     Đăng nhập bằng Google
                 </button>
+            </div>
         </div>
+
         <!-- Matching Game Screen -->
         <div id="matching-screen" class="screen">
             <div class="matching-container">
@@ -449,6 +422,6 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
-    <script src="script.js?v=5.18"></script>
+    <script src="script.js?v=5.21"></script>
 </body>
 </html>

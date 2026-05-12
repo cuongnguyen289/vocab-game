@@ -854,6 +854,7 @@ function startMultiMatchingGame() {
     shuffleArray(matchingLessonPool);
     
     document.getElementById('matching-title').textContent = `Nối Chữ: ${selectedLessonsForMatching.length} bài${learnedOnly ? ' (Từ đã học)' : ''}`;
+    console.log("Starting Multi-Matching with pool size:", matchingLessonPool.length);
     initMatchingRound();
     showScreen('matching-screen');
 }
@@ -1627,7 +1628,7 @@ function loadQuestion() {
         let displayCau = qData.cau.replace(qData.hanTu, `<span class="cloze-gap">（ ___ ）</span>`);
         questionTextMain = displayCau;
         questionTextSub = qData.cauNghia;
-        correctAnswerText = qData.hanTu;
+        correctAnswerText = (qData.hanTu && qData.pinyin) ? `${qData.hanTu} (${qData.pinyin})` : qData.hanTu;
         questionEl.style.fontSize = '1.8rem';
     } else if (currentQuestionMode === 'sentence-target') {
         questionTextMain = qData.cauNghia;
@@ -1681,7 +1682,7 @@ function loadQuestion() {
     
     if (questionTextMain) {
         let isVietnamese = (currentQuestionMode === 'viet-han' || currentQuestionMode === 'sentence-target');
-        if (isVietnamese || currentQuestionMode === 'type-pinyin' || currentQuestionMode === 'type-hanzi' || currentQuestionMode === 'sentence-cloze') {
+        if (isVietnamese || currentQuestionMode === 'type-pinyin' || currentQuestionMode === 'type-hanzi') {
             playAudioBtn.classList.add('hidden');
             playAudioSlowBtn.classList.add('hidden');
         } else {
@@ -1744,7 +1745,7 @@ function loadQuestion() {
             return null;
         };
 
-        const primaryPool = currentQuestionMode.includes('sentence') ? sentencePool : vocabulary;
+        const primaryPool = (currentQuestionMode === 'sentence-trung-viet' || currentQuestionMode === 'sentence-target' || currentQuestionMode === 'sentence-viet') ? sentencePool : vocabulary;
         let candidates = primaryPool.filter(v => {
             const txt = getModeText(v);
             return txt && txt.trim() !== "" && txt.trim() !== cleanCorrect;
@@ -2185,6 +2186,9 @@ function checkAnswer(selected, correct, selectedBtn) {
         // Progress Tracking
         if (!gameMode.includes('sentence')) {
             updateSRSProgress(qData.hanTu, true, gameMode);
+        } else if (gameMode === 'sentence-cloze') {
+            explanationText.innerHTML = `Chính xác! <br><b>${qData.cau}</b>`;
+            explanationContainer.classList.remove('hidden');
         }
 
         // Show Example Sentence if available
@@ -3372,7 +3376,12 @@ function startMatchingGame(lessonName) {
     matchingPoolIndex = 0;
     shuffleArray(matchingLessonPool);
     
-    document.getElementById('matching-title').textContent = `Nối Chữ: ${lessonName}`;
+    
+    const title = document.getElementById('matching-title');
+    if (title) title.textContent = `Nối Chữ: ${lessonName}`;
+    
+    console.log(`Starting Matching Game for lesson: ${lessonName}, words: ${matchingLessonPool.length}`);
+    
     initMatchingRound();
     showScreen('matching-screen');
 }
@@ -3406,7 +3415,16 @@ function initMatchingRound() {
 
 function renderMatchingGrid(tiles) {
     const grid = document.getElementById('matching-grid');
+    if (!grid) {
+        console.error("Critical Error: matching-grid element not found!");
+        return;
+    }
     grid.innerHTML = '';
+    
+    if (!tiles || tiles.length === 0) {
+        console.warn("No tiles to render in matching grid.");
+        return;
+    }
     
     tiles.forEach(tile => {
         const el = document.createElement('div');
@@ -3449,7 +3467,7 @@ function checkMatchingSet() {
         });
         
         // Play Audio
-        speakWord(word.hanTu);
+        if (typeof playAudio === 'function') playAudio(word.hanTu, 'zh-CN');
         
         matchingMatchedCount++;
         matchingSelectedTiles = [];
