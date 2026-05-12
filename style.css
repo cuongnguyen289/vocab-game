@@ -51,6 +51,10 @@ body {
     animation: fadeIn 0.3s ease;
 }
 
+.screen:not(.active) {
+    display: none !important;
+}
+
 .screen.active {
     display: flex;
 }
