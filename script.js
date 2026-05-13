@@ -600,6 +600,20 @@ function migrateToSRS(legacyLearned, legacyWrong) {
             if (!wordStats[hanTu]) {
                 wordStats[hanTu] = { level: 3, lastReview: Date.now(), nextReview: Date.now() + (3 * 24 * 60 * 60 * 1000), interval: 3, repCount: 5 };
                 modified = true;
+            }
+        });
+    }
+    if (legacyWrong) {
+        legacyWrong.forEach(hanTu => {
+            if (!wordStats[hanTu]) {
+                wordStats[hanTu] = { level: 1, lastReview: Date.now(), nextReview: Date.now(), interval: 1, repCount: 0 };
+                modified = true;
+            }
+        });
+    }
+    if (modified) saveSRSData();
+}
+
 function saveSRSData() {
     localStorage.setItem(`${currentUser}_vocab_stats`, JSON.stringify(wordStats));
     saveProgressToCloud();
