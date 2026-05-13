@@ -600,20 +600,6 @@ function migrateToSRS(legacyLearned, legacyWrong) {
             if (!wordStats[hanTu]) {
                 wordStats[hanTu] = { level: 3, lastReview: Date.now(), nextReview: Date.now() + (3 * 24 * 60 * 60 * 1000), interval: 3, repCount: 5 };
                 modified = true;
-            }
-        });
-    }
-    if (legacyWrong) {
-        legacyWrong.forEach(hanTu => {
-            if (!wordStats[hanTu]) {
-                wordStats[hanTu] = { level: 1, lastReview: Date.now(), nextReview: Date.now(), interval: 1, repCount: 0 };
-                modified = true;
-            }
-        });
-    }
-    if (modified) saveSRSData();
-}
-
 function saveSRSData() {
     localStorage.setItem(`${currentUser}_vocab_stats`, JSON.stringify(wordStats));
     saveProgressToCloud();
@@ -623,15 +609,14 @@ function saveSRSData() {
  * Unified SRS (Spaced Repetition System) Update Logic
  */
 function updateSRSProgress(hanTu, isCorrect, mode = "") {
-    if (isLessonMode) return; // Bỏ qua cập nhật SRS nếu đang ôn theo bài học
     if (!hanTu) return;
     
     if (!wordStats[hanTu]) {
         wordStats[hanTu] = {
             level: 1,
             lastReview: Date.now(),
-            nextReview: Date.now() + (1 * 60 * 60 * 1000),
-            interval: 1,
+            nextReview: Date.now(),
+            interval: 0,
             repCount: 0
         };
     }
@@ -639,55 +624,26 @@ function updateSRSProgress(hanTu, isCorrect, mode = "") {
     const stats = wordStats[hanTu];
     const now = Date.now();
     
+    // Simplified +1/-1 Scoring
     if (isCorrect) {
-        // Calculate boost based on mode difficulty
-        let boost = 1.0; 
-        if (mode === 'mcq' || mode === 'review' || mode === 'han-viet' || mode === 'viet-han') {
-            boost = 0.5; // Multiple choice is easy, needs more reps
-        } else if (mode.includes('type')) {
-            boost = 1.0; // Typing is medium difficulty
-        } else if (mode.includes('sentence') || mode.includes('cloze')) {
-            boost = 1.5; // Contextual usage is hard
-        } else if (mode === 'time-attack') {
-            boost = 0.8; // Fast but still MCQ
-        }
-
-        if (stats.level <= 2) {
-            stats.repCount = (stats.repCount || 0) + boost;
-            
-            if (stats.repCount >= 3) {
-                stats.level = 3;
-                stats.interval = 1;
-                stats.repCount = 0;
-                stats.nextReview = now + (1 * 24 * 60 * 60 * 1000);
-            } else {
-                // Not yet leveled up, review again soon
-                stats.nextReview = now + (2 * 60 * 60 * 1000); 
-            }
-        } else {
-            // Progression for Level 3-5 (Mastery)
-            // Harder modes give a full level, easier modes give a fractional level
-            const levelJump = (boost >= 1.0) ? 1 : 0.4;
-            
-            if (stats.level + levelJump >= Math.floor(stats.level) + 1) {
-                // Transition to next full level
-                stats.level = Math.min(Math.floor(stats.level) + 1, 5);
-                stats.interval = (stats.interval || 1) * 2;
-                stats.nextReview = now + (stats.interval * 24 * 60 * 60 * 1000);
-            } else {
-                // Fractional progress within current level
-                stats.level = Math.min(stats.level + levelJump, 5);
-            }
-        }
+        stats.level = Math.min(Math.floor(stats.level || 1) + 1, 5);
     } else {
-        // Penalty for wrong answer
-        stats.level = 1;
-        stats.repCount = 0;
-        stats.interval = 1;
-        stats.nextReview = now;
+        stats.level = Math.max(Math.floor(stats.level || 1) - 1, 1);
     }
     
+    // Update interval and next review based on level
+    const intervals = {
+        1: 0, // Review immediately if wrong
+        2: 1 * 24 * 60 * 60 * 1000, // 1 day
+        3: 3 * 24 * 60 * 60 * 1000, // 3 days
+        4: 7 * 24 * 60 * 60 * 1000, // 7 days
+        5: 30 * 24 * 60 * 60 * 1000 // 30 days
+    };
+    
+    stats.interval = intervals[stats.level] || 0;
+    stats.nextReview = now + stats.interval;
     stats.lastReview = now;
+    
     wordStats[hanTu] = stats;
     saveSRSData();
     updateProgressUI();
@@ -772,20 +728,59 @@ function goToLessonSelection() {
     });
     
     sortedLessons.forEach(lessonName => {
-        const count = lessonsGrouped[lessonName].length;
-        const isSelected = selectedLessonsForMatching.includes(lessonName);
+        const words = lessonsGrouped[lessonName];
+        const total = words.length;
         
+        // Calculate stats
+        const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, unstudied: 0 };
+        words.forEach(w => {
+            const s = wordStats[w.hanTu];
+            if (s && s.level >= 1) {
+                counts[Math.floor(s.level)]++;
+            } else {
+                counts.unstudied++;
+            }
+        });
+        
+        const inProgress = counts[1] + counts[2] + counts[3] + counts[4];
+        
+        const isSelected = selectedLessonsForMatching.includes(lessonName);
         const card = document.createElement('div');
         card.className = `lesson-card${isSelected ? ' selected' : ''}`;
+        
+        // Generate progress segments
+        let progressHtml = '';
+        const colors = { 1: '#94a3b8', 2: '#6366f1', 3: '#10b981', 4: '#f59e0b', 5: '#ec4899' };
+        [1, 2, 3, 4, 5].forEach(l => {
+            const pct = (counts[l] / total) * 100;
+            if (pct > 0) {
+                progressHtml += `<div class="progress-segment" style="width: ${pct}%; background: ${colors[l]};"></div>`;
+            }
+        });
+
         card.innerHTML = `
             <div class="selection-indicator"><i class="fas fa-check"></i></div>
-            <div class="lesson-info">
-                <span class="lesson-name">${lessonName}</span>
-                <span class="lesson-count">${count} từ vựng</span>
+            <div class="lesson-info" style="width: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                    <span class="lesson-name" style="font-weight: 700; font-size: 1.1rem;">${lessonName}</span>
+                    <span class="in-progress-badge">${inProgress}/${total} từ</span>
+                </div>
+                
+                <div class="lesson-progress-container">
+                    ${progressHtml || '<div class="progress-segment" style="width: 100%; background: #e2e8f0;"></div>'}
+                </div>
+                
+                <div class="level-stats-grid">
+                    <span style="color: ${colors[1]}">L1: ${counts[1]}</span>
+                    <span style="color: ${colors[2]}">L2: ${counts[2]}</span>
+                    <span style="color: ${colors[3]}">L3: ${counts[3]}</span>
+                    <span style="color: ${colors[4]}">L4: ${counts[4]}</span>
+                    <span style="color: ${colors[5]}">⭐ L5: ${counts[5]}</span>
+                </div>
             </div>
-            <div class="lesson-action" style="gap: 10px;">
-                <button class="lesson-btn matching-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;" onclick="event.stopPropagation(); startMatchingGame('${lessonName}')">Nối Chữ 🧩</button>
-                <span style="color: #6366f1; font-weight: 700; cursor: pointer;" onclick="event.stopPropagation(); startLessonSetup('${lessonName}')">Chọn ➡️</span>
+            <div class="lesson-action" style="margin-top: 10px; justify-content: space-between; width: 100%;">
+                <button class="lesson-btn matching-btn" style="flex: 1; margin-right: 8px; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;" onclick="event.stopPropagation(); startMatchingGame('${lessonName}')">Nối Chữ 🧩</button>
+                <button class="btn primary-btn" style="flex: 1; margin-bottom: 0; padding: 0.5rem; font-size: 0.9rem;" onclick="event.stopPropagation(); startLessonSetup('${lessonName}')">Học Ngay ➡️</button>
             </div>
         `;
         card.onclick = () => toggleLessonSelection(lessonName, card);
