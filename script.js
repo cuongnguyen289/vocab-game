@@ -296,6 +296,10 @@ let activityHistory = {}; // Daily Correct Count: { "YYYY-MM-DD": count }
 let recognition; // SpeechRecognition instance
 let isRecording = false;
 
+// Sync protection flags
+let isCloudSyncing = false;
+let isCloudLoaded = false;
+
 const screens = {
     mainMenu: document.getElementById('main-menu-screen'),
     gameSetup: document.getElementById('game-setup-screen'),
@@ -1161,25 +1165,30 @@ function parseLessonCSV(csvText) {
     lessonVocabulary = [];
     lessonsGrouped = {};
     
+    let skippedCount = 0;
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         
-        const parts = splitCSVLine(line);
-        if (parts.length >= 9) {
+        let parts = splitCSVLine(line);
+        // Remove trailing empty parts that often come from Excel/Sheets export
+        while (parts.length > 0 && parts[parts.length - 1] === "") {
+            parts.pop();
+        }
+
+        if (parts.length >= 4) { // Reduced requirement from 9 to 4 to be more flexible
             const hantu = parts[1] || "";
             const phienam = parts[2] || "";
             const nghia = parts[3] || "";
             
-            // Flexibly find example fields from the end of the row
-            const lessonName = parts[parts.length - 1] || "Khác";
-            
             // Skip if it looks like a header row
-            if (lessonName.includes("Nguồn tài liệu") || hantu === "Hán Tự" || hantu === "STT") continue;
+            if (hantu === "Hán Tự" || hantu === "STT" || hantu.includes("Nguồn tài liệu")) continue;
 
-            const cauNghia = parts[parts.length - 2] || "";
-            const cauPinyin = parts[parts.length - 3] || "";
-            const cau = parts[parts.length - 4] || "";
+            // Flexibly find fields relative to the end
+            const lessonName = parts[parts.length - 1] || "Khác";
+            const cauNghia = parts.length >= 6 ? parts[parts.length - 2] : "";
+            const cauPinyin = parts.length >= 7 ? parts[parts.length - 3] : "";
+            const cau = parts.length >= 8 ? parts[parts.length - 4] : "";
 
             if (hantu && nghia) {
                 const wordObj = {
@@ -1200,10 +1209,14 @@ function parseLessonCSV(csvText) {
                 lessonsGrouped[lessonName].push(wordObj);
                 
                 updateGlobalCharMap(hantu, phienam);
+            } else {
+                skippedCount++;
             }
+        } else {
+            skippedCount++;
         }
     }
-    console.log(`Đã nạp ${lessonVocabulary.length} từ theo bài.`);
+    console.log(`Đã nạp ${lessonVocabulary.length} từ theo bài. (Bỏ qua ${skippedCount} dòng không hợp lệ)`);
 }
 
 function splitPinyinIntoSyllables(pinyin) {
@@ -3321,6 +3334,12 @@ function saveProgressToCloud() {
     // Debounce to prevent exceeding Firebase quota
     if (syncTimeout) clearTimeout(syncTimeout);
     
+    // CRITICAL: Prevent overwriting cloud data if we haven't finished loading it yet
+    if (isCloudSyncing || !isCloudLoaded) {
+        console.warn("Skip Cloud Save: Syncing or not yet loaded.");
+        return;
+    }
+    
     syncTimeout = setTimeout(() => {
         db.collection("users").doc(currentUser).set({
             wordStats: wordStats,
@@ -3334,6 +3353,10 @@ function saveProgressToCloud() {
 }
 
 function loadProgressFromCloud(uid) {
+    if (isCloudSyncing) return;
+    isCloudSyncing = true;
+    isCloudLoaded = false;
+
     const loadingScreen = document.getElementById('loading-screen');
     if(loadingScreen) {
         loadingScreen.querySelector('p').textContent = "Đang đồng bộ dữ liệu Cloud...";
@@ -3352,16 +3375,21 @@ function loadProgressFromCloud(uid) {
             localStorage.setItem(`${uid}_vocab_history`, JSON.stringify(vocabHistory));
             localStorage.setItem(`${uid}_activity_history`, JSON.stringify(activityHistory));
             
+            isCloudLoaded = true;
             updateProgressUI();
             console.log("Đã tải dữ liệu từ Cloud.");
         } else {
-            console.log("User chưa có dữ liệu trên Cloud. Đẩy dữ liệu hiện tại lên.");
+            console.log("User chưa có dữ liệu trên Cloud. Sẵn sàng đồng bộ mới.");
+            isCloudLoaded = true; // Mark as loaded even if empty so we can start saving
             saveProgressToCloud();
         }
     }).catch((error) => {
         console.error("Lỗi tải dữ liệu từ Cloud:", error);
         loadProgressFromLocal();
+        // Even if failed, we mark as loaded so we can function locally and try saving later
+        isCloudLoaded = true; 
     }).finally(() => {
+        isCloudSyncing = false;
         if(loadingScreen) loadingScreen.classList.remove('active');
     });
 }
@@ -3511,3 +3539,23 @@ function updateMatchingProgress() {
         progressEl.textContent = `${matchingMatchedCount}/4`;
     }
 }
+
+// Console Utility for Data Recovery
+window.recoverVocabData = function() {
+    console.log('--- ??? T�m ki?m d? li?u t? v?ng trong LocalStorage ---');
+    const keys = Object.keys(localStorage);
+    const statsKeys = keys.filter(k => k.endsWith('_vocab_stats'));
+    
+    if (statsKeys.length === 0) {
+        console.log('? Kh�ng t�m th?y d? li?u cu n�o.');
+        return;
+    }
+    
+    statsKeys.forEach(k => {
+        const data = JSON.parse(localStorage.getItem(k));
+        const count = Object.keys(data || {}).length;
+        console.log('- Key: ' + k + ' | S? t? d� h?c: ' + count);
+    });
+    
+    console.log('�? kh�i ph?c, h�y g�: localStorage.setItem(currentUser + \'_vocab_stats\', localStorage.getItem(\'KEY_MUON_KHOI_PHUC\')) v� F5.');
+};
